@@ -1,5 +1,6 @@
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
+#undef GLAD_GL_IMPLEMENTATION
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -55,18 +56,20 @@ int main()
 
         Renderer2D::BeginFrame();
 
+        // Marvel lanes: keep the reference's orange color, 90% world width,
+        // and 18% world height, centered at the team's shared lane positions.
+        // Draw the background first so gameplay and UI render above it.
+        for (int lane = 0; lane < NUM_LANES; ++lane) {
+            Renderer2D::DrawQuad(
+                glm::vec2(WORLD_WIDTH / 2.0f, LANE_Y[lane]),
+                glm::vec2(WORLD_WIDTH * 0.9f, WORLD_HEIGHT * 0.18f),
+                glm::vec3(1.0f, 0.5f, 0.2f)
+            );
+        }
+
         // TODO Person 3: RenderEnemies();
         // TODO Person 2: RenderTowers();
         // TODO Person 4: RenderUI();
-
-        // Sanity-check placeholder: proves the whole pipeline (build -> shader
-        // -> renderer -> window) actually works end to end. Delete this once
-        // real gameplay is drawing something of its own.
-        Renderer2D::DrawQuad(
-            glm::vec2(WORLD_WIDTH / 2.0f, WORLD_HEIGHT / 2.0f),
-            glm::vec2(1.0f, 1.0f),
-            glm::vec3(0.5f, 0.5f, 0.5f)
-        );
 
         glfwSwapBuffers(window);
     }
