@@ -17,4 +17,6 @@ add_executable(OpenGLStarter
 )
 
 target_include_directories(OpenGLStarter PRIVATE external/glad/include)
+# GLAD provides OpenGL declarations; prevent GLFW from including system GL headers.
+target_compile_definitions(OpenGLStarter PRIVATE GLFW_INCLUDE_NONE)
 target_link_libraries(OpenGLStarter PRIVATE glfw OpenGL::GL glm::glm)
