@@ -14,6 +14,8 @@ add_executable(OpenGLStarter
     main.cpp
     src/Renderer2D.cpp
     src/Input.cpp
+    src/MainMenu.cpp
+   
 )
 
 target_include_directories(OpenGLStarter PRIVATE external/glad/include)
