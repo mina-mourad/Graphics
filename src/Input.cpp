@@ -9,6 +9,9 @@ namespace
     bool mouseDown[GLFW_MOUSE_BUTTON_LAST + 1] = {};
     bool mouseDownLastFrame[GLFW_MOUSE_BUTTON_LAST + 1] = {};
 
+    bool keyDown[GLFW_KEY_LAST + 1] = {};
+    bool keyDownLastFrame[GLFW_KEY_LAST + 1] = {};
+
     int screenWidth = 1280;
     int screenHeight = 720;
 
@@ -39,6 +42,12 @@ void Input::Update()
 {
     for (int i = 0; i <= GLFW_MOUSE_BUTTON_LAST; ++i)
         mouseDownLastFrame[i] = mouseDown[i];
+
+    for (int k = 0; k <= GLFW_KEY_LAST; ++k) {
+        keyDownLastFrame[k] = keyDown[k];
+        // GLFW reports GLFW_INVALID_ENUM for unused key codes; only poll real ones.
+        keyDown[k] = (g_window && k >= GLFW_KEY_SPACE) ? (glfwGetKey(g_window, k) == GLFW_PRESS) : false;
+    }
 }
 
 glm::vec2 Input::GetMouseWorldPos()
@@ -68,4 +77,10 @@ bool Input::IsMouseButtonPressed(int button)
 bool Input::IsKeyDown(int key)
 {
     return g_window && glfwGetKey(g_window, key) == GLFW_PRESS;
+}
+
+bool Input::IsKeyPressed(int key)
+{
+    if (key < 0 || key > GLFW_KEY_LAST) return false;
+    return keyDown[key] && !keyDownLastFrame[key];
 }

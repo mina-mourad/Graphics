@@ -24,4 +24,5 @@ namespace Input
     bool IsMouseButtonDown(int button);     // true every frame the button is held (GLFW_MOUSE_BUTTON_LEFT, etc.)
     bool IsMouseButtonPressed(int button);  // true only on the frame it was first pressed
     bool IsKeyDown(int key);                // true every frame the key is held (GLFW_KEY_W, etc.)
+    bool IsKeyPressed(int key);             // true only on the frame the key was first pressed
 }

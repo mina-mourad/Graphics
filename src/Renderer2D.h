@@ -28,6 +28,20 @@ namespace Renderer2D
     // selection feedback, or drive it from a short timer for a damage flash.
     void DrawQuad(glm::vec2 pos, glm::vec2 size, glm::vec3 color, float highlight = 0.0f);
 
+    // ---- Extended primitives (added for the full game) ----------------------
+    // Rotated rectangle. `angle` is radians, counter-clockwise, about the
+    // rectangle's own centre. `alpha` < 1 blends over what is already drawn.
+    void DrawQuadRot(glm::vec2 pos, glm::vec2 size, float angle,
+                     glm::vec3 color, float alpha = 1.0f, float highlight = 0.0f);
+
+    // Triangle given by three world-space corners.
+    void DrawTriangle(glm::vec2 a, glm::vec2 b, glm::vec2 c,
+                      glm::vec3 color, float alpha = 1.0f, float highlight = 0.0f);
+
+    // Filled ellipse centred at `pos` with radii (rx, ry), rotated by `angle`.
+    void DrawEllipse(glm::vec2 pos, glm::vec2 radii, float angle,
+                     glm::vec3 color, float alpha = 1.0f, float highlight = 0.0f);
+
     // Call if the window is resized, so the projection keeps matching the
     // screen (Input::Init registers the GLFW resize callback that should
     // call this).

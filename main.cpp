@@ -8,6 +8,7 @@
 #include "src/GameConfig.h"
 #include "src/Renderer2D.h"
 #include "src/Input.h"
+#include "src/Game.h"
 
 int main()
 {
@@ -16,13 +17,17 @@ int main()
         return -1;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    // Modern OpenGL: a 3.3 core-profile context (the spec asks for 3.3 or newer).
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
     int screenWidth = 1280;
     int screenHeight = 720;
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Tower Defense", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Guardians of the Sun Disc", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create window\n";
         glfwTerminate();
@@ -38,8 +43,9 @@ int main()
 
     Renderer2D::Init(screenWidth, screenHeight);
     Input::Init(window);
+    Game::Init();
 
-    float lastFrame = 0.0f;
+    float lastFrame = static_cast<float>(glfwGetTime());
 
     while (!glfwWindowShouldClose(window))
     {
@@ -50,26 +56,12 @@ int main()
         Input::Update();
         glfwPollEvents();
 
-        // TODO Person 2: UpdatePlayerSystems(deltaTime);
-        // TODO Person 3: UpdateEnemySystems(deltaTime);
-        // TODO Person 4: UpdateUI(deltaTime);
+        Game::Update(deltaTime);
+        if (Game::WantsExit())
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
 
         Renderer2D::BeginFrame();
-
-        // Marvel lanes: keep the reference's orange color, 90% world width,
-        // and 18% world height, centered at the team's shared lane positions.
-        // Draw the background first so gameplay and UI render above it.
-        for (int lane = 0; lane < NUM_LANES; ++lane) {
-            Renderer2D::DrawQuad(
-                glm::vec2(WORLD_WIDTH / 2.0f, LANE_Y[lane]),
-                glm::vec2(WORLD_WIDTH * 0.9f, WORLD_HEIGHT * 0.18f),
-                glm::vec3(1.0f, 0.5f, 0.2f)
-            );
-        }
-
-        // TODO Person 3: RenderEnemies();
-        // TODO Person 2: RenderTowers();
-        // TODO Person 4: RenderUI();
+        Game::Render();
 
         glfwSwapBuffers(window);
     }

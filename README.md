@@ -18,3 +18,15 @@
 ## What this is / isn't
 
 This is the minimum engine scaffold needed for Player Systems (Person 2), Enemy/Wave/Economy (Person 3), and UI/Art (Person 4) to start writing real game code in parallel. It deliberately does **not** include texture/image loading, text rendering, or audio — those come later and don't block anyone from starting.
+
+---
+
+## Branch `reference/full-game` — complete reference implementation
+
+This branch contains a finished, playable version of the game ("Guardians of the Sun Disc", ancient-Egypt theme) kept as a **working backup / reference**. It was generated with an AI assistant (Claude); the team lead said the course doctor allowed this verbally. **Get that permission in writing before submitting anything from this branch** — the spec treats unauthorised AI use as a zero.
+
+**Controls:** click a lane to select/deselect it (multi-select works), click a card or press `1` / `2` / `3` to place Melee / Ranged / Defense on every selected lane, `W`/`Up` jump (dodge low attacks), `S`/`Down` duck (dodge high attacks), click or walk over coins to collect them, `Esc` pause, `Space` skips the cutscene.
+
+**Structure:** `Game.cpp` (state machine, waves, combat, HUD, menus), `Characters.cpp` (all character models), `Environment.cpp` (sky, lanes, scenery, temple), `Cutscene.cpp` (16 s intro), `Draw.cpp` (effects, health bars, props), `Text.cpp` (bitmap font), `Renderer2D.cpp` (quads, rotated quads, triangles, ellipses, alpha).
+
+**Not implemented:** sound/audio bonus.
