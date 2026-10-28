@@ -9,6 +9,7 @@
 #include "src/Renderer2D.h"
 #include "src/Input.h"
 #include "src/Game.h"
+#include "src/Audio.h"
 
 int main()
 {
@@ -66,6 +67,7 @@ int main()
         glfwSwapBuffers(window);
     }
 
+    Audio::Shutdown();
     Renderer2D::Shutdown();
     glfwTerminate();
     return 0;

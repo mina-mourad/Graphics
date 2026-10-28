@@ -5,6 +5,7 @@
 #include "Text.h"
 #include "Draw.h"
 #include "Cutscene.h"
+#include "Audio.h"
 
 #include <GLFW/glfw3.h>
 
@@ -239,7 +240,7 @@ namespace
         if (coins < cost) return;                 // locked card: ignored
         bool any = false;
         for (int l = 0; l < NUM_LANES; ++l) if (laneSelected[l]) any = true;
-        if (!any) { ShowToast("SELECT A LANE FIRST"); return; }
+        if (!any) { ShowToast("SELECT A LANE FIRST"); Audio::Play(Audio::Sfx::Locked); return; }
 
         int placed = 0;
         for (int l = 0; l < NUM_LANES; ++l) {
@@ -250,14 +251,14 @@ namespace
                 bool taken = false;
                 for (const Player& p : players)
                     if (p.lane == l && p.type == PlayerType::Defense && p.x < PLAYER_SPAWN_X + 0.6f) taken = true;
-                if (taken) { ShowToast("A GUARDIAN ALREADY STANDS HERE"); continue; }
+                if (taken) { ShowToast("A GUARDIAN ALREADY STANDS HERE"); Audio::Play(Audio::Sfx::Locked); continue; }
             }
             coins -= cost;
             SpawnPlayer(type, l);
             laneCooldown[l] = 0.45f;
             ++placed;
         }
-        (void)placed;
+        if (placed > 0) Audio::Play(Audio::Sfx::Place);
     }
 
     // ------------------------------------------------------------------
@@ -267,6 +268,7 @@ namespace
     {
         p.hp -= dmg;
         p.flash = 1.0f;
+        Audio::Play(Audio::Sfx::Hurt, 0.8f);
         AddSpark(vec2(p.x, LANE_Y[p.lane] + 0.1f), vec3(1.0f, 0.35f, 0.2f));
     }
 
@@ -274,6 +276,7 @@ namespace
     {
         e.hp -= dmg;
         e.flash = 1.0f;
+        Audio::Play(Audio::Sfx::Hit, 0.8f);
         AddSpark(vec2(e.x, LANE_Y[e.lane] + 0.1f), vec3(0.95f, 0.85f, 0.3f));
     }
 
@@ -291,6 +294,7 @@ namespace
         if (c.taken) return;
         c.taken = true;
         coins += c.value;
+        Audio::Play(Audio::Sfx::Coin);
         AddSpark(vec2(c.x, LANE_Y[c.lane] - 0.2f), vec3(1.0f, 0.85f, 0.2f), 0.4f);
         FloatText f; f.pos = vec2(c.x, LANE_Y[c.lane] + 0.1f); f.text = "+" + std::to_string(c.value);
         floaters.push_back(f);
@@ -328,7 +332,7 @@ namespace
                 float dx = e.x - p.x;
                 if (dx > -0.2f && dx < MELEE_REACH + 0.1f && (!best || p.x > best->x)) best = &p;
             }
-            if (best) DamagePlayer(*best, ENEMY_DAMAGE[idx]);
+            if (best) { Audio::Play(Audio::Sfx::Sword, 0.7f); DamagePlayer(*best, ENEMY_DAMAGE[idx]); }
         } else {
             Projectile s;
             s.lane = e.lane;
@@ -338,6 +342,7 @@ namespace
             if (e.type == EnemyType::EasyRanged) { s.kind = ShotKind::SpiritBolt; s.high = true;  s.speed = 3.6f; }
             else                                 { s.kind = ShotKind::Stinger;    s.high = false; s.speed = 3.9f; }
             shots.push_back(s);
+            Audio::Play(e.type == EnemyType::EasyRanged ? Audio::Sfx::SpiritBolt : Audio::Sfx::Stinger, 0.7f);
         }
     }
 
@@ -350,7 +355,7 @@ namespace
                 float dx = e.x - p.x;
                 if (dx > -0.2f && dx < MELEE_REACH && (!best || e.x < best->x)) best = &e;
             }
-            if (best) DamageEnemy(*best, PLAYER_DAMAGE);
+            if (best) { Audio::Play(Audio::Sfx::Sword, 0.7f); DamageEnemy(*best, PLAYER_DAMAGE); }
         } else if (p.type == PlayerType::Ranged) {
             Projectile s;
             s.kind = ShotKind::Arrow;
@@ -360,6 +365,7 @@ namespace
             s.speed = 5.4f;
             s.damage = PLAYER_DAMAGE;
             shots.push_back(s);
+            Audio::Play(Audio::Sfx::Arrow, 0.8f);
         }
     }
 
@@ -429,6 +435,7 @@ namespace
                 }
             }
         }
+        for (const Player& p : players) if (p.hp <= 0) Audio::Play(Audio::Sfx::PlayerDie, 0.8f);
         // defeated players leave the scene; players that reach the far end leave too
         players.erase(std::remove_if(players.begin(), players.end(),
             [](const Player& p) { return p.hp <= 0 || p.x > LANE_RIGHT_END + 0.4f; }), players.end());
@@ -459,7 +466,7 @@ namespace
             if (e.x <= BASE_REACHED_X) reached = true;
         }
         for (const Enemy& e : enemies)
-            if (e.hp <= 0) DropCoin(e);
+            if (e.hp <= 0) { DropCoin(e); Audio::Play(Audio::Sfx::EnemyDie, 0.8f); }
         enemies.erase(std::remove_if(enemies.begin(), enemies.end(), [](const Enemy& e) { return e.hp <= 0; }), enemies.end());
         return reached;
     }
@@ -494,6 +501,7 @@ namespace
             waveTimer -= dt;
             if (waveTimer <= 0.0f) {
                 BuildWaveQueue(waveIndex);
+                Audio::Play(Audio::Sfx::Horn);
                 waveState = WaveState::Spawning;   // a wave begins as soon as its first enemy appears
                 spawnTimer = 0.0f;
             }
@@ -617,7 +625,7 @@ namespace
                 used = true;
             }
             // 3) lanes: a click toggles that lane between selected and not selected
-            if (!used && hoverLane >= 0) laneSelected[hoverLane] = !laneSelected[hoverLane];
+            if (!used && hoverLane >= 0) { laneSelected[hoverLane] = !laneSelected[hoverLane]; Audio::Play(Audio::Sfx::Click, 0.8f); }
         }
 
         // keyboard shortcuts for the cards
@@ -629,6 +637,9 @@ namespace
         bool up = Input::IsKeyPressed(GLFW_KEY_W) || Input::IsKeyPressed(GLFW_KEY_UP);
         bool down = Input::IsKeyPressed(GLFW_KEY_S) || Input::IsKeyPressed(GLFW_KEY_DOWN);
         if (up || down) {
+            bool any = false;
+            for (const Player& p : players) if (laneSelected[p.lane] && p.type != PlayerType::Defense) any = true;
+            if (any) Audio::Play(up ? Audio::Sfx::Jump : Audio::Sfx::Duck);
             for (Player& p : players) {
                 if (!laneSelected[p.lane] || p.type == PlayerType::Defense) continue;
                 if (up)   { p.jumpT = JUMP_TIME; p.duckT = 0.0f; }
@@ -671,7 +682,9 @@ Game::Snapshot Game::GetSnapshot()
     return s;
 }
 
-void Game::Update(float dt)
+using State = Game::State;
+
+static void UpdateCore(float dt)
 {
     dt = std::min(dt, 0.05f);          // a long frame must never let things tunnel through each other
     envTime += dt;
@@ -724,6 +737,52 @@ void Game::Update(float dt)
         break;
     }
     }
+}
+
+// Sound layer: music per state, jingles on transitions, button clicks, cutscene stings, M to mute.
+void Game::Update(float dt)
+{
+    static State prev = State::MainMenu;
+    static float prevCut = 0.0f;
+    static bool audioStarted = false;
+    if (!audioStarted) { audioStarted = true; Audio::Init(); }
+
+    vec2 m = Input::GetMouseWorldPos();
+    if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+        int b = -1;
+        if (state == State::MainMenu) b = ButtonAt(m, 2, 3.9f);
+        else if (state == State::Paused) b = ButtonAt(m, 3, 4.0f);
+        else if ((state == State::Won || state == State::Lost) && endTimer > 0.9f) b = ButtonAt(m, 2, 3.4f);
+        else if (state == State::Playing) { int c = CardAt(m); if (c >= 0 && CardUnlocked(static_cast<PlayerType>(c))) b = 0; }
+        if (b >= 0) Audio::Play(Audio::Sfx::Click);
+    }
+    if (Input::IsKeyPressed(GLFW_KEY_M)) Audio::ToggleMute();
+
+    UpdateCore(dt);
+
+    if (state == State::Cutscene) {
+        float t = Cutscene::Time();
+        auto crossed = [&](float at) { return prevCut < at && t >= at; };
+        if (crossed(4.2f)) Audio::Play(Audio::Sfx::Horn, 0.8f);
+        if (crossed(7.6f)) Audio::Play(Audio::Sfx::Roar);
+        if (crossed(11.4f) || crossed(13.0f)) Audio::Play(Audio::Sfx::Arrow);
+        if (crossed(13.5f)) Audio::Play(Audio::Sfx::SpiritBolt);
+        if (crossed(14.1f)) Audio::Play(Audio::Sfx::Hurt);
+        if (crossed(11.9f) || crossed(13.5f)) Audio::Play(Audio::Sfx::Hit, 0.7f);
+        prevCut = t;
+    } else prevCut = 0.0f;
+
+    if (state != prev) {
+        if (state == State::Won) Audio::Play(Audio::Sfx::Win);
+        if (state == State::Lost) Audio::Play(Audio::Sfx::Lose);
+        prev = state;
+    }
+    switch (state) {
+    case State::MainMenu: case State::Cutscene: Audio::SetMusic(Audio::Music::Theme); break;
+    case State::Playing: case State::Paused:    Audio::SetMusic(Audio::Music::Battle); break;
+    default:                                    Audio::SetMusic(Audio::Music::None); break;
+    }
+    Audio::SetMusicDucked(state == State::Paused);
 }
 
 // ===========================================================================

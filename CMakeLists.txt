@@ -20,9 +20,11 @@ add_executable(OpenGLStarter
     src/Environment.cpp
     src/Cutscene.cpp
     src/Game.cpp
+    src/Audio.cpp
 )
 
-target_include_directories(OpenGLStarter PRIVATE external/glad/include)
+target_include_directories(OpenGLStarter PRIVATE external/glad/include external/miniaudio)
 # GLAD provides OpenGL declarations; prevent GLFW from including system GL headers.
 target_compile_definitions(OpenGLStarter PRIVATE GLFW_INCLUDE_NONE)
-target_link_libraries(OpenGLStarter PRIVATE glfw OpenGL::GL glm::glm)
+find_package(Threads REQUIRED)
+target_link_libraries(OpenGLStarter PRIVATE glfw OpenGL::GL glm::glm Threads::Threads ${CMAKE_DL_LIBS})

@@ -25,8 +25,8 @@ This is the minimum engine scaffold needed for Player Systems (Person 2), Enemy/
 
 This branch contains a finished, playable version of the game ("Guardians of the Sun Disc", ancient-Egypt theme) kept as a **working backup / reference**. It was generated with an AI assistant (Claude); the team lead said the course doctor allowed this verbally. **Get that permission in writing before submitting anything from this branch** — the spec treats unauthorised AI use as a zero.
 
-**Controls:** click a lane to select/deselect it (multi-select works), click a card or press `1` / `2` / `3` to place Melee / Ranged / Defense on every selected lane, `W`/`Up` jump (dodge low attacks), `S`/`Down` duck (dodge high attacks), click or walk over coins to collect them, `Esc` pause, `Space` skips the cutscene.
+**Controls:** click a lane to select/deselect it (multi-select works), click a card or press `1` / `2` / `3` to place Melee / Ranged / Defense on every selected lane, `W`/`Up` jump (dodge low attacks), `S`/`Down` duck (dodge high attacks), click or walk over coins to collect them, `Esc` pause, `Space` skips the cutscene, `M` mutes/unmutes.
 
-**Structure:** `Game.cpp` (state machine, waves, combat, HUD, menus), `Characters.cpp` (all character models), `Environment.cpp` (sky, lanes, scenery, temple), `Cutscene.cpp` (16 s intro), `Draw.cpp` (effects, health bars, props), `Text.cpp` (bitmap font), `Renderer2D.cpp` (quads, rotated quads, triangles, ellipses, alpha).
+**Structure:** `Game.cpp` (state machine, waves, combat, HUD, menus), `Characters.cpp` (all character models), `Environment.cpp` (sky, lanes, scenery, temple), `Cutscene.cpp` (16 s intro), `Draw.cpp` (effects, health bars, props), `Text.cpp` (bitmap font), `Renderer2D.cpp` (quads, rotated quads, triangles, ellipses, alpha), `Audio.cpp` (sound).
 
-**Not implemented:** sound/audio bonus.
+**Sound (bonus):** `Audio.cpp` synthesises every effect and two music loops (a slow theme for menu/cutscene, a drum-driven battle track) in code — no audio files. Playback uses the single-header miniaudio library in `external/miniaudio/`. If no audio device is found the game just runs silent.
