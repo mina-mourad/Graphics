@@ -3,6 +3,6 @@
 namespace MainMenu
 {
     void Init();
-    void Render();
+    bool Render();
     void Shutdown();
 }
