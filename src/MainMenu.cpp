@@ -38,7 +38,7 @@ namespace MainMenu
         // Nothing to initialize yet.
     }
 
-    void Render()
+    bool Render()
     {
         glm::vec2 mousePos = Input::GetMouseWorldPos();
 
@@ -52,6 +52,11 @@ namespace MainMenu
         bool startHover =
             pointInTriangle(mousePos, startA, startB, startC) ||
             pointInTriangle(mousePos, startA, startC, startD);
+        if (startHover &&
+            Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+        {
+            return true; // Start the game
+        }
 
         Renderer2D::DrawQuad(
             glm::vec2(8.0f, 6.0f),
@@ -104,6 +109,8 @@ namespace MainMenu
             glm::vec3(0.56f, 0.09f, 0.13f),
             exitHover ? 1.0f : 0.0f
         );
+
+        return false;
     }
 
     void Shutdown()
