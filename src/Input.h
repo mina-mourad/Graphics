@@ -10,8 +10,7 @@
 //
 // Call Init() once, right after the window is created. Call Update() once
 // per frame, BEFORE polling GLFW events and before reading any state below
-// -- it snapshots last frame's state so IsMouseButtonPressed() (edge-
-// triggered) works correctly.
+// -- it clears press events before the existing callbacks record new events.
 namespace Input
 {
     void Init(GLFWwindow* window);

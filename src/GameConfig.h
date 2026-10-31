@@ -13,6 +13,8 @@ constexpr float WORLD_WIDTH  = 16.0f;
 constexpr float WORLD_HEIGHT = 9.0f;
 
 constexpr int   NUM_LANES = 3;
+constexpr float LANE_WIDTH = WORLD_WIDTH * 0.9f;
+constexpr float LANE_HEIGHT = WORLD_HEIGHT * 0.18f;
 constexpr float LANE_Y[NUM_LANES] = { 1.5f, 4.5f, 7.5f };   // placeholder lane Y positions, tune later
 constexpr float LANE_START_X = 0.0f;                         // where enemies spawn (right edge if the lane runs right-to-left)
 constexpr float LANE_END_X   = WORLD_WIDTH;                  // where an enemy "reaches the base" / triggers a loss of health
