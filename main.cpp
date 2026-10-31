@@ -1,4 +1,4 @@
-#define GLAD_GL_IMPLEMENTATION
+
 #include <glad/gl.h>
 #undef GLAD_GL_IMPLEMENTATION
 #include <GLFW/glfw3.h>
@@ -8,7 +8,10 @@
 #include "src/GameConfig.h"
 #include "src/Renderer2D.h"
 #include "src/Input.h"
-
+#include "src/EnemySystem.h"
+#include "src/MainMenu.h"
+#define GLAD_GL_IMPLEMENTATION
+#include <glad/gl.h>
 int main()
 {
     if (!glfwInit()) {
@@ -37,6 +40,7 @@ int main()
     }
 
     Renderer2D::Init(screenWidth, screenHeight);
+    EnemySystem::Init();
     Input::Init(window);
 
     float lastFrame = 0.0f;
@@ -52,6 +56,7 @@ int main()
 
         // TODO Person 2: UpdatePlayerSystems(deltaTime);
         // TODO Person 3: UpdateEnemySystems(deltaTime);
+        EnemySystem::Update(deltaTime);
         // TODO Person 4: UpdateUI(deltaTime);
 
         Renderer2D::BeginFrame();
@@ -67,12 +72,16 @@ int main()
             );
         }
 
+       
+
         // TODO Person 3: RenderEnemies();
+        EnemySystem::Render();
         // TODO Person 2: RenderTowers();
         // TODO Person 4: RenderUI();
 
         glfwSwapBuffers(window);
     }
+    EnemySystem::Shutdown();
 
     Renderer2D::Shutdown();
     glfwTerminate();
