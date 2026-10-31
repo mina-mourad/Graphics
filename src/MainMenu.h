@@ -1,8 +1,8 @@
 #pragma once
 
-namespace MainMenu //the functions that we will use in menu (implement in cpp)
+namespace MainMenu
 {
     void Init();
-    void Render();
+    bool Render();
     void Shutdown();
 }

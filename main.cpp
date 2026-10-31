@@ -16,9 +16,113 @@
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
+// Person 1 lane interactions.
+namespace
+{
+    float triSign(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
+    {
+        return (p1.x - p3.x) * (p2.y - p3.y)
+             - (p2.x - p3.x) * (p1.y - p3.y);
+    }
+
+    bool pointInTriangle(glm::vec2 pt, glm::vec2 a, glm::vec2 b, glm::vec2 c)
+    {
+        float d1 = triSign(pt, a, b);
+        float d2 = triSign(pt, b, c);
+        float d3 = triSign(pt, c, a);
+
+        bool hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        bool hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+        return !(hasNeg && hasPos);
+    }
+
+    struct LaneInteraction
+    {
+        int hoveredLane = -1;
+        int selectedLane = -1;
+        bool previousW = false;
+        bool previousS = false;
+
+        void Update()
+        {
+            const glm::vec2 mouse = Input::GetMouseWorldPos();
+            hoveredLane = -1;
+
+            for (int lane = 0; lane < NUM_LANES; ++lane)
+            {
+                const float left = (WORLD_WIDTH - LANE_WIDTH) * 0.5f;
+                const float right = left + LANE_WIDTH;
+                const float bottom = LANE_Y[lane] - LANE_HEIGHT * 0.5f;
+                const float top = LANE_Y[lane] + LANE_HEIGHT * 0.5f;
+
+                const glm::vec2 a(left, bottom);
+                const glm::vec2 b(right, bottom);
+                const glm::vec2 c(right, top);
+                const glm::vec2 d(left, top);
+
+                if (pointInTriangle(mouse, a, b, c) ||
+                    pointInTriangle(mouse, a, c, d))
+                {
+                    hoveredLane = lane;
+                    break;
+                }
+            }
+
+            const bool wDown = Input::IsKeyDown(GLFW_KEY_W);
+            const bool sDown = Input::IsKeyDown(GLFW_KEY_S);
+
+            const bool wPressed = wDown && !previousW;
+            const bool sPressed = sDown && !previousS;
+
+            previousW = wDown;
+            previousS = sDown;
+
+            if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) &&
+                hoveredLane != -1)
+            {
+                selectedLane = selectedLane == hoveredLane ? -1 : hoveredLane;
+            }
+            else if (!(wDown && sDown) && (wPressed || sPressed))
+            {
+                if (selectedLane == -1)
+                {
+                    selectedLane = NUM_LANES / 2;
+                }
+                else if (wPressed && selectedLane < NUM_LANES - 1)
+                {
+                    ++selectedLane;
+                }
+                else if (sPressed && selectedLane > 0)
+                {
+                    --selectedLane;
+                }
+            }
+        }
+
+        float Highlight(int lane) const
+        {
+            if (lane == selectedLane) return 1.0f;
+            return lane == hoveredLane ? 0.45f : 0.0f;
+        }
+    };
+}
+
+// Game states.
+enum class GameState
+{
+    MainMenu,
+    Playing,
+    Paused,
+    GameOver
+};
+
+GameState currentState = GameState::MainMenu;
+
 int main()
 {
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         std::cerr << "Failed to init GLFW\n";
         return -1;
     }
@@ -38,7 +142,8 @@ int main()
         nullptr
     );
 
-    if (!window) {
+    if (!window)
+    {
         std::cerr << "Failed to create window\n";
         glfwTerminate();
         return -1;
@@ -48,7 +153,8 @@ int main()
 
     int version = gladLoadGL(glfwGetProcAddress);
 
-    if (version == 0) {
+    if (version == 0)
+    {
         std::cerr << "Failed to initialize OpenGL context\n";
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -62,6 +168,7 @@ int main()
     Input::Init(window);
 
     float lastFrame = 0.0f;
+    LaneInteraction lanes;
 
     // Main game loop.
     while (!glfwWindowShouldClose(window))
@@ -70,28 +177,48 @@ int main()
         float deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        Input::Update();
         glfwPollEvents();
-
-        // Update game systems.
-        WaveManager::Update(deltaTime);
-        EnemySystem::Update(deltaTime);
 
         Renderer2D::BeginFrame();
 
-        // Draw the three lanes.
-        for (int lane = 0; lane < NUM_LANES; ++lane) {
-            Renderer2D::DrawQuad(
-                glm::vec2(WORLD_WIDTH / 2.0f, LANE_Y[lane]),
-                glm::vec2(WORLD_WIDTH * 0.9f, WORLD_HEIGHT * 0.18f),
-                glm::vec3(1.0f, 0.5f, 0.2f)
-            );
+        if (currentState == GameState::MainMenu)
+        {
+            // Render menu. Start Game changes the state to Playing.
+            if (MainMenu::Render())
+            {
+                currentState = GameState::Playing;
+            }
+        }
+        else if (currentState == GameState::Playing)
+        {
+            // Update lane interactions.
+            lanes.Update();
+
+            // Update waves first so they can request enemy spawning.
+            WaveManager::Update(deltaTime);
+
+            // Update enemy movement and behavior.
+            EnemySystem::Update(deltaTime);
+
+            // Draw the three lanes.
+            for (int lane = 0; lane < NUM_LANES; ++lane)
+            {
+                Renderer2D::DrawQuad(
+                    glm::vec2(WORLD_WIDTH / 2.0f, LANE_Y[lane]),
+                    glm::vec2(LANE_WIDTH, LANE_HEIGHT),
+                    glm::vec3(1.0f, 0.5f, 0.2f),
+                    lanes.Highlight(lane)
+                );
+            }
+
+            // Draw enemies.
+            EnemySystem::Render();
         }
 
-        // Draw enemies.
-        EnemySystem::Render();
-
         glfwSwapBuffers(window);
+
+        // Update input after game/menu code has checked mouse presses.
+        Input::Update();
     }
 
     // Clean up game systems.
