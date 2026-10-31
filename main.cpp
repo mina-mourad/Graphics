@@ -1,6 +1,7 @@
 
 #include <glad/gl.h>
 #undef GLAD_GL_IMPLEMENTATION
+
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -9,9 +10,12 @@
 #include "src/Renderer2D.h"
 #include "src/Input.h"
 #include "src/EnemySystem.h"
+#include "src/WaveManager.h"
 #include "src/MainMenu.h"
+
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
+
 int main()
 {
     if (!glfwInit()) {
@@ -25,26 +29,41 @@ int main()
 
     int screenWidth = 1280;
     int screenHeight = 720;
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Tower Defense", nullptr, nullptr);
+
+    GLFWwindow* window = glfwCreateWindow(
+        screenWidth,
+        screenHeight,
+        "Tower Defense",
+        nullptr,
+        nullptr
+    );
+
     if (!window) {
         std::cerr << "Failed to create window\n";
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
 
     int version = gladLoadGL(glfwGetProcAddress);
+
     if (version == 0) {
         std::cerr << "Failed to initialize OpenGL context\n";
+        glfwDestroyWindow(window);
+        glfwTerminate();
         return -1;
     }
 
+    // Initialize game systems.
     Renderer2D::Init(screenWidth, screenHeight);
     EnemySystem::Init();
+    WaveManager::Init();
     Input::Init(window);
 
     float lastFrame = 0.0f;
 
+    // Main game loop.
     while (!glfwWindowShouldClose(window))
     {
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -54,16 +73,13 @@ int main()
         Input::Update();
         glfwPollEvents();
 
-        // TODO Person 2: UpdatePlayerSystems(deltaTime);
-        // TODO Person 3: UpdateEnemySystems(deltaTime);
+        // Update game systems.
+        WaveManager::Update(deltaTime);
         EnemySystem::Update(deltaTime);
-        // TODO Person 4: UpdateUI(deltaTime);
 
         Renderer2D::BeginFrame();
 
-        // Marvel lanes: keep the reference's orange color, 90% world width,
-        // and 18% world height, centered at the team's shared lane positions.
-        // Draw the background first so gameplay and UI render above it.
+        // Draw the three lanes.
         for (int lane = 0; lane < NUM_LANES; ++lane) {
             Renderer2D::DrawQuad(
                 glm::vec2(WORLD_WIDTH / 2.0f, LANE_Y[lane]),
@@ -72,18 +88,20 @@ int main()
             );
         }
 
-       
-
-        // TODO Person 3: RenderEnemies();
+        // Draw enemies.
         EnemySystem::Render();
-        // TODO Person 2: RenderTowers();
-        // TODO Person 4: RenderUI();
 
         glfwSwapBuffers(window);
     }
+
+    // Clean up game systems.
+    WaveManager::Shutdown();
     EnemySystem::Shutdown();
 
     Renderer2D::Shutdown();
+
+    glfwDestroyWindow(window);
     glfwTerminate();
+
     return 0;
 }
