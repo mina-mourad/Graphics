@@ -1,5 +1,4 @@
 #include <glad/gl.h>
-#undef GLAD_GL_IMPLEMENTATION
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -12,9 +11,6 @@
 #include "src/WaveManager.h"
 #include "src/MainMenu.h"
 
-#define GLAD_GL_IMPLEMENTATION
-#include <glad/gl.h>
-
 // Person 1 lane interactions.
 namespace
 {
@@ -24,11 +20,15 @@ namespace
              - (p2.x - p3.x) * (p1.y - p3.y);
     }
 
-    bool pointInTriangle(glm::vec2 pt, glm::vec2 a, glm::vec2 b, glm::vec2 c)
-{
-    float d1 = triSign(pt, a, b);
-    float d2 = triSign(pt, b, c);
-    float d3 = triSign(pt, c, a);
+    bool pointInTriangle(
+        glm::vec2 pt,
+        glm::vec2 a,
+        glm::vec2 b,
+        glm::vec2 c)
+    {
+        float d1 = triSign(pt, a, b);
+        float d2 = triSign(pt, b, c);
+        float d3 = triSign(pt, c, a);
 
     bool hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
     bool hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
@@ -40,20 +40,26 @@ namespace
     {
         int hoveredLane = -1;
         int selectedLane = -1;
+
         bool previousW = false;
         bool previousS = false;
 
         void Update()
         {
             const glm::vec2 mouse = Input::GetMouseWorldPos();
+
             hoveredLane = -1;
 
             for (int lane = 0; lane < NUM_LANES; ++lane)
             {
                 const float left = (WORLD_WIDTH - LANE_WIDTH) * 0.5f;
                 const float right = left + LANE_WIDTH;
-                const float bottom = LANE_Y[lane] - LANE_HEIGHT * 0.5f;
-                const float top = LANE_Y[lane] + LANE_HEIGHT * 0.5f;
+
+                const float bottom =
+                    LANE_Y[lane] - LANE_HEIGHT * 0.5f;
+
+                const float top =
+                    LANE_Y[lane] + LANE_HEIGHT * 0.5f;
 
                 const glm::vec2 a(left, bottom);
                 const glm::vec2 b(right, bottom);
@@ -80,7 +86,8 @@ namespace
             if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) &&
                 hoveredLane != -1)
             {
-                selectedLane = selectedLane == hoveredLane ? -1 : hoveredLane;
+                selectedLane =
+                    selectedLane == hoveredLane ? -1 : hoveredLane;
             }
             else if (!(wDown && sDown) && (wPressed || sPressed))
             {
@@ -101,7 +108,9 @@ namespace
 
         float Highlight(int lane) const
         {
-            if (lane == selectedLane) return 1.0f;
+            if (lane == selectedLane)
+                return 1.0f;
+
             return lane == hoveredLane ? 0.45f : 0.0f;
         }
     };
@@ -121,6 +130,7 @@ int selectedCharacter = -1; // -1 means no character selected
 
 int main()
 {
+    // Initialize GLFW.
     if (!glfwInit())
     {
         std::cerr << "Failed to init GLFW\n";
@@ -145,36 +155,46 @@ int main()
     if (!window)
     {
         std::cerr << "Failed to create window\n";
+
         glfwTerminate();
         return -1;
     }
 
     glfwMakeContextCurrent(window);
 
+    // Initialize GLAD.
     int version = gladLoadGL(glfwGetProcAddress);
 
     if (version == 0)
     {
         std::cerr << "Failed to initialize OpenGL context\n";
+
         glfwDestroyWindow(window);
         glfwTerminate();
+
         return -1;
     }
 
     // Initialize game systems.
     Renderer2D::Init(screenWidth, screenHeight);
+
     EnemySystem::Init();
     WaveManager::Init();
+
     Input::Init(window);
 
     float lastFrame = 0.0f;
+
     LaneInteraction lanes;
 
     // Main game loop.
     while (!glfwWindowShouldClose(window))
     {
-        float currentFrame = static_cast<float>(glfwGetTime());
+        float currentFrame =
+            static_cast<float>(glfwGetTime());
+
         float deltaTime = currentFrame - lastFrame;
+
         lastFrame = currentFrame;
 
         glfwPollEvents();
@@ -182,7 +202,8 @@ int main()
 
         if (currentState == GameState::MainMenu) 
         {
-            // Render menu. Start Game changes the state to Playing.
+            // Render menu.
+            // Start Game changes the state to Playing.
             if (MainMenu::Render())
             {
                 currentState = GameState::Playing;
@@ -222,8 +243,14 @@ int main()
             for (int lane = 0; lane < NUM_LANES; ++lane)
             {
                 Renderer2D::DrawQuad(
-                    glm::vec2(WORLD_WIDTH / 2.0f, LANE_Y[lane]),
-                    glm::vec2(LANE_WIDTH, LANE_HEIGHT),
+                    glm::vec2(
+                        WORLD_WIDTH / 2.0f,
+                        LANE_Y[lane]
+                    ),
+                    glm::vec2(
+                        LANE_WIDTH,
+                        LANE_HEIGHT
+                    ),
                     glm::vec3(1.0f, 0.5f, 0.2f),
                     lanes.Highlight(lane)
                 );
@@ -393,11 +420,11 @@ int main()
 
         glfwSwapBuffers(window);
 
-        // Update input after game/menu code has checked mouse presses.
+        // Update input after checking mouse presses.
         Input::Update();
     }
 
-    // Clean up game systems.
+    // Shut down game systems.
     WaveManager::Shutdown();
     EnemySystem::Shutdown();
 

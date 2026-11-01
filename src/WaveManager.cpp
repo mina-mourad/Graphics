@@ -9,7 +9,7 @@ namespace WaveManager
 
     int spawnedEnemies = 0;
 
-    int enemiesPerWave[] = { 3, 5, 10 };
+    const int enemiesPerWave[] = { 3, 5, 10 };
 
     float spawnTimer = 0.0f;
 
@@ -26,20 +26,22 @@ namespace WaveManager
     // Selects an enemy type based on the current wave.
     EnemyType ChooseEnemyType()
     {
+        // Wave 1: Easy enemies only.
         if (currentWave == 1)
         {
             return EnemyType::EasyRanged;
         }
 
+        // Wave 2: Easy and Medium enemies.
         if (currentWave == 2)
         {
             if (spawnedEnemies % 2 == 0)
                 return EnemyType::EasyRanged;
-            else
-                return EnemyType::MediumRanged;
+
+            return EnemyType::MediumRanged;
         }
 
-        // Wave 3: all three enemy types.
+        // Wave 3: Easy, Medium, and Hard enemies.
         if (spawnedEnemies % 3 == 0)
             return EnemyType::EasyRanged;
 
@@ -49,15 +51,17 @@ namespace WaveManager
         return EnemyType::HardMelee;
     }
 
+    // Updates wave spawning and progression.
     void Update(float deltaTime)
     {
-        // Stop when all three waves are complete.
+        // All three waves are complete.
         if (currentWave > 3)
             return;
 
+        // Count the time between enemy spawns.
         spawnTimer += deltaTime;
 
-        // Spawn enemies until this wave reaches its quota.
+        // Spawn the next enemy when enough time has passed.
         if (spawnedEnemies < enemiesPerWave[currentWave - 1]
             && spawnTimer >= SPAWN_INTERVAL)
         {
@@ -70,7 +74,7 @@ namespace WaveManager
             spawnedEnemies++;
         }
 
-        // Start the next wave when all enemies from this wave are gone.
+        // Wait until all spawned enemies are gone.
         if (spawnedEnemies == enemiesPerWave[currentWave - 1]
             && EnemySystem::GetEnemyCount() == 0)
         {
@@ -81,6 +85,7 @@ namespace WaveManager
         }
     }
 
+    // Resets the wave system.
     void Shutdown()
     {
         currentWave = 1;
