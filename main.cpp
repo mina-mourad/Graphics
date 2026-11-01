@@ -9,6 +9,7 @@
 #include "src/Input.h"
 #include "src/EnemySystem.h"
 #include "src/MainMenu.h"
+
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
@@ -157,7 +158,6 @@ int main()
         lastFrame = currentFrame;
 
         glfwPollEvents();
-
         Renderer2D::BeginFrame();
 
         if (currentState == GameState::MainMenu)
@@ -169,13 +169,33 @@ int main()
         }
         else if (currentState == GameState::Playing)
         {
-            // TODO Person 2: UpdatePlayerSystems(deltaTime);
-            // TODO Person 3: UpdateEnemySystems(deltaTime);
+            // Small pause button in the top-left corner.
+            glm::vec2 pauseA(0.9f, 7.75f);
+            glm::vec2 pauseB(1.6f, 7.75f);
+            glm::vec2 pauseC(1.6f, 8.25f);
+            glm::vec2 pauseD(0.9f, 8.25f);
 
-            lanes.Update();
-            EnemySystem::Update(deltaTime);
+            glm::vec2 mousePos = Input::GetMouseWorldPos();
 
-            // TODO Person 4: UpdateUI(deltaTime);
+            bool pauseHover =
+                pointInTriangle(mousePos, pauseA, pauseB, pauseC) ||
+                pointInTriangle(mousePos, pauseA, pauseC, pauseD);
+
+            bool pauseClicked =
+                pauseHover &&
+                Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT);
+
+            if (pauseClicked) {
+                currentState = GameState::Paused;
+            }
+            else
+            {
+                // TODO Person 2: UpdatePlayerSystems(deltaTime);
+                // TODO Person 3: UpdateEnemySystems(deltaTime);
+
+                lanes.Update();
+                EnemySystem::Update(deltaTime);
+            }
 
             // Draw lanes behind gameplay objects.
             for (int lane = 0; lane < NUM_LANES; ++lane) {
@@ -192,6 +212,63 @@ int main()
 
             // TODO Person 2: RenderTowers();
             // TODO Person 4: RenderUI();
+
+            // Draw the pause button.
+            Renderer2D::DrawQuad(
+                glm::vec2(1.25f, 8.0f),
+                glm::vec2(0.7f, 0.5f),
+                glm::vec3(0.20f, 0.20f, 0.23f),
+                pauseHover ? 1.0f : 0.0f
+            );
+        }
+        else if (currentState == GameState::Paused)
+        {
+            glm::vec2 mousePos = Input::GetMouseWorldPos();
+
+            // Resume button hit area.
+            glm::vec2 resumeA(6.75f, 4.6f);
+            glm::vec2 resumeB(9.25f, 4.6f);
+            glm::vec2 resumeC(9.25f, 5.4f);
+            glm::vec2 resumeD(6.75f, 5.4f);
+
+            bool resumeHover =
+                pointInTriangle(mousePos, resumeA, resumeB, resumeC) ||
+                pointInTriangle(mousePos, resumeA, resumeC, resumeD);
+
+            // Main Menu button hit area.
+            glm::vec2 menuA(6.75f, 3.4f);
+            glm::vec2 menuB(9.25f, 3.4f);
+            glm::vec2 menuC(9.25f, 4.2f);
+            glm::vec2 menuD(6.75f, 4.2f);
+
+            bool menuHover =
+                pointInTriangle(mousePos, menuA, menuB, menuC) ||
+                pointInTriangle(mousePos, menuA, menuC, menuD);
+
+            if (resumeHover &&
+                Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+                currentState = GameState::Playing;
+            }
+            else if (menuHover &&
+                     Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+                currentState = GameState::MainMenu;
+            }
+
+            // Draw Resume button.
+            Renderer2D::DrawQuad(
+                glm::vec2(8.0f, 5.0f),
+                glm::vec2(2.5f, 0.8f),
+                glm::vec3(0.20f, 0.20f, 0.23f),
+                resumeHover ? 1.0f : 0.0f
+            );
+
+            // Draw Main Menu button.
+            Renderer2D::DrawQuad(
+                glm::vec2(8.0f, 3.8f),
+                glm::vec2(2.5f, 0.8f),
+                glm::vec3(0.20f, 0.20f, 0.23f),
+                menuHover ? 1.0f : 0.0f
+            );
         }
 
         glfwSwapBuffers(window);
