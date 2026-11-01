@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/gl.h>
 #include <glm/glm.hpp>
+#include <string>
 
 // Minimal 2D quad renderer.
 //
@@ -27,6 +28,10 @@ namespace Renderer2D
     // yellow: 0 = base color, 1 = fully highlighted. Use it for hover /
     // selection feedback, or drive it from a short timer for a damage flash.
     void DrawQuad(glm::vec2 pos, glm::vec2 size, glm::vec3 color, float highlight = 0.0f);
+
+    // Draws a simple text label using a small bitmap font made from colored
+    // quads. The string is centered on `centerPos` in world coordinates.
+    void DrawText(const std::string& text, glm::vec2 centerPos, float scale, glm::vec3 color, float highlight = 0.0f);
 
     // Call if the window is resized, so the projection keeps matching the
     // screen (Input::Init registers the GLFW resize callback that should
