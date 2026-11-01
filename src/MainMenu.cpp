@@ -63,7 +63,9 @@ namespace MainMenu
             glm::vec3(0.93f, 0.11f, 0.14f),  // Color of the button
             startHover ? 1.0f : 0.0f  // Highlight if hovered
         );
+        Renderer2D::DrawText("START GAME", glm::vec2(8.0f, 6.0f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
 
+        
         // Sound Settings button
 
         glm::vec2 soundA(6.0f, 4.0f);
@@ -79,6 +81,9 @@ namespace MainMenu
             glm::vec3(0.20f, 0.20f, 0.23f),
             soundHover ? 1.0f : 0.0f
         );
+        Renderer2D::DrawText("SOUND", glm::vec2(8.0f, 4.5f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
+
+       
 
         // Exit button
 
@@ -100,7 +105,9 @@ namespace MainMenu
             glm::vec3(0.56f, 0.09f, 0.13f),
             exitHover ? 1.0f : 0.0f
         );
+        Renderer2D::DrawText("EXIT", glm::vec2(8.0f, 3.0f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
 
+        
         return false;
     }
 

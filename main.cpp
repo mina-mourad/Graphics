@@ -117,6 +117,7 @@ enum class GameState
 };
 
 GameState currentState = GameState::MainMenu; // Start in the main menu state.
+int selectedCharacter = -1; // -1 means no character selected
 
 int main()
 {
@@ -234,9 +235,78 @@ int main()
             // TODO Person 2: RenderTowers();
             // TODO Person 4: RenderUI();
 
+            // Temporary card backgrounds
+           
+            
+            
+            glm::vec2 meleeA(3.9f, -0.25f);
+            glm::vec2 meleeB(6.1f, -0.25f);
+            glm::vec2 meleeC(6.1f, 0.95f);
+            glm::vec2 meleeD(3.9f, 0.95f);
+
+
+            bool meleeHover = pointInTriangle(mousePos, meleeA, meleeB, meleeC) || pointInTriangle(mousePos, meleeA, meleeC, meleeD);
+
+            Renderer2D::DrawQuad(
+                glm::vec2(5.0f, 0.35f),
+                glm::vec2(2.2f, 1.2f),
+                glm::vec3(0.18f, 0.18f, 0.22f),
+                (selectedCharacter == 0 || meleeHover) ? 1.0f : 0.0f
+           );
+
+           if (meleeHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+           {
+               selectedCharacter = 0; // Melee character
+           }
+
+           glm::vec2 rangedA(6.9f, -0.25f);
+           glm::vec2 rangedB(9.1f, -0.25f);
+           glm::vec2 rangedC(9.1f, 0.95f);
+           glm::vec2 rangedD(6.9f, 0.95f);
+
+           bool rangedHover = pointInTriangle(mousePos, rangedA, rangedB, rangedC) || pointInTriangle(mousePos, rangedA, rangedC, rangedD);
+
+           Renderer2D::DrawQuad(
+               glm::vec2(8.0f, 0.35f),
+               glm::vec2(2.2f, 1.2f),
+               glm::vec3(0.18f, 0.18f, 0.22f),
+               (selectedCharacter == 1 || rangedHover) ? 1.0f : 0.0f
+           );
+
+           if (rangedHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+           {
+               selectedCharacter = 1; // Ranged character
+           }
+
+           glm::vec2 defenseA(9.9f, -0.25f);
+           glm::vec2 defenseB(12.1f, -0.25f);
+           glm::vec2 defenseC(12.1f, 0.95f);
+           glm::vec2 defenseD(9.9f, 0.95f);
+
+           bool defenseHover = pointInTriangle(mousePos, defenseA, defenseB, defenseC) || pointInTriangle(mousePos, defenseA, defenseC, defenseD);
+
+           Renderer2D::DrawQuad(
+               glm::vec2(11.0f, 0.35f), //x,y
+               glm::vec2(2.2f, 1.2f), //width, height
+               glm::vec3(0.18f, 0.18f, 0.22f),
+               (selectedCharacter == 2 || defenseHover) ? 1.0f : 0.0f
+            );
+
+            if (defenseHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+            {
+                selectedCharacter = 2; // Defense character
+            }
+
+            // 0.12 is scale
+            Renderer2D::DrawText("MELEE", glm::vec2(5.0f, 0.35f), 0.12f, glm::vec3(1.0f, 1.0f, 1.0f));
+
+            Renderer2D::DrawText("RANGED", glm::vec2(8.0f, 0.35f), 0.12f, glm::vec3(1.0f, 1.0f, 1.0f));
+
+            Renderer2D::DrawText( "DEFENSE", glm::vec2(11.0f, 0.35f), 0.12f, glm::vec3(1.0f, 1.0f, 1.0f));
+
             // Draw the pause button.
             Renderer2D::DrawQuad(
-                glm::vec2(1.25f, 8.0f),
+                glm::vec2(1.25f, 8.4f),
                 glm::vec2(0.7f, 0.5f),
                 glm::vec3(0.20f, 0.20f, 0.23f),
                 pauseHover ? 1.0f : 0.0f
@@ -262,6 +332,14 @@ int main()
 
             bool menuHover = pointInTriangle(mousePos, menuA, menuB, menuC) || pointInTriangle(mousePos, menuA, menuC, menuD);
 
+            // Restart button hit area.
+            glm::vec2 restartA(6.75f, 2.2f);
+            glm::vec2 restartB(9.25f, 2.2f);
+            glm::vec2 restartC(9.25f, 3.0f);
+            glm::vec2 restartD(6.75f, 3.0f);
+
+            bool restartHover =pointInTriangle(mousePos, restartA, restartB, restartC) || pointInTriangle(mousePos, restartA, restartC, restartD);
+
             if (resumeHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
             {
                 currentState = GameState::Playing;
@@ -269,6 +347,17 @@ int main()
             else if (menuHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
             {
                 currentState = GameState::MainMenu;
+            }
+            else if (restartHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+            {
+                // Reset game state to start a new game.
+                WaveManager::Shutdown();
+                EnemySystem::Shutdown();
+
+                WaveManager::Init();
+                EnemySystem::Init();
+
+                currentState = GameState::Playing;
             }
 
             // Draw Resume button.
@@ -279,6 +368,8 @@ int main()
                 resumeHover ? 1.0f : 0.0f
             );
 
+            Renderer2D::DrawText("RESUME", glm::vec2(8.0f, 5.0f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
+
             // Draw Main Menu button.
             Renderer2D::DrawQuad(
                 glm::vec2(8.0f, 3.8f),
@@ -286,6 +377,18 @@ int main()
                 glm::vec3(0.20f, 0.20f, 0.23f),
                 menuHover ? 1.0f : 0.0f
             );
+
+            Renderer2D::DrawText("MAIN MENU", glm::vec2(8.0f, 3.8f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
+
+            // Draw Restart button.
+            Renderer2D::DrawQuad(
+                glm::vec2(8.0f, 2.6f),
+                glm::vec2(2.5f, 0.8f),
+                glm::vec3(0.20f, 0.20f, 0.23f),
+                restartHover ? 1.0f : 0.0f
+           );
+
+           Renderer2D::DrawText( "RESTART", glm::vec2(8.0f, 2.6f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
         }
 
         glfwSwapBuffers(window);

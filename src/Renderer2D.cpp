@@ -3,14 +3,81 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <array>
 #include <iostream>
+#include <string>
 
 namespace
 {
-    // Same shader pattern as the Lab 2/3 "highlight" demos (u_Highlight mixed
-    // toward yellow in the fragment shader), adapted to GLSL 330 (matching
-    // this project's template, not the labs' #version 430) and to a
-    // per-instance model matrix instead of a single global transform.
+    std::array<std::string, 7> getGlyphPattern(char c)
+    {
+        switch (c)
+        {
+        case ' ':
+            return { "00000", "00000", "00000", "00000", "00000", "00000", "00000" };
+        case 'A':
+            return { "01110", "10001", "10001", "11111", "10001", "10001", "10001" };
+        case 'B':
+            return { "11110", "10001", "10001", "11110", "10001", "10001", "11110" };
+        case 'C':
+            return { "01110", "10001", "10000", "10000", "10000", "10001", "01110" };
+        case 'D':
+            return { "11110", "10001", "10001", "10001", "10001", "10001", "11110" };
+        case 'E':
+            return { "11111", "10000", "10000", "11110", "10000", "10000", "11111" };
+        case 'F':
+            return { "11111", "10000", "10000", "11110", "10000", "10000", "10000" };
+        case 'G':
+            return { "01110", "10001", "10000", "10111", "10001", "10001", "01110" };
+        case 'H':
+            return { "10001", "10001", "10001", "11111", "10001", "10001", "10001" };
+        case 'I':
+            return { "11111", "00100", "00100", "00100", "00100", "00100", "11111" };
+        case 'J':
+            return { "00111", "00010", "00010", "00010", "10010", "10010", "01100" };
+        case 'K':
+            return { "10001", "10010", "10100", "11000", "10100", "10010", "10001" };
+        case 'L':
+            return { "10000", "10000", "10000", "10000", "10000", "10000", "11111" };
+        case 'M':
+            return { "10001", "11011", "10101", "10001", "10001", "10001", "10001" };
+        case 'N':
+            return { "10001", "11001", "10101", "10011", "10001", "10001", "10001" };
+        case 'O':
+            return { "01110", "10001", "10001", "10001", "10001", "10001", "01110" };
+        case 'P':
+            return { "11110", "10001", "10001", "11110", "10000", "10000", "10000" };
+        case 'Q':
+            return { "01110", "10001", "10001", "10001", "10101", "10010", "01101" };
+        case 'R':
+            return { "11110", "10001", "10001", "11110", "10100", "10010", "10001" };
+        case 'S':
+            return { "01111", "10000", "10000", "01110", "00001", "00001", "11110" };
+        case 'T':
+            return { "11111", "00100", "00100", "00100", "00100", "00100", "00100" };
+        case 'U':
+            return { "10001", "10001", "10001", "10001", "10001", "10001", "01110" };
+        case 'V':
+            return { "10001", "10001", "10001", "10001", "01010", "01010", "00100" };
+        case 'W':
+            return { "10001", "10001", "10001", "10101", "10101", "01010", "01010" };
+        case 'X':
+            return { "10001", "01010", "00100", "00100", "01010", "10001", "10001" };
+        case 'Y':
+            return { "10001", "01010", "00100", "00100", "00100", "00100", "00100" };
+        case 'Z':
+            return { "11111", "00001", "00010", "00100", "01000", "10000", "11111" };
+        default:
+            return { "00000", "00000", "00000", "00000", "00000", "00000", "00000" };
+        }
+    }
+
+    int getGlyphWidth(char c)
+    {
+        return (c == ' ') ? 4 : 5;
+    }
+}
+
     const char* vertexShaderSrc = R"(
 #version 330 core
 layout (location = 0) in vec2 aPos;
@@ -29,7 +96,7 @@ void main()
 out vec4 FragColor;
 
 uniform vec3 u_Color;
-uniform float u_Highlight;   // 0 = base color, 1 = fully mixed toward yellow
+uniform float u_Highlight;
 
 void main()
 {
@@ -46,11 +113,14 @@ void main()
 
         int success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-        if (!success) {
+
+        if (!success)
+        {
             char log[512];
             glGetShaderInfoLog(shader, 512, nullptr, log);
             std::cerr << "Renderer2D shader compile error:\n" << log << "\n";
         }
+
         return shader;
     }
 
@@ -64,7 +134,7 @@ void main()
     GLint locHighlight = -1;
 
     glm::mat4 projection(1.0f);
-}
+
 
 void Renderer2D::Init(int screenWidth, int screenHeight)
 {
@@ -78,7 +148,9 @@ void Renderer2D::Init(int screenWidth, int screenHeight)
 
     int success;
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
+
+    if (!success)
+    {
         char log[512];
         glGetProgramInfoLog(shaderProgram, 512, nullptr, log);
         std::cerr << "Renderer2D shader link error:\n" << log << "\n";
@@ -87,10 +159,6 @@ void Renderer2D::Init(int screenWidth, int screenHeight)
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // A single unit quad (1x1, centered on the origin), two triangles.
-    // DrawQuad scales/translates this per-call through u_Model instead of
-    // rebuilding geometry for every rectangle -- one VAO/VBO for the whole
-    // game, same spirit as Lab 4's createMesh()/drawMesh() pattern.
     float vertices[] = {
         -0.5f, -0.5f,
          0.5f, -0.5f,
@@ -125,12 +193,11 @@ void Renderer2D::OnResize(int screenWidth, int screenHeight)
 {
     glViewport(0, 0, screenWidth, screenHeight);
 
-    // Orthographic projection sized to the game's WORLD_WIDTH/WORLD_HEIGHT
-    // (GameConfig.h), NOT the window's pixel size -- so world coordinates
-    // (lane positions, tile positions) mean the same thing no matter what
-    // the actual window resolution is. (0,0) is the bottom-left of the world,
-    // matching Input::GetMouseWorldPos()'s Y-flip.
-    projection = glm::ortho(0.0f, WORLD_WIDTH, 0.0f, WORLD_HEIGHT, -1.0f, 1.0f);
+    projection = glm::ortho(
+        0.0f, WORLD_WIDTH,
+        0.0f, WORLD_HEIGHT,
+        -1.0f, 1.0f
+    );
 }
 
 void Renderer2D::BeginFrame()
@@ -139,7 +206,11 @@ void Renderer2D::BeginFrame()
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Renderer2D::DrawQuad(glm::vec2 pos, glm::vec2 size, glm::vec3 color, float highlight)
+void Renderer2D::DrawQuad(
+    glm::vec2 pos,
+    glm::vec2 size,
+    glm::vec3 color,
+    float highlight)
 {
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(pos, 0.0f));
@@ -153,6 +224,49 @@ void Renderer2D::DrawQuad(glm::vec2 pos, glm::vec2 size, glm::vec3 color, float 
 
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void Renderer2D::DrawText(const std::string& text, glm::vec2 centerPos, float scale, glm::vec3 color, float highlight)
+{
+    const float cell = 0.18f * scale;
+    const float gap = 0.12f * scale;
+
+    float totalWidth = 0.0f;
+    for (size_t i = 0; i < text.size(); ++i)
+    {
+        totalWidth += static_cast<float>(getGlyphWidth(text[i])) * cell + gap;
+    }
+
+    float cursorX = centerPos.x - totalWidth * 0.5f + 0.5f * cell;
+
+    for (size_t i = 0; i < text.size(); ++i)
+    {
+        const char ch = text[i];
+        const std::array<std::string, 7> pattern = getGlyphPattern(ch);
+
+        if (ch == ' ')
+        {
+            cursorX += (5.0f * cell) + gap;
+            continue;
+        }
+
+        for (int row = 0; row < 7; ++row)
+        {
+            for (int col = 0; col < 5; ++col)
+            {
+                if (pattern[row][col] == '1')
+                {
+                    glm::vec2 pixelPos(
+                        cursorX + (col * cell) + (cell * 0.5f),
+                        centerPos.y + (3.0f * cell) - (row * cell) - (cell * 0.5f)
+                    );
+                    DrawQuad(pixelPos, glm::vec2(cell * 0.8f, cell * 0.8f), color, highlight);
+                }
+            }
+        }
+
+        cursorX += (5.0f * cell) + gap;
+    }
 }
 
 void Renderer2D::Shutdown()
