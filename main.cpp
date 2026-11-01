@@ -1,5 +1,6 @@
 #include <glad/gl.h>
 #undef GLAD_GL_IMPLEMENTATION
+
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -8,15 +9,15 @@
 #include "src/Renderer2D.h"
 #include "src/Input.h"
 #include "src/EnemySystem.h"
+#include "src/WaveManager.h"
 #include "src/MainMenu.h"
 
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 
-// Person 1 lane interactions: lab algorithms plus game-specific state.
+// Person 1 lane interactions.
 namespace
 {
-    // Original algorithms from lab 3/main.cpp:118-133.
     float triSign(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
     {
         return (p1.x - p3.x) * (p2.y - p3.y)
@@ -24,16 +25,16 @@ namespace
     }
 
     bool pointInTriangle(glm::vec2 pt, glm::vec2 a, glm::vec2 b, glm::vec2 c)
-    {
-        float d1 = triSign(pt, a, b);
-        float d2 = triSign(pt, b, c);
-        float d3 = triSign(pt, c, a);
+{
+    float d1 = triSign(pt, a, b);
+    float d2 = triSign(pt, b, c);
+    float d3 = triSign(pt, c, a);
 
-        bool hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-        bool hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+    bool hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+    bool hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
 
-        return !(hasNeg && hasPos);
-    }
+    return !(hasNeg && hasPos);
+}
 
     struct LaneInteraction
     {
@@ -47,7 +48,8 @@ namespace
             const glm::vec2 mouse = Input::GetMouseWorldPos();
             hoveredLane = -1;
 
-            for (int lane = 0; lane < NUM_LANES; ++lane) {
+            for (int lane = 0; lane < NUM_LANES; ++lane)
+            {
                 const float left = (WORLD_WIDTH - LANE_WIDTH) * 0.5f;
                 const float right = left + LANE_WIDTH;
                 const float bottom = LANE_Y[lane] - LANE_HEIGHT * 0.5f;
@@ -59,7 +61,8 @@ namespace
                 const glm::vec2 d(left, top);
 
                 if (pointInTriangle(mouse, a, b, c) ||
-                    pointInTriangle(mouse, a, c, d)) {
+                    pointInTriangle(mouse, a, c, d))
+                {
                     hoveredLane = lane;
                     break;
                 }
@@ -75,17 +78,22 @@ namespace
             previousS = sDown;
 
             if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT) &&
-                hoveredLane != -1) {
+                hoveredLane != -1)
+            {
                 selectedLane = selectedLane == hoveredLane ? -1 : hoveredLane;
             }
-            else if (!(wDown && sDown) && (wPressed || sPressed)) {
-                if (selectedLane == -1) {
+            else if (!(wDown && sDown) && (wPressed || sPressed))
+            {
+                if (selectedLane == -1)
+                {
                     selectedLane = NUM_LANES / 2;
                 }
-                else if (wPressed && selectedLane < NUM_LANES - 1) {
+                else if (wPressed && selectedLane < NUM_LANES - 1)
+                {
                     ++selectedLane;
                 }
-                else if (sPressed && selectedLane > 0) {
+                else if (sPressed && selectedLane > 0)
+                {
                     --selectedLane;
                 }
             }
@@ -98,8 +106,8 @@ namespace
         }
     };
 }
-// End Person 1 lane interactions.
 
+// Game states.
 enum class GameState
 {
     MainMenu,
@@ -108,11 +116,12 @@ enum class GameState
     GameOver
 };
 
-GameState currentState = GameState::MainMenu;
+GameState currentState = GameState::MainMenu; // Start in the main menu state.
 
 int main()
 {
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         std::cerr << "Failed to init GLFW\n";
         return -1;
     }
@@ -125,10 +134,15 @@ int main()
     int screenHeight = 720;
 
     GLFWwindow* window = glfwCreateWindow(
-        screenWidth, screenHeight, "Tower Defense", nullptr, nullptr
+        screenWidth,
+        screenHeight,
+        "Tower Defense",
+        nullptr,
+        nullptr
     );
 
-    if (!window) {
+    if (!window)
+    {
         std::cerr << "Failed to create window\n";
         glfwTerminate();
         return -1;
@@ -137,20 +151,25 @@ int main()
     glfwMakeContextCurrent(window);
 
     int version = gladLoadGL(glfwGetProcAddress);
-    if (version == 0) {
+
+    if (version == 0)
+    {
         std::cerr << "Failed to initialize OpenGL context\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
     }
 
+    // Initialize game systems.
     Renderer2D::Init(screenWidth, screenHeight);
     EnemySystem::Init();
+    WaveManager::Init();
     Input::Init(window);
 
     float lastFrame = 0.0f;
     LaneInteraction lanes;
 
+    // Main game loop.
     while (!glfwWindowShouldClose(window))
     {
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -160,45 +179,47 @@ int main()
         glfwPollEvents();
         Renderer2D::BeginFrame();
 
-        if (currentState == GameState::MainMenu)
+        if (currentState == GameState::MainMenu) 
         {
-            // Render the menu. It returns true when Start Game is clicked.
-            if (MainMenu::Render()) {
+            // Render menu. Start Game changes the state to Playing.
+            if (MainMenu::Render())
+            {
                 currentState = GameState::Playing;
             }
         }
         else if (currentState == GameState::Playing)
         {
-            // Small pause button in the top-left corner.
-            glm::vec2 pauseA(0.9f, 7.75f);
-            glm::vec2 pauseB(1.6f, 7.75f);
-            glm::vec2 pauseC(1.6f, 8.25f);
-            glm::vec2 pauseD(0.9f, 8.25f);
+            // Pause button hit area.
+            glm::vec2 pauseA(0.9f, 7.75f); // Bottom-left corner of the pause button
+            glm::vec2 pauseB(1.6f, 7.75f); // Bottom-right corner of the pause button
+            glm::vec2 pauseC(1.6f, 8.25f); // Top-right corner of the pause button
+            glm::vec2 pauseD(0.9f, 8.25f); // Top-left corner of the pause button
 
-            glm::vec2 mousePos = Input::GetMouseWorldPos();
+            glm::vec2 mousePos = Input::GetMouseWorldPos(); 
 
-            bool pauseHover =
-                pointInTriangle(mousePos, pauseA, pauseB, pauseC) ||
-                pointInTriangle(mousePos, pauseA, pauseC, pauseD);
+            bool pauseHover = pointInTriangle(mousePos, pauseA, pauseB, pauseC) || pointInTriangle(mousePos, pauseA, pauseC, pauseD);
 
-            bool pauseClicked =
-                pauseHover &&
-                Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT);
+            bool pauseClicked =pauseHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT);
 
-            if (pauseClicked) {
+            if (pauseClicked)
+            {
                 currentState = GameState::Paused;
             }
             else
             {
-                // TODO Person 2: UpdatePlayerSystems(deltaTime);
-                // TODO Person 3: UpdateEnemySystems(deltaTime);
-
+                // Update lane interactions.
                 lanes.Update();
+
+                // Update waves first so they can request enemy spawning.
+                WaveManager::Update(deltaTime);
+
+                // Update enemy movement and behavior.
                 EnemySystem::Update(deltaTime);
             }
 
-            // Draw lanes behind gameplay objects.
-            for (int lane = 0; lane < NUM_LANES; ++lane) {
+            // Draw the three lanes.
+            for (int lane = 0; lane < NUM_LANES; ++lane)
+            {
                 Renderer2D::DrawQuad(
                     glm::vec2(WORLD_WIDTH / 2.0f, LANE_Y[lane]),
                     glm::vec2(LANE_WIDTH, LANE_HEIGHT),
@@ -207,7 +228,7 @@ int main()
                 );
             }
 
-            // TODO Person 3: RenderEnemies();
+            // Draw enemies.
             EnemySystem::Render();
 
             // TODO Person 2: RenderTowers();
@@ -231,9 +252,7 @@ int main()
             glm::vec2 resumeC(9.25f, 5.4f);
             glm::vec2 resumeD(6.75f, 5.4f);
 
-            bool resumeHover =
-                pointInTriangle(mousePos, resumeA, resumeB, resumeC) ||
-                pointInTriangle(mousePos, resumeA, resumeC, resumeD);
+            bool resumeHover = pointInTriangle(mousePos, resumeA, resumeB, resumeC) ||pointInTriangle(mousePos, resumeA, resumeC, resumeD);
 
             // Main Menu button hit area.
             glm::vec2 menuA(6.75f, 3.4f);
@@ -241,16 +260,14 @@ int main()
             glm::vec2 menuC(9.25f, 4.2f);
             glm::vec2 menuD(6.75f, 4.2f);
 
-            bool menuHover =
-                pointInTriangle(mousePos, menuA, menuB, menuC) ||
-                pointInTriangle(mousePos, menuA, menuC, menuD);
+            bool menuHover = pointInTriangle(mousePos, menuA, menuB, menuC) || pointInTriangle(mousePos, menuA, menuC, menuD);
 
-            if (resumeHover &&
-                Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            if (resumeHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+            {
                 currentState = GameState::Playing;
             }
-            else if (menuHover &&
-                     Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+            else if (menuHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+            {
                 currentState = GameState::MainMenu;
             }
 
@@ -273,12 +290,16 @@ int main()
 
         glfwSwapBuffers(window);
 
-        // Clear mousePressed only after menu/game code has checked it.
+        // Update input after game/menu code has checked mouse presses.
         Input::Update();
     }
 
+    // Clean up game systems.
+    WaveManager::Shutdown();
     EnemySystem::Shutdown();
+
     Renderer2D::Shutdown();
+
     glfwDestroyWindow(window);
     glfwTerminate();
 
