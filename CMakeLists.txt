@@ -16,6 +16,7 @@ add_executable(OpenGLStarter
     src/Input.cpp
     src/EnemySystem.cpp
     src/MainMenu.cpp
+    src/WaveManager.cpp
 )
 
 target_include_directories(OpenGLStarter PRIVATE external/glad/include)
