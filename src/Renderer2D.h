@@ -28,6 +28,12 @@ namespace Renderer2D
     // selection feedback, or drive it from a short timer for a damage flash.
     void DrawQuad(glm::vec2 pos, glm::vec2 size, glm::vec3 color, float highlight = 0.0f);
 
+    // Draws a circle using a center position and radius.
+void DrawCircle(glm::vec2 pos, float radius, glm::vec3 color);
+
+// Draws a polygon using a list of vertices.
+void DrawPolygon(const glm::vec2* vertices, int count, glm::vec3 color);
+
     // Call if the window is resized, so the projection keeps matching the
     // screen (Input::Init registers the GLFW resize callback that should
     // call this).
