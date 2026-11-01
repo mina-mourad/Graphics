@@ -136,6 +136,11 @@ void main()
     GLuint quadVAO = 0;
     GLuint quadVBO = 0;
 
+    // One reusable buffer for circles and polygons. Creating and deleting a
+    // buffer for every shape is very slow when many shapes are drawn.
+    GLuint shapeVAO = 0;
+    GLuint shapeVBO = 0;
+
     GLint locModel = -1;
     GLint locProjection = -1;
     GLint locColor = -1;
@@ -199,6 +204,27 @@ void Renderer2D::Init(int screenWidth, int screenHeight)
         vertices,
         GL_STATIC_DRAW
     );
+
+    glVertexAttribPointer(
+        0,
+        2,
+        GL_FLOAT,
+        GL_FALSE,
+        2 * sizeof(float),
+        (void*)0
+    );
+
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // Create the reusable buffer for circles and polygons.
+    glGenVertexArrays(1, &shapeVAO);
+    glGenBuffers(1, &shapeVBO);
+
+    glBindVertexArray(shapeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, shapeVBO);
 
     glVertexAttribPointer(
         0,
@@ -364,32 +390,15 @@ void Renderer2D::DrawCircle(
         vertices.push_back(y);
     }
 
-    GLuint VAO;
-    GLuint VBO;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindVertexArray(shapeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, shapeVBO);
 
     glBufferData(
         GL_ARRAY_BUFFER,
         vertices.size() * sizeof(float),
         vertices.data(),
-        GL_STATIC_DRAW
+        GL_STREAM_DRAW
     );
-
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        2 * sizeof(float),
-        (void*)0
-    );
-
-    glEnableVertexAttribArray(0);
 
     // Move the circle to its world position.
     glm::mat4 model(1.0f);
@@ -430,12 +439,8 @@ void Renderer2D::DrawCircle(
         segments + 2
     );
 
-    // Release temporary resources.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
 }
 
 // Draw a polygon.
@@ -456,32 +461,15 @@ void Renderer2D::DrawPolygon(
         vertices.push_back(points[i].y);
     }
 
-    GLuint VAO;
-    GLuint VBO;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindVertexArray(shapeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, shapeVBO);
 
     glBufferData(
         GL_ARRAY_BUFFER,
         vertices.size() * sizeof(float),
         vertices.data(),
-        GL_STATIC_DRAW
+        GL_STREAM_DRAW
     );
-
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        2 * sizeof(float),
-        (void*)0
-    );
-
-    glEnableVertexAttribArray(0);
 
     // Polygon points are already in world coordinates.
     glm::mat4 model(1.0f);
@@ -517,12 +505,8 @@ void Renderer2D::DrawPolygon(
         count
     );
 
-    // Release temporary resources.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
 }
 
 // Release renderer resources.
@@ -530,9 +514,13 @@ void Renderer2D::Shutdown()
 {
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
+    glDeleteVertexArrays(1, &shapeVAO);
+    glDeleteBuffers(1, &shapeVBO);
     glDeleteProgram(shaderProgram);
 
     quadVAO = 0;
     quadVBO = 0;
+    shapeVAO = 0;
+    shapeVBO = 0;
     shaderProgram = 0;
 }
