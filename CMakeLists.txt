@@ -20,19 +20,33 @@ add_executable(OpenGLStarter
     src/MainMenu.cpp
     src/WaveManager.cpp
     src/CharacterRenderer.cpp
+    src/PlayerSystem.cpp
+    src/Economy.cpp
+    src/Hud.cpp
+    src/HealthBar.cpp
+    src/Environment.cpp
+    src/Cutscene.cpp
+    src/Game.cpp
+    src/Audio.cpp
 )
 
 target_include_directories(OpenGLStarter PRIVATE
     external/glad/include
+    external/miniaudio
 )
 
 # Prevent GLFW from including system OpenGL headers.
 target_compile_definitions(OpenGLStarter PRIVATE GLFW_INCLUDE_NONE)
 
+# miniaudio (sound bonus) needs threads, and libdl on Linux.
+find_package(Threads REQUIRED)
+
 target_link_libraries(OpenGLStarter PRIVATE
     glfw
     OpenGL::GL
     glm::glm
+    Threads::Threads
+    ${CMAKE_DL_LIBS}
 )
 
 # Avoid incompatible MinGW runtime DLLs.

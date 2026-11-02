@@ -8,6 +8,7 @@ namespace
 
     bool mouseDown[GLFW_MOUSE_BUTTON_LAST + 1] = {};
     bool mousePressed[GLFW_MOUSE_BUTTON_LAST + 1] = {};
+    bool keyPressed[GLFW_KEY_LAST + 1] = {};
 
     int screenWidth = 1280;
     int screenHeight = 720;
@@ -22,6 +23,15 @@ namespace
             mousePressed[button] = true;
         }
         else if (action == GLFW_RELEASE) mouseDown[button] = false;
+    }
+
+    // Lab 3 keyCallback: GLFW_PRESS happens once per key press, so it is the
+    // right event for one-shot actions (jump, duck, pause, menu keys).
+    void keyCallback(GLFWwindow* /*window*/, int key, int /*scancode*/, int action, int /*mods*/)
+    {
+        if (key < 0 || key > GLFW_KEY_LAST) return;
+        if (action == GLFW_PRESS)
+            keyPressed[key] = true;
     }
 
     void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height)
@@ -39,12 +49,15 @@ void Input::Init(GLFWwindow* window)
     Renderer2D::OnResize(screenWidth, screenHeight);
     glfwSetMouseButtonCallback(g_window, mouseButtonCallback);
     glfwSetFramebufferSizeCallback(g_window, framebufferSizeCallback);
+    glfwSetKeyCallback(g_window, keyCallback);
 }
 
 void Input::Update()
 {
     for (int i = 0; i <= GLFW_MOUSE_BUTTON_LAST; ++i)
         mousePressed[i] = false;
+    for (int i = 0; i <= GLFW_KEY_LAST; ++i)
+        keyPressed[i] = false;
 }
 
 glm::vec2 Input::GetMouseWorldPos()
@@ -84,4 +97,9 @@ bool Input::IsMouseButtonPressed(int button)
 bool Input::IsKeyDown(int key)
 {
     return g_window && glfwGetKey(g_window, key) == GLFW_PRESS;
+}
+
+bool Input::IsKeyPressed(int key)
+{
+    return key >= 0 && key <= GLFW_KEY_LAST && keyPressed[key];
 }

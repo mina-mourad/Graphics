@@ -1,118 +1,145 @@
 #include "MainMenu.h"
 #include "Renderer2D.h"
 #include "Input.h"
+#include "GameConfig.h"
+#include "Environment.h"
+#include "CharacterRenderer.h"
+#include "Hud.h"
+#include "Audio.h"
 
-#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <cstdint>
-#include <cstddef>
+#include <cmath>
+#include <string>
 
-// This is from the lab where we test if a point is in a triangle.
-static float triSign(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3)
+namespace
 {
-    return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
-}
+    using glm::vec2;
+    using glm::vec3;
 
-// This is also from the lab where we check if we are in a triangle by using pt.
-static bool pointInTriangle(
-    glm::vec2 pt,
-    glm::vec2 a,
-    glm::vec2 b,
-    glm::vec2 c)
-{
-    // This function checks if the point pt is inside the triangle formed by points a, b, and c.
-    float d1 = triSign(pt, a, b);
-    float d2 = triSign(pt, b, c);
-    float d3 = triSign(pt, c, a);
-     // If the signs are mixed, the point is outside the triangle.
-    bool hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-    bool hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-    // The point is inside or on the triangle if the signs are not mixed.
-    return !(hasNeg && hasPos);
+    const vec2 BUTTON_SIZE(4.4f, 0.95f);
+
+    // A wooden shop-sign button. Returns true when it is clicked.
+    // (Hud::InBox splits the rectangle into two triangles, Lab 3 style.)
+    bool Button(const std::string& label, vec2 center, vec2 size = BUTTON_SIZE)
+    {
+        const vec2 mouse = Input::GetMouseWorldPos();
+        const bool hover = Hud::InBox(mouse, center, size);
+        Hud::DrawPanel(center, size, hover ? 0.35f : 0.0f);
+        Renderer2D::DrawTextShadow(label, center, 0.16f, hover ? vec3(1.0f, 1.0f, 0.7f) : vec3(1.0f, 0.95f, 0.85f));
+
+        bool clicked = hover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT);
+        if (clicked)
+            Audio::Play(Audio::Sfx::Click);
+        return clicked;
+    }
+
+    // The street behind the menus, darkened.
+    void Backdrop(float time, float darkness)
+    {
+        Renderer2D::SetFade(darkness);
+        Environment::DrawBackground(time);
+        for (int lane = NUM_LANES - 1; lane >= 0; --lane)
+            Environment::DrawLane(lane, 0.0f);
+        Environment::DrawHomeBase(time);
+        Environment::DrawForeground(time);
+        Renderer2D::SetFade(0.0f);
+    }
+
+    // Volume row: label, [-], ten blocks, [+].
+    void VolumeRow(const std::string& label, float y, int value, void (*change)(int))
+    {
+        Renderer2D::DrawTextShadow(label, vec2(4.4f, y), 0.14f, vec3(1.0f, 0.93f, 0.75f), Renderer2D::Align::Left);
+        if (Button("-", vec2(8.3f, y), vec2(0.8f, 0.75f))) { change(-1); Audio::Play(Audio::Sfx::Coin); }
+        for (int i = 0; i < 10; ++i)
+        {
+            vec2 c(9.05f + i * 0.32f, y);
+            Renderer2D::DrawQuad(c, vec2(0.26f, 0.5f), vec3(0.12f, 0.07f, 0.04f));
+            if (i < value)
+                Renderer2D::DrawQuad(c, vec2(0.2f, 0.44f), glm::mix(vec3(0.95f, 0.75f, 0.25f), vec3(0.9f, 0.3f, 0.2f), i / 9.0f));
+        }
+        if (Button("+", vec2(12.65f, y), vec2(0.8f, 0.75f))) { change(+1); Audio::Play(Audio::Sfx::Coin); }
+    }
 }
 
 namespace MainMenu
 {
-    void Init()
+    void Init() {}
+    void Shutdown() {}
+
+    Action Render(float time)
     {
-        // Nothing to initialize yet.
+        Backdrop(time, 0.35f);
+
+        // the defenders in front of the koshk and a thug lurking on the right
+        CharacterRenderer::DrawPlayer(2.6f, LANE_Y[0], PlayerType::Ranged, CharacterRenderer::PlayerAnim::Idle, time);
+        CharacterRenderer::DrawPlayer(2.3f, LANE_Y[1], PlayerType::Defense, CharacterRenderer::PlayerAnim::Idle, time);
+        CharacterRenderer::DrawPlayer(3.3f, LANE_Y[1], PlayerType::Melee, CharacterRenderer::PlayerAnim::Idle, time);
+        CharacterRenderer::Draw(14.0f, LANE_Y[0], EnemyType::HardMelee, CharacterRenderer::EnemyAnim::Idle, time);
+        CharacterRenderer::Draw(14.9f, LANE_Y[1], EnemyType::EasyRanged, CharacterRenderer::EnemyAnim::Idle, time);
+
+        // title sign
+        Hud::DrawPanel(vec2(8.5f, 7.35f), vec2(9.0f, 2.1f));
+        float bob = 0.05f * std::sin(time * 2.0f);
+        Renderer2D::DrawTextShadow("SHABAB EL HARA", vec2(8.5f, 7.65f + bob), 0.38f, vec3(1.0f, 0.82f, 0.25f));
+        Renderer2D::DrawTextShadow("DEFEND THE KOSHK", vec2(8.5f, 6.85f), 0.15f, vec3(1.0f, 0.95f, 0.85f));
+
+        Action a = Action::None;
+        if (Button("START GAME", vec2(8.5f, 5.2f))) a = Action::Start;
+        if (Button("SOUND", vec2(8.5f, 4.0f)))      a = Action::Sound;
+        if (Button("EXIT", vec2(8.5f, 2.8f)))       a = Action::Exit;
+
+        Renderer2D::DrawTextShadow("DMET 502 - COMPUTER GRAPHICS - WINTER 2026", vec2(8.5f, 0.3f), 0.105f, vec3(0.95f, 0.9f, 0.8f));
+        return a;
     }
 
-    bool Render()
+    Action RenderSound(float time)
     {
-        glm::vec2 mousePos = Input::GetMouseWorldPos();
+        Backdrop(time, 0.55f);
+        Hud::DrawPanel(vec2(8.5f, 4.6f), vec2(10.4f, 6.6f));
+        Renderer2D::DrawTextShadow("SOUND SETTINGS", vec2(8.5f, 7.25f), 0.24f, vec3(1.0f, 0.82f, 0.25f));
 
-        // Start Game button
-        // The rectangle is split into two triangles for mouse detection.
-        glm::vec2 startA(6.0f, 5.5f); 
-        glm::vec2 startB(10.0f, 5.5f);
-        glm::vec2 startC(10.0f, 6.5f);
-        glm::vec2 startD(6.0f, 6.5f);
-        
-        //// Check whether the mouse is inside either triangle
-        bool startHover = pointInTriangle(mousePos, startA, startB, startC) || pointInTriangle(mousePos, startA, startC, startD);
-        // If the mouse is hovering over the Start Game button and the left mouse button is pressed, return true to start the game.
-        if (startHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
-        {
-            return true; // Start the game
-        }
-        // Draw the Start Game button with a highlight if hovered.
-        Renderer2D::DrawQuad(
-            glm::vec2(8.0f, 6.0f),  // Center of the button
-            glm::vec2(4.0f, 1.0f),  // Size of the button
-            glm::vec3(0.93f, 0.11f, 0.14f),  // Color of the button
-            startHover ? 1.0f : 0.0f  // Highlight if hovered
-        );
-        Renderer2D::DrawText("START GAME", glm::vec2(8.0f, 6.0f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
+        VolumeRow("MASTER", 6.0f, Audio::GetMasterVolume(), Audio::ChangeMasterVolume);
+        VolumeRow("MUSIC", 5.0f, Audio::GetMusicVolume(), Audio::ChangeMusicVolume);
+        VolumeRow("EFFECTS", 4.0f, Audio::GetEffectsVolume(), Audio::ChangeEffectsVolume);
 
-        
-        // Sound Settings button
+        Renderer2D::DrawTextShadow("MUTE ALL", vec2(4.4f, 3.0f), 0.14f, vec3(1.0f, 0.93f, 0.75f), Renderer2D::Align::Left);
+        if (Button(Audio::IsMuted() ? "ON" : "OFF", vec2(9.6f, 3.0f), vec2(1.6f, 0.75f)))
+            Audio::SetMuted(!Audio::IsMuted());
 
-        glm::vec2 soundA(6.0f, 4.0f);
-        glm::vec2 soundB(10.0f, 4.0f);
-        glm::vec2 soundC(10.0f, 5.0f);
-        glm::vec2 soundD(6.0f, 5.0f);
-
-        bool soundHover = pointInTriangle(mousePos, soundA, soundB, soundC) || pointInTriangle(mousePos, soundA, soundC, soundD);
-
-        Renderer2D::DrawQuad(
-            glm::vec2(8.0f, 4.5f),
-            glm::vec2(4.0f, 1.0f),
-            glm::vec3(0.20f, 0.20f, 0.23f),
-            soundHover ? 1.0f : 0.0f
-        );
-        Renderer2D::DrawText("SOUND", glm::vec2(8.0f, 4.5f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
-
-       
-
-        // Exit button
-
-        glm::vec2 exitA(6.0f, 2.5f);
-        glm::vec2 exitB(10.0f, 2.5f);
-        glm::vec2 exitC(10.0f, 3.5f);
-        glm::vec2 exitD(6.0f, 3.5f);
-
-        bool exitHover = pointInTriangle(mousePos, exitA, exitB, exitC) || pointInTriangle(mousePos, exitA, exitC, exitD);
-
-        if (exitHover && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
-        {
-            glfwSetWindowShouldClose( glfwGetCurrentContext(),GLFW_TRUE);
-        }
-
-        Renderer2D::DrawQuad(
-            glm::vec2(8.0f, 3.0f),
-            glm::vec2(4.0f, 1.0f),
-            glm::vec3(0.56f, 0.09f, 0.13f),
-            exitHover ? 1.0f : 0.0f
-        );
-        Renderer2D::DrawText("EXIT", glm::vec2(8.0f, 3.0f), 0.16f, glm::vec3(1.0f, 1.0f, 1.0f));
-
-        
-        return false;
+        Action a = Action::None;
+        if (Button("BACK", vec2(8.5f, 1.85f), vec2(3.2f, 0.85f)) || Input::IsKeyPressed(GLFW_KEY_ESCAPE))
+            a = Action::Back;
+        return a;
     }
 
-    void Shutdown()
+    Action RenderPause()
     {
-        // Nothing to clean up yet.
+        Hud::DrawPanel(vec2(8.5f, 4.4f), vec2(6.2f, 5.6f));
+        Renderer2D::DrawTextShadow("PAUSED", vec2(8.5f, 6.4f), 0.32f, vec3(1.0f, 0.82f, 0.25f));
+        Action a = Action::None;
+        if (Button("CONTINUE", vec2(8.5f, 5.0f)))  a = Action::Continue;
+        if (Button("RESTART", vec2(8.5f, 3.85f)))  a = Action::Restart;
+        if (Button("MAIN MENU", vec2(8.5f, 2.7f))) a = Action::ToMainMenu;
+        return a;
+    }
+
+    Action RenderEnd(bool won, float time)
+    {
+        Hud::DrawPanel(vec2(8.5f, 4.5f), vec2(10.0f, 5.6f));
+        float pulse = 1.0f + 0.04f * std::sin(time * 6.0f);
+        if (won)
+        {
+            Renderer2D::DrawTextShadow("THE KOSHK IS SAFE!", vec2(8.5f, 6.5f), 0.3f * pulse, vec3(1.0f, 0.85f, 0.3f));
+            Renderer2D::DrawTextShadow("THE SLIPPER GANG RAN AWAY. TEA IS ON AM SAYED!", vec2(8.5f, 5.65f), 0.13f, vec3(1.0f, 0.95f, 0.85f));
+        }
+        else
+        {
+            Renderer2D::DrawTextShadow("THE KOSHK IS LOST!", vec2(8.5f, 6.5f), 0.3f * pulse, vec3(1.0f, 0.4f, 0.3f));
+            Renderer2D::DrawTextShadow("A THUG REACHED AM SAYED'S KOSHK...", vec2(8.5f, 5.65f), 0.13f, vec3(1.0f, 0.95f, 0.85f));
+        }
+        Action a = Action::None;
+        if (Button("RESTART", vec2(8.5f, 4.3f)))   a = Action::Restart;
+        if (Button("MAIN MENU", vec2(8.5f, 3.1f))) a = Action::ToMainMenu;
+        return a;
     }
 }

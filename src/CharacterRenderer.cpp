@@ -111,11 +111,13 @@ namespace CharacterRenderer
     // Where the character currently being drawn is placed on screen.
     glm::vec2 g_origin(0.0f, 0.0f);
     float g_scale = 1.0f;
+    float g_facing = -1.0f;   // -1 = facing left (enemies), +1 = facing right (players)
 
-    // Converts a design point (facing right) into a world point (facing left).
+    // Converts a design point (designed facing right) into a world point.
+    // Enemies are mirrored so they face the koshk; players are not.
     glm::vec2 ToWorld(glm::vec2 p)
     {
-        return glm::vec2(g_origin.x - p.x * g_scale, g_origin.y + p.y * g_scale);
+        return glm::vec2(g_origin.x + g_facing * p.x * g_scale, g_origin.y + p.y * g_scale);
     }
 
     // A filled circle.
@@ -135,57 +137,28 @@ namespace CharacterRenderer
         Renderer2D::DrawPolygon(world.data(), static_cast<int>(world.size()), color);
     }
 
-    // Returns a copy of a polygon pushed outward by `amount` on every side.
-    // Drawing this bigger copy in dark color behind the real shape gives
-    // the shape a cartoon outline.
+    // Returns a copy of a polygon pushed outward by `amount`: every corner
+    // moves away from the polygon's center (the average of its points).
+    // Drawing this bigger copy in a dark color behind the real shape gives
+    // the shape a cartoon outline -- a simple version of scaling a shape
+    // around its center like the labs' glm::scale transforms.
     std::vector<glm::vec2> Grow(const std::vector<glm::vec2>& points, float amount)
     {
-        const size_t count = points.size();
-
-        // The sign of the area tells us which way the points go around.
-        float area = 0.0f;
-        for (size_t i = 0; i < count; ++i)
-        {
-            const glm::vec2& a = points[i];
-            const glm::vec2& b = points[(i + 1) % count];
-            area += a.x * b.y - b.x * a.y;
-        }
-        const float side = (area >= 0.0f) ? 1.0f : -1.0f;
+        glm::vec2 center(0.0f);
+        for (const glm::vec2& p : points)
+            center += p;
+        center /= static_cast<float>(points.size());
 
         std::vector<glm::vec2> result;
-
-        for (size_t i = 0; i < count; ++i)
+        for (const glm::vec2& p : points)
         {
-            const glm::vec2& prev = points[(i + count - 1) % count];
-            const glm::vec2& cur  = points[i];
-            const glm::vec2& next = points[(i + 1) % count];
-
-            glm::vec2 e1 = cur - prev;
-            glm::vec2 e2 = next - cur;
-            if (glm::length(e1) < 0.0001f || glm::length(e2) < 0.0001f)
-            {
-                result.push_back(cur);
-                continue;
-            }
-            e1 = glm::normalize(e1);
-            e2 = glm::normalize(e2);
-
-            // Outward direction of the two edges that meet at this corner.
-            glm::vec2 n1 = glm::vec2(e1.y, -e1.x) * side;
-            glm::vec2 n2 = glm::vec2(e2.y, -e2.x) * side;
-            glm::vec2 corner = n1 + n2;
-
-            if (glm::length(corner) < 0.0001f)
-                corner = n1;
-
-            corner = glm::normalize(corner);
-
-            // Sharp corners need to move further to keep the outline even,
-            // but not too far (or spikes get huge outlines).
-            float push = amount / std::fmax(glm::dot(corner, n1), 0.4f);
-            result.push_back(cur + corner * push);
+            glm::vec2 out = p - center;
+            float length = glm::length(out);
+            if (length < 0.0001f)
+                result.push_back(p);
+            else
+                result.push_back(p + out / length * amount);
         }
-
         return result;
     }
 
@@ -1117,12 +1090,477 @@ namespace CharacterRenderer
     }
 
     // ===========================================================================
+    // Players: the shabab of the hara (Person 2)
+    //
+    // Same drawing style and pose system as the enemies, but designed for the
+    // defenders of the koshk:
+    //   Melee   - El Bawab: old doorman in a striped galabeya and white
+    //             taqiyah cap, swinging his long wooden nabboot stick.
+    //   Ranged  - the tomato seller: apron, flat cap, a basket of tomatoes
+    //             on his hip; throws tomatoes that splat on impact.
+    //   Defense - El Me'allem: big mechanic in blue overalls, bracing a
+    //             piece of corrugated garage shutter as a shield.
+    // ===========================================================================
+
+    const glm::vec3 TOMATO      (0.86f, 0.14f, 0.10f);
+    const glm::vec3 TOMATO_DARK (0.60f, 0.07f, 0.06f);
+    const glm::vec3 LEAF        (0.20f, 0.55f, 0.18f);
+    const glm::vec3 STICK       (0.55f, 0.36f, 0.18f);
+    const glm::vec3 STICK_DARK  (0.38f, 0.23f, 0.11f);
+    const glm::vec3 GRAY_HAIR   (0.80f, 0.79f, 0.76f);
+    const glm::vec3 SHUTTER     (0.62f, 0.66f, 0.70f);
+    const glm::vec3 SHUTTER_RIB (0.45f, 0.49f, 0.54f);
+    const glm::vec3 RUST        (0.62f, 0.33f, 0.16f);
+
+    // El Bawab: brown skin, striped beige galabeya, leather sandals.
+    const Look BAWAB_LOOK = {
+        glm::vec3(0.64f, 0.42f, 0.27f),
+        glm::vec3(0.86f, 0.80f, 0.66f),
+        glm::vec3(0.68f, 0.61f, 0.48f),
+        glm::vec3(0.86f, 0.80f, 0.66f),
+        glm::vec3(0.45f, 0.28f, 0.15f),
+        0.15f, LegDetail::RolledCuff, 1.0f
+    };
+
+    // Tomato seller: checked shirt, green apron, dark trousers, flip-flops.
+    const Look VENDOR_LOOK = {
+        glm::vec3(0.78f, 0.53f, 0.34f),
+        glm::vec3(0.30f, 0.46f, 0.70f),
+        glm::vec3(0.22f, 0.34f, 0.54f),
+        glm::vec3(0.24f, 0.22f, 0.22f),
+        glm::vec3(0.86f, 0.70f, 0.22f),
+        1.0f, LegDetail::RolledCuff, 0.95f
+    };
+
+    // El Me'allem: blue overalls, heavy boots (the "slipper" color).
+    const Look MECHANIC_LOOK = {
+        glm::vec3(0.58f, 0.37f, 0.23f),
+        glm::vec3(0.18f, 0.32f, 0.56f),
+        glm::vec3(0.12f, 0.22f, 0.40f),
+        glm::vec3(0.18f, 0.32f, 0.56f),
+        glm::vec3(0.16f, 0.13f, 0.11f),
+        1.0f, LegDetail::Patch, 1.25f
+    };
+
+    // Calm, determined eyes (the defenders are not angry thugs).
+    void DrawBraveEyes(const Face& f, glm::vec3 brow)
+    {
+        OutlinedDot(f.F(0.10f, 0.035f), 0.045f * f.k, WHITE);
+        Dot(f.F(0.115f, 0.03f), 0.022f * f.k, OUTLINE);
+        OutlinedDot(f.F(0.19f, 0.04f), 0.033f * f.k, WHITE);
+        Dot(f.F(0.20f, 0.035f), 0.017f * f.k, OUTLINE);
+        Line(f.F(0.04f, 0.105f), f.F(0.15f, 0.10f), 0.035f * f.k, brow);
+        Line(f.F(0.17f, 0.10f), f.F(0.24f, 0.095f), 0.03f * f.k, brow);
+    }
+
+    void DrawSmile(const Face& f)
+    {
+        OutlinedShape({ f.F(0.09f, -0.10f), f.F(0.22f, -0.09f), f.F(0.18f, -0.15f), f.F(0.12f, -0.155f) }, MOUTH);
+        Shape({ f.F(0.10f, -0.103f), f.F(0.21f, -0.095f), f.F(0.20f, -0.115f), f.F(0.11f, -0.12f) }, WHITE);
+    }
+
+    void DrawFirmMouth(const Face& f)
+    {
+        Line(f.F(0.11f, -0.125f), f.F(0.21f, -0.12f), 0.028f * f.k, MOUTH);
+    }
+
+    // ---- El Bawab ----------------------------------------------------------
+
+    void DrawBawabHead(const Face& f, const Look& look)
+    {
+        DrawHeadBase(f, look.skin);
+
+        // short gray beard
+        Shape({ f.F(-0.10f, -0.06f), f.F(0.04f, -0.07f), f.F(0.21f, -0.07f),
+                f.F(0.17f, -0.19f), f.F(0.05f, -0.26f), f.F(-0.09f, -0.17f) },
+              glm::mix(look.skin, GRAY_HAIR, 0.75f));
+
+        DrawBraveEyes(f, GRAY_HAIR);
+        DrawNose(f, look.skin);
+        DrawFirmMouth(f);
+
+        // big gray moustache
+        OutlinedShape({ f.F(0.08f, -0.08f), f.F(0.25f, -0.075f), f.F(0.26f, -0.12f), f.F(0.07f, -0.115f) }, GRAY_HAIR);
+
+        // wrinkles on the forehead
+        Line(f.F(0.06f, 0.15f), f.F(0.16f, 0.15f), 0.012f, look.skin * 0.75f);
+
+        // white taqiyah (round cap) with a stitched band
+        std::vector<glm::vec2> cap;
+        for (int i = 0; i <= 10; ++i)
+        {
+            float a = 3.14159f * (0.05f + 0.9f * i / 10.0f);
+            cap.push_back(f.F(0.03f + 0.22f * std::cos(a), 0.12f + 0.17f * std::sin(a)));
+        }
+        OutlinedShape(cap, WHITE);
+        Line(f.F(-0.17f, 0.15f), f.F(0.23f, 0.15f), 0.03f, glm::vec3(0.82f, 0.80f, 0.74f));
+        for (int i = 0; i < 5; ++i)
+            Dot(f.F(-0.12f + 0.08f * i, 0.21f), 0.012f, glm::vec3(0.75f, 0.72f, 0.66f));
+    }
+
+    // The long galabeya robe, from the shoulders to just under the knees.
+    void DrawGalabeya(const Skeleton& s, const Look& look)
+    {
+        const glm::vec2 sh = s.shoulder;
+        const glm::vec2 h = s.hip;
+        const float hemY = (s.nearKnee.y + s.farKnee.y) * 0.5f - 0.10f;
+        const float hemX = (s.nearKnee.x + s.farKnee.x) * 0.5f;
+
+        const std::vector<glm::vec2> robe = {
+            sh + glm::vec2(-0.20f, 0.06f), sh + glm::vec2(0.14f, 0.06f), sh + glm::vec2(0.24f, -0.12f),
+            h + glm::vec2(0.24f, 0.02f), glm::vec2(hemX + 0.34f, hemY), glm::vec2(hemX - 0.30f, hemY),
+            h + glm::vec2(-0.25f, 0.02f), sh + glm::vec2(-0.24f, -0.10f)
+        };
+        OutlinedShape(robe, look.shirt);
+
+        // vertical stripes
+        for (int i = -2; i <= 2; ++i)
+        {
+            float x = 0.09f * i;
+            Line(sh + glm::vec2(x * 0.7f, -0.02f), glm::vec2(hemX + x * 1.25f, hemY + 0.04f), 0.022f, look.shirtShade);
+        }
+
+        // neck opening with a small button line
+        OutlinedShape({ sh + glm::vec2(0.02f, 0.06f), sh + glm::vec2(0.14f, 0.06f), sh + glm::vec2(0.09f, -0.12f) }, look.skin);
+        Dot(sh + glm::vec2(0.09f, -0.16f), 0.018f, look.shirtShade);
+        Dot(sh + glm::vec2(0.09f, -0.24f), 0.018f, look.shirtShade);
+    }
+
+    // Long wooden stick held in the hand, pointing along the forearm.
+    void DrawNabboot(glm::vec2 elbow, glm::vec2 hand)
+    {
+        glm::vec2 dir = Direction(elbow, hand);
+        glm::vec2 a = hand - dir * 0.30f;
+        glm::vec2 b = hand + dir * 0.95f;
+        OutlinedLine(a, b, 0.07f, STICK);
+        Line(a + dir * 0.05f, b - dir * 0.05f, 0.02f, glm::mix(STICK, WHITE, 0.25f));   // shine
+        // knots and a leather grip
+        Dot(hand + dir * 0.45f, 0.03f, STICK_DARK);
+        Dot(hand + dir * 0.75f, 0.025f, STICK_DARK);
+        OutlinedLine(hand - dir * 0.10f, hand + dir * 0.10f, 0.085f, glm::vec3(0.30f, 0.17f, 0.10f));
+    }
+
+    void DrawBawab(const Pose& p)
+    {
+        const Look& look = BAWAB_LOOK;
+        const Skeleton s = BuildSkeleton(p);
+
+        DrawArm(s.farShoulder, s.farElbow, s.farHand, look, true, true);
+        DrawFist(s.farHand, look, true);
+        DrawLeg(s.farHip, s.farKnee, s.farFoot, look, true);
+        DrawLeg(s.nearHip, s.nearKnee, s.nearFoot, look, false);
+        DrawGalabeya(s, look);
+        DrawNeck(s, look);
+        DrawBawabHead({ s.head, 1.0f }, look);
+
+        // wide galabeya sleeve on the near arm
+        DrawArm(s.nearShoulder, s.nearElbow, s.nearHand, look, false, true);
+        if (p.weapon > 0.5f)
+            DrawNabboot(s.nearElbow, s.nearHand);
+        DrawFist(s.nearHand, look, false);
+    }
+
+    // ---- Tomato seller -----------------------------------------------------
+
+    void DrawTomatoShape(glm::vec2 c, float r)
+    {
+        OutlinedDot(c, r, TOMATO);
+        Dot(c + glm::vec2(-r * 0.35f, r * 0.30f), r * 0.28f, glm::mix(TOMATO, WHITE, 0.45f));   // shine
+        Shape({ c + glm::vec2(-r * 0.6f, r * 0.85f), c + glm::vec2(0.0f, r * 1.25f),
+                c + glm::vec2(r * 0.6f, r * 0.85f), c + glm::vec2(0.0f, r * 0.7f) }, LEAF);
+    }
+
+    void DrawVendorHead(const Face& f, const Look& look)
+    {
+        DrawHeadBase(f, look.skin);
+
+        // short black hair at the back, under the cap
+        Shape({ f.F(-0.21f, -0.02f), f.F(-0.20f, 0.12f), f.F(-0.05f, 0.16f), f.F(-0.10f, 0.02f) }, HAIR);
+
+        DrawBraveEyes(f, HAIR);
+        DrawNose(f, look.skin);
+        DrawSmile(f);
+        OutlinedLine(f.F(0.10f, -0.075f), f.F(0.22f, -0.07f), 0.03f, HAIR);   // thin moustache
+
+        // flat cap with a short brim
+        OutlinedShape({ f.F(-0.22f, 0.10f), f.F(-0.16f, 0.24f), f.F(0.04f, 0.28f), f.F(0.20f, 0.20f),
+                        f.F(0.20f, 0.12f) }, glm::vec3(0.30f, 0.36f, 0.22f));
+        OutlinedShape({ f.F(0.12f, 0.15f), f.F(0.33f, 0.13f), f.F(0.32f, 0.10f), f.F(0.12f, 0.10f) },
+                      glm::vec3(0.22f, 0.27f, 0.16f));
+        Line(f.F(-0.18f, 0.12f), f.F(0.15f, 0.13f), 0.02f, glm::vec3(0.22f, 0.27f, 0.16f));
+    }
+
+    // Shirt with an apron over it.
+    void DrawVendorShirt(const Skeleton& s, const Look& look)
+    {
+        const glm::vec2 h = s.hip;
+        const glm::vec2 sh = s.shoulder;
+
+        OutlinedShape({ h + glm::vec2(-0.20f, -0.06f), h + glm::vec2(0.20f, -0.06f),
+                        sh + glm::vec2(0.22f, -0.12f), sh + glm::vec2(0.14f, 0.08f),
+                        sh + glm::vec2(-0.12f, 0.09f), sh + glm::vec2(-0.22f, -0.08f) }, look.shirt);
+        // checks on the shirt
+        for (int i = 0; i < 3; ++i)
+            Line(h + glm::vec2(-0.18f, 0.10f + 0.16f * i), h + glm::vec2(0.18f, 0.10f + 0.16f * i), 0.02f, look.shirtShade);
+        Line(sh + glm::vec2(-0.08f, 0.04f), h + glm::vec2(-0.08f, -0.04f), 0.02f, look.shirtShade);
+
+        // green apron with a pocket
+        const glm::vec3 apron(0.22f, 0.50f, 0.30f);
+        OutlinedShape({ sh + glm::vec2(0.02f, -0.06f), sh + glm::vec2(0.20f, -0.10f),
+                        h + glm::vec2(0.24f, -0.22f), h + glm::vec2(-0.02f, -0.22f) }, apron);
+        OutlinedShape({ h + glm::vec2(0.04f, -0.02f), h + glm::vec2(0.18f, -0.02f),
+                        h + glm::vec2(0.19f, -0.13f), h + glm::vec2(0.05f, -0.13f) }, apron * 0.8f);
+        Line(sh + glm::vec2(0.02f, -0.06f), sh + glm::vec2(-0.05f, 0.08f), 0.03f, apron * 0.8f);  // neck strap
+    }
+
+    // Wicker basket full of tomatoes, carried on the hip.
+    void DrawTomatoBasket(glm::vec2 c)
+    {
+        const glm::vec3 wicker(0.72f, 0.54f, 0.28f);
+        DrawTomatoShape(c + glm::vec2(-0.08f, 0.10f), 0.065f);
+        DrawTomatoShape(c + glm::vec2(0.06f, 0.12f), 0.065f);
+        DrawTomatoShape(c + glm::vec2(-0.01f, 0.16f), 0.06f);
+        OutlinedShape({ c + glm::vec2(-0.20f, 0.10f), c + glm::vec2(0.20f, 0.10f),
+                        c + glm::vec2(0.15f, -0.12f), c + glm::vec2(-0.15f, -0.12f) }, wicker);
+        for (int i = 0; i < 3; ++i)
+            Line(c + glm::vec2(-0.18f + 0.01f * i, 0.05f - 0.07f * i), c + glm::vec2(0.18f - 0.01f * i, 0.05f - 0.07f * i), 0.018f, wicker * 0.75f);
+    }
+
+    void DrawVendor(const Pose& p)
+    {
+        const Look& look = VENDOR_LOOK;
+        const Skeleton s = BuildSkeleton(p);
+
+        DrawArm(s.farShoulder, s.farElbow, s.farHand, look, true, true);
+        DrawFist(s.farHand, look, true);
+        DrawLeg(s.farHip, s.farKnee, s.farFoot, look, true);
+        DrawLeg(s.nearHip, s.nearKnee, s.nearFoot, look, false);
+        DrawPelvis(s, look);
+        DrawVendorShirt(s, look);
+        DrawTomatoBasket(s.hip + glm::vec2(-0.26f, 0.02f));
+        DrawNeck(s, look);
+        DrawVendorHead({ s.head, 1.0f }, look);
+
+        DrawArm(s.nearShoulder, s.nearElbow, s.nearHand, look, false, true);
+        if (p.weapon > 0.5f)
+            DrawTomatoShape(s.nearHand + glm::vec2(0.04f, 0.06f), 0.075f);
+        DrawFist(s.nearHand, look, false);
+    }
+
+    // ---- El Me'allem -------------------------------------------------------
+
+    void DrawMechanicHead(const Face& f, const Look& look)
+    {
+        DrawHeadBase(f, look.skin);
+
+        // stubble and a shine on the bald head
+        Shape({ f.F(-0.10f, -0.07f), f.F(0.20f, -0.06f), f.F(0.17f, -0.18f),
+                f.F(0.05f, -0.25f), f.F(-0.09f, -0.17f) }, glm::mix(look.skin, HAIR, 0.25f));
+        Dot(f.F(-0.02f, 0.15f), 0.04f, glm::mix(look.skin, WHITE, 0.35f));
+
+        DrawBraveEyes(f, HAIR);
+        DrawNose(f, look.skin);
+        DrawFirmMouth(f);
+
+        // thick black moustache
+        OutlinedShape({ f.F(0.07f, -0.075f), f.F(0.26f, -0.07f), f.F(0.27f, -0.125f), f.F(0.06f, -0.11f) }, HAIR);
+
+        // goggles pushed up on the forehead
+        Line(f.F(-0.21f, 0.10f), f.F(0.10f, 0.15f), 0.04f, glm::vec3(0.20f, 0.16f, 0.12f));
+        OutlinedDot(f.F(0.10f, 0.16f), 0.055f, METAL_DARK);
+        Dot(f.F(0.10f, 0.16f), 0.035f, glm::vec3(0.55f, 0.75f, 0.80f));
+        OutlinedDot(f.F(0.20f, 0.155f), 0.045f, METAL_DARK);
+        Dot(f.F(0.20f, 0.155f), 0.028f, glm::vec3(0.55f, 0.75f, 0.80f));
+    }
+
+    void DrawOveralls(const Skeleton& s, const Look& look)
+    {
+        const glm::vec2 h = s.hip;
+        const glm::vec2 sh = s.shoulder;
+
+        // white undershirt
+        OutlinedShape({ h + glm::vec2(-0.22f, -0.04f), h + glm::vec2(0.22f, -0.04f),
+                        sh + glm::vec2(0.24f, -0.12f), sh + glm::vec2(0.14f, 0.08f),
+                        sh + glm::vec2(-0.12f, 0.09f), sh + glm::vec2(-0.24f, -0.08f) }, glm::vec3(0.88f, 0.86f, 0.80f));
+        // overall bib and body
+        OutlinedShape({ h + glm::vec2(-0.24f, -0.12f), h + glm::vec2(0.24f, -0.12f),
+                        sh + glm::vec2(0.18f, -0.16f), sh + glm::vec2(-0.10f, -0.14f) }, look.shirt);
+        OutlinedLine(sh + glm::vec2(0.15f, -0.16f), sh + glm::vec2(0.08f, 0.06f), 0.05f, look.shirt);
+        OutlinedLine(sh + glm::vec2(-0.08f, -0.14f), sh + glm::vec2(-0.12f, 0.06f), 0.05f, look.shirtShade);
+        OutlinedDot(sh + glm::vec2(0.15f, -0.15f), 0.025f, METAL);
+        // grease stains and a wrench in the pocket
+        Dot(h + glm::vec2(0.10f, 0.12f), 0.05f, look.shirtShade);
+        Dot(h + glm::vec2(-0.06f, 0.02f), 0.035f, glm::vec3(0.12f, 0.12f, 0.14f));
+        OutlinedLine(h + glm::vec2(-0.16f, 0.08f), h + glm::vec2(-0.12f, 0.30f), 0.035f, METAL);
+        OutlinedDot(h + glm::vec2(-0.12f, 0.31f), 0.035f, METAL);
+    }
+
+    // A piece of corrugated garage shutter used as a big shield.
+    void DrawShutterShield(glm::vec2 c, float wobble)
+    {
+        const float w = 0.34f, hgt = 0.92f;
+        glm::vec2 tilt(wobble, 0.0f);
+        OutlinedShape({ c + glm::vec2(-w, -hgt), c + glm::vec2(w, -hgt),
+                        c + glm::vec2(w, hgt) + tilt, c + glm::vec2(-w, hgt) + tilt }, SHUTTER);
+        // horizontal ribs
+        for (int i = 0; i < 9; ++i)
+        {
+            float y = -hgt + 0.12f + i * 0.2f;
+            float k = (y + hgt) / (2.0f * hgt);
+            Line(c + glm::vec2(-w + 0.03f, y) + tilt * k, c + glm::vec2(w - 0.03f, y) + tilt * k, 0.045f, SHUTTER_RIB);
+        }
+        // rust patches, a dent and a handle
+        Dot(c + glm::vec2(0.14f, -0.58f), 0.08f, RUST);
+        Dot(c + glm::vec2(-0.18f, 0.48f) + tilt * 0.8f, 0.06f, RUST);
+        Dot(c + glm::vec2(0.05f, 0.20f) + tilt * 0.6f, 0.07f, glm::mix(SHUTTER, WHITE, 0.25f));
+        OutlinedLine(c + glm::vec2(-0.12f, -0.82f), c + glm::vec2(0.12f, -0.82f), 0.05f, METAL_DARK);
+    }
+
+    void DrawMechanic(const Pose& p, float time)
+    {
+        const Look& look = MECHANIC_LOOK;
+        const Skeleton s = BuildSkeleton(p);
+
+        DrawArm(s.farShoulder, s.farElbow, s.farHand, look, true, false);
+        DrawFist(s.farHand, look, true);
+        DrawLeg(s.farHip, s.farKnee, s.farFoot, look, true);
+        DrawLeg(s.nearHip, s.nearKnee, s.nearFoot, look, false);
+        DrawPelvis(s, look);
+        DrawOveralls(s, look);
+        DrawNeck(s, look);
+        DrawMechanicHead({ s.head, 1.0f }, look);
+
+        // the shield is held in front of the body with both hands
+        DrawShutterShield(glm::vec2(0.50f, -0.06f + p.bob * 0.5f), 0.03f * std::sin(time * 2.0f));
+        DrawArm(s.nearShoulder, s.nearElbow, s.nearHand, look, false, false);
+        DrawFist(s.nearHand, look, false);
+    }
+
+    // ---- Player animations ---------------------------------------------------
+
+    constexpr float PLAYER_WALK_CYCLE = 0.7f;
+
+    std::vector<Keyframe> MakeWalkAnimation(float weapon, glm::vec2 nearElbow, glm::vec2 nearHand)
+    {
+        std::vector<Keyframe> keys = MakeRunAnimation(weapon);
+        for (Keyframe& k : keys)
+        {
+            k.time *= PLAYER_WALK_CYCLE / RUN_CYCLE_TIME;
+            k.pose.lean = 0.03f;
+            if (nearElbow.x > -9.0f)
+            {
+                // the weapon arm stays up in front while walking
+                k.pose.nearElbow = nearElbow;
+                k.pose.nearHand = nearHand + glm::vec2(0.0f, k.pose.bob * 0.8f);
+            }
+        }
+        return keys;
+    }
+
+    // BAWAB: lifts the stick high behind his head, strikes down in front.
+    std::vector<Keyframe> MakeBawabAttack()
+    {
+        Pose ready  = StancePose( 0.00f, 0.04f, { 0.16f, -0.20f}, { 0.34f, -0.02f}, { 0.10f, -0.26f}, { 0.24f, -0.14f}, 1.0f);
+        Pose raise  = StancePose( 0.02f,-0.08f, {-0.04f,  0.24f}, {-0.20f,  0.40f}, { 0.20f, -0.12f}, { 0.40f, -0.04f}, 1.0f);
+        Pose strike = StancePose(-0.05f, 0.18f, { 0.26f,  0.02f}, { 0.50f, -0.16f}, {-0.12f, -0.24f}, {-0.10f, -0.46f}, 1.0f);
+        Pose follow = StancePose(-0.04f, 0.14f, { 0.20f, -0.20f}, { 0.36f, -0.42f}, {-0.12f, -0.24f}, {-0.10f, -0.46f}, 1.0f);
+        return { { 0.00f, ready }, { 0.25f, raise }, { PLAYER_HIT_TIME, strike }, { 0.50f, follow }, { PLAYER_ATTACK_DURATION, ready } };
+    }
+
+    // VENDOR: takes a tomato back over the shoulder and throws it overhand.
+    std::vector<Keyframe> MakeVendorAttack()
+    {
+        Pose ready  = StancePose( 0.00f, 0.02f, { 0.06f, -0.26f}, { 0.20f, -0.40f}, { 0.10f, -0.26f}, { 0.20f, -0.40f}, 1.0f);
+        Pose windup = StancePose( 0.01f,-0.08f, {-0.18f,  0.14f}, {-0.22f,  0.38f}, { 0.20f, -0.10f}, { 0.42f,  0.02f}, 1.0f);
+        Pose thrown = StancePose( 0.00f, 0.12f, { 0.22f,  0.14f}, { 0.46f,  0.20f}, {-0.14f, -0.22f}, {-0.16f, -0.44f}, 1.0f);
+        Pose empty  = thrown; empty.weapon = 0.0f;
+        Pose follow = StancePose(-0.03f, 0.12f, { 0.22f, -0.14f}, { 0.36f, -0.34f}, {-0.14f, -0.22f}, {-0.16f, -0.44f}, 0.0f);
+        Pose end = ready; end.weapon = 0.0f;
+        return { { 0.00f, ready }, { 0.25f, windup }, { PLAYER_HIT_TIME, thrown }, { PLAYER_HIT_TIME + 0.01f, empty },
+                 { 0.50f, follow }, { PLAYER_ATTACK_DURATION, end } };
+    }
+
+    // MECHANIC: braced behind the shield, breathing.
+    std::vector<Keyframe> MakeMechanicIdle()
+    {
+        Pose low = StancePose(-0.04f, 0.10f, { 0.22f, -0.12f}, { 0.42f, -0.02f}, { 0.24f, -0.20f}, { 0.42f, -0.30f}, 1.0f);
+        low.nearKnee = glm::vec2(0.22f, -0.56f);
+        low.nearFoot = glm::vec2(0.36f, -0.98f);
+        low.farKnee  = glm::vec2(-0.18f, -0.60f);
+        low.farFoot  = glm::vec2(-0.38f, -0.98f);
+        Pose high = low;
+        high.bob += 0.025f;
+        return { { 0.0f, low }, { 0.8f, high }, { 1.6f, low } };
+    }
+
+    struct PlayerAnimationSet
+    {
+        std::vector<Keyframe> walk, attack, idle;
+    };
+
+    const PlayerAnimationSet& GetPlayerAnimations(PlayerType type)
+    {
+        static PlayerAnimationSet bawab, vendor, mechanic;
+        static bool built = false;
+        if (!built)
+        {
+            bawab.walk    = MakeWalkAnimation(1.0f, { 0.16f, -0.20f }, { 0.34f, -0.02f });
+            bawab.attack  = MakeBawabAttack();
+            bawab.idle    = MakeIdleAnimation(bawab.attack, 1.0f);
+            vendor.walk   = MakeWalkAnimation(1.0f, { -99.0f, 0.0f }, { 0.0f, 0.0f });
+            vendor.attack = MakeVendorAttack();
+            vendor.idle   = MakeIdleAnimation(vendor.attack, 1.0f);
+            mechanic.idle = MakeMechanicIdle();
+            mechanic.walk = mechanic.idle;
+            mechanic.attack = mechanic.idle;
+            built = true;
+        }
+        switch (type)
+        {
+        case PlayerType::Melee:  return bawab;
+        case PlayerType::Ranged: return vendor;
+        default:                 return mechanic;
+        }
+    }
+
+    Pose GetPlayerPose(PlayerType type, PlayerAnim anim, float animTime)
+    {
+        const PlayerAnimationSet& set = GetPlayerAnimations(type);
+        switch (anim)
+        {
+        case PlayerAnim::Attack: return Sample(set.attack, animTime, false, true);
+        case PlayerAnim::Idle:   return Sample(set.idle, animTime, true, true);
+        default:                 return Sample(set.walk, animTime, true, false);
+        }
+    }
+
+    // Ducking: knees bent, head low, arms covering the head.
+    Pose MakeDuckPose(const Pose& base, float amount)
+    {
+        Pose duck = CrouchPose(0.18f, { 0.16f, 0.10f }, { 0.30f, 0.30f }, { 0.12f, 0.08f }, { 0.26f, 0.26f }, base.weapon);
+        duck.bob = -0.42f;
+        return Blend(base, duck, amount);
+    }
+
+    // Jumping: legs tucked under the body.
+    Pose MakeJumpPose(const Pose& base, float amount)
+    {
+        Pose jump = base;
+        jump.nearKnee = glm::vec2(0.28f, -0.40f);
+        jump.nearFoot = glm::vec2(0.06f, -0.66f);
+        jump.farKnee  = glm::vec2(0.14f, -0.44f);
+        jump.farFoot  = glm::vec2(-0.12f, -0.68f);
+        return Blend(base, jump, amount);
+    }
+
+    // ===========================================================================
     // Public functions
     // ===========================================================================
 
     // Sets where the next character is drawn and how big it is.
     void PlaceCharacter(float x, float laneY, EnemyType type)
     {
+        g_facing = -1.0f;
         g_scale = CHARACTER_SCALE;
         if (type == EnemyType::MediumRanged)
             g_scale *= KID_SCALE;
@@ -1168,6 +1606,7 @@ namespace CharacterRenderer
 
     void DrawSlipper(float x, float y, float spin)
     {
+        g_facing = -1.0f;
         g_scale = CHARACTER_SCALE;
         g_origin = glm::vec2(x, y);
         SlipperShape(glm::vec2(0.0f), glm::vec2(std::cos(spin), std::sin(spin)), EASY_LOOK.slipper);
@@ -1175,9 +1614,94 @@ namespace CharacterRenderer
 
     void DrawPebble(float x, float y)
     {
+        g_facing = -1.0f;
         g_scale = CHARACTER_SCALE;
         g_origin = glm::vec2(x, y);
         OutlinedDot(glm::vec2(0.0f), 0.045f, PEBBLE);
         Dot(glm::vec2(-0.012f, 0.015f), 0.015f, WHITE);
+    }
+
+    // ---- players -------------------------------------------------------------
+
+    float PlayerScale(PlayerType type)
+    {
+        return CHARACTER_SCALE * (type == PlayerType::Defense ? 1.08f : 1.0f);
+    }
+
+    void DrawPlayerAt(glm::vec2 feet, float scale, PlayerType type, PlayerAnim anim, float animTime,
+                      float jump, float duck, float walkTime)
+    {
+        g_facing = 1.0f;
+        g_scale = scale;
+        g_origin = glm::vec2(feet.x, feet.y + 1.08f * scale);
+
+        Pose pose = GetPlayerPose(type, anim, animTime);
+        if (walkTime >= 0.0f && anim == PlayerAnim::Attack)
+        {
+            // attacking while walking: the legs keep their walking cycle
+            Pose legs = GetPlayerPose(type, PlayerAnim::Walk, walkTime);
+            pose.nearKnee = legs.nearKnee; pose.nearFoot = legs.nearFoot;
+            pose.farKnee = legs.farKnee;   pose.farFoot = legs.farFoot;
+            pose.bob = legs.bob + pose.bob * 0.5f;
+        }
+        if (duck > 0.0f)
+            pose = MakeDuckPose(pose, duck);
+        if (jump > 0.0f)
+            pose = MakeJumpPose(pose, std::fmin(1.0f, jump * 3.0f));
+
+        switch (type)
+        {
+        case PlayerType::Melee:   DrawBawab(pose); break;
+        case PlayerType::Ranged:  DrawVendor(pose); break;
+        case PlayerType::Defense: DrawMechanic(pose, animTime); break;
+        }
+    }
+
+    void DrawPlayer(float x, float laneY, PlayerType type, PlayerAnim anim, float animTime,
+                    float jumpHeight, float duck, float walkTime)
+    {
+        float scale = PlayerScale(type);
+        DrawPlayerAt(glm::vec2(x, laneY - FOOT_OFFSET + jumpHeight), scale, type, anim, animTime,
+                     jumpHeight, duck, walkTime);
+    }
+
+    glm::vec2 GetPlayerThrowPoint(float x, float laneY)
+    {
+        float scale = PlayerScale(PlayerType::Ranged);
+        g_facing = 1.0f;
+        g_scale = scale;
+        g_origin = glm::vec2(x, laneY - FOOT_OFFSET + 1.08f * scale);
+        const Skeleton s = BuildSkeleton(GetPlayerPose(PlayerType::Ranged, PlayerAnim::Attack, PLAYER_HIT_TIME));
+        return ToWorld(s.nearHand + glm::vec2(0.04f, 0.06f));
+    }
+
+    void DrawTomato(float x, float y, float spin)
+    {
+        g_facing = 1.0f;
+        g_scale = CHARACTER_SCALE;
+        g_origin = glm::vec2(x, y);
+        float r = 0.075f;
+        OutlinedDot(glm::vec2(0.0f), r, TOMATO);
+        Dot(glm::vec2(-r * 0.35f, r * 0.30f), r * 0.28f, glm::mix(TOMATO, WHITE, 0.45f));
+        glm::vec2 up(std::cos(spin + 1.57f), std::sin(spin + 1.57f));
+        glm::vec2 side(-up.y, up.x);
+        Shape({ up * (r * 0.75f) - side * (r * 0.6f), up * (r * 1.25f), up * (r * 0.75f) + side * (r * 0.6f), up * (r * 0.6f) }, LEAF);
+    }
+
+    // A tomato bursting: red pulp flying out, then fading into small drops.
+    void DrawSplat(float x, float y, float t)
+    {
+        g_facing = 1.0f;
+        g_scale = CHARACTER_SCALE;
+        g_origin = glm::vec2(x, y);
+        float grow = 0.06f + 0.12f * t;
+        Dot(glm::vec2(0.0f), grow * (1.0f - t * 0.6f), TOMATO_DARK);
+        for (int i = 0; i < 7; ++i)
+        {
+            float a = 6.2832f * i / 7.0f + 0.4f;
+            glm::vec2 d(std::cos(a), std::sin(a));
+            float dist = 0.05f + 0.22f * t;
+            Dot(d * dist + glm::vec2(0.0f, -0.10f * t * t), 0.045f * (1.0f - t), i % 2 ? TOMATO : glm::vec3(0.95f, 0.75f, 0.30f));
+        }
     }
 }
