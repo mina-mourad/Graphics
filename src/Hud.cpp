@@ -47,14 +47,17 @@ namespace
     const vec2 PAUSE_POS(15.5f, 8.3f);
     const vec2 PAUSE_SIZE(0.7f, 0.7f);
 
-    const char* CARD_NAMES[3] = { "BAWAB", "TOMATO", "ME'ALLEM" };
+    const char* CARD_NAMES[3] = { "BAWAB", "ME'ALLEM", "HAGGA" };
 
     bool CardUnlocked(int i) { return Economy::CanAfford(PLAYER_COST[i]); }
 
     void UseCard(int i)
     {
         cardPress[i] = 1.0f;
-        PlayerSystem::PlaceOnSelectedLanes(static_cast<PlayerType>(i));
+        if (static_cast<PlayerType>(i) == PlayerType::Defense)
+            PlayerSystem::StartDefensePlacement();   // she goes wherever you click in a lane
+        else
+            PlayerSystem::PlaceOnSelectedLanes(static_cast<PlayerType>(i));
     }
 
     void DrawCard(int i, bool hover)
@@ -247,8 +250,8 @@ namespace Hud
         }
 
         // ---- controls hint along the bottom ----
-        Renderer2D::DrawQuad(vec2(8.8f, 0.2f), vec2(Renderer2D::TextWidth("CLICK LANES TO SELECT - CARD OR 1/2/3: PLACE - W/S: JUMP/DUCK - ESC: PAUSE", 0.105f) + 0.4f, 0.32f), vec3(0.16f, 0.13f, 0.11f));
-        Renderer2D::DrawTextShadow("CLICK LANES TO SELECT - CARD OR 1/2/3: PLACE - W/S: JUMP/DUCK - ESC: PAUSE",
+        Renderer2D::DrawQuad(vec2(8.8f, 0.2f), vec2(Renderer2D::TextWidth("CLICK LANES - CARD OR 1/2: PLACE - 3: PUT EL HAGGA ANYWHERE - W/S: JUMP/DUCK - ESC: PAUSE", 0.105f) + 0.4f, 0.32f), vec3(0.16f, 0.13f, 0.11f));
+        Renderer2D::DrawTextShadow("CLICK LANES - CARD OR 1/2: PLACE - 3: PUT EL HAGGA ANYWHERE - W/S: JUMP/DUCK - ESC: PAUSE",
                                    vec2(8.8f, 0.2f), 0.105f, vec3(1.0f, 0.95f, 0.85f));
     }
 }

@@ -17,8 +17,8 @@ namespace Audio
         Locked,         // locked card / not allowed
         Swing,          // nabboot stick swishes through the air
         StickHit,       // ...and lands with a wooden thwack
-        TomatoThrow,
-        TomatoSplat,
+        Gunshot,        // El Me'allem's pistol
+        BulletHit,
         SlipperThrow,
         SlipperHit,     // the famous slipper smack
         Slingshot,

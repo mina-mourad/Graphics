@@ -27,10 +27,10 @@ Continues `feature/continue-from-main` (the team's animated enemies) into a comp
 
 **Story:** in an old Cairo *hara* (alley), Am Sayed's *koshk* (kiosk) keeps the whole street going. The slipper gang wants to take it. The *shabab* of the street defend it.
 
-**Players** (same drawing / pose system as the enemies): **El Bawab** (melee, galabeya + nabboot stick), **the tomato seller** (ranged, throws tomatoes that splat), **El Me'allem** (defense, mechanic behind a garage-shutter shield).
+**Players** (same drawing / pose system as the enemies): **El Bawab** (melee, galabeya + nabboot stick), **El Me'allem** (ranged: bald, bearded street boss with a cigar and a pistol — aims with both hands, bullets burst on impact), **El Hagga** (defense: the street's fearless grandmother in a patterned galabeya, red headscarf and gold bangles; she shakes her fist when hit). **El Hagga can be placed anywhere in a lane**: use her card (or `3`), then click the spot in any lane (a gray preview shows where she will stand; right click or `Esc` cancels).
 **Enemies** (team's): slipper thrower (high attack → duck), slingshot kid (low attack → jump), knife thug (runs, 2 damage).
 
-**Controls:** click lanes to select/deselect (several at once) · click a card or press `1`/`2`/`3` to place on every selected lane · `W`/`Up` jump · `S`/`Down` duck · `Esc` or the pause button to pause · `Space` skips the cutscene.
+**Controls:** click lanes to select/deselect (several at once) · click a card or press `1`/`2` to place on every selected lane · `3` / Hagga card, then click anywhere in a lane to put El Hagga there · `W`/`Up` jump · `S`/`Down` duck · `Esc` or the pause button to pause · `Space` skips the cutscene.
 
 **Rules implemented:** 3 lanes, start with 30 coins (Melee 10, Ranged 40, Defense 60; cards grayscale + unclickable when unaffordable), waves of 3/5/10 enemies in random lanes, coins dropped by enemies and collected when a player walks into them, red tint growing as health drops, health blocks under everyone, Defense shields players behind it, lose when a thug reaches the koshk (everything freezes), win after wave 3. Menus: main (start / sound / exit), sound settings, pause, win/lose. 16 s animated cutscene with dialogue.
 

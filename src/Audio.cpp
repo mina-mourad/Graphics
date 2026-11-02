@@ -212,8 +212,10 @@ namespace
         S(Sfx::Locked) = { Sweep(0.18f, 150, 120, 0.5f, 10, 2), 0.45f };
         S(Sfx::Swing)  = { NoiseBurst(0.22f, 1.2f, 9, 0.05f, 0.35f), 0.45f };
         { Buf b = Sweep(0.12f, 190, 120, 0.9f, 30); Mix(b, Ping(0.1f, 420, 0.3f, 50)); Mix(b, NoiseBurst(0.06f, 0.9f, 60, 0.6f, 0.3f)); S(Sfx::StickHit) = { b, 0.6f }; }
-        S(Sfx::TomatoThrow) = { NoiseBurst(0.18f, 0.9f, 12, 0.1f, 0.3f), 0.35f };
-        { Buf b = NoiseBurst(0.28f, 1.3f, 12, 0.35f, 0.04f, 38.0f); Mix(b, Sweep(0.2f, 320, 70, 0.6f, 14)); S(Sfx::TomatoSplat) = { b, 0.6f }; }
+        // pistol shot: a sharp crack, a low boom and a short echo off the houses
+        { Buf b = NoiseBurst(0.06f, 1.8f, 60, 0.95f, 0.7f); Mix(b, Sweep(0.25f, 140, 45, 1.0f, 16)); Mix(b, NoiseBurst(0.25f, 0.4f, 14, 0.25f, 0.1f), 0.07f); S(Sfx::Gunshot) = { b, 0.5f }; }
+        // bullet hits: a thud and a little ricochet whine
+        { Buf b = Sweep(0.1f, 160, 70, 0.9f, 30); Mix(b, NoiseBurst(0.05f, 0.8f, 60, 0.7f, 0.4f)); Mix(b, Sweep(0.18f, 2400, 1300, 0.25f, 14), 0.03f); S(Sfx::BulletHit) = { b, 0.55f }; }
         S(Sfx::SlipperThrow) = { NoiseBurst(0.3f, 1.0f, 7, 0.08f, 0.25f, 24.0f), 0.4f };
         { Buf b = NoiseBurst(0.05f, 1.6f, 70, 0.95f, 0.8f); Mix(b, Sweep(0.1f, 140, 70, 0.7f, 30)); S(Sfx::SlipperHit) = { b, 0.65f }; }
         { Buf b = Sweep(0.25f, 260, 200, 0.6f, 12, 0, 0.0f, 28.0f, 0.15f); Mix(b, NoiseBurst(0.03f, 0.8f, 80, 0.9f, 0.6f)); S(Sfx::Slingshot) = { b, 0.45f }; }

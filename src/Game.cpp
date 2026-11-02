@@ -68,6 +68,8 @@ namespace
         }
         EnemySystem::RenderProjectiles();
         PlayerSystem::RenderProjectiles();
+        if (state == Game::State::Playing)
+            PlayerSystem::RenderPlacementPreview(time);
         Hud::RenderEffects();
 
         Environment::DrawForeground(time);
@@ -78,8 +80,13 @@ namespace
     {
         if (Input::IsKeyPressed(GLFW_KEY_ESCAPE))
         {
-            SetState(Game::State::Paused);
-            return;
+            if (PlayerSystem::IsPlacingDefense())
+                PlayerSystem::CancelPlacement();   // Esc first cancels placing El Hagga
+            else
+            {
+                SetState(Game::State::Paused);
+                return;
+            }
         }
 
         // input: HUD first (cards, pause button), then the lanes

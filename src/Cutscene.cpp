@@ -70,8 +70,8 @@ namespace Cutscene
         if (Crossed(12.3f)) Audio::Play(Audio::Sfx::Slingshot);
         if (Crossed(12.75f)) Audio::Play(Audio::Sfx::Jump);
         if (Crossed(13.1f)) Audio::Play(Audio::Sfx::SlipperHit, 0.6f);
-        if (Crossed(13.25f)) Audio::Play(Audio::Sfx::TomatoThrow);
-        if (Crossed(14.0f)) Audio::Play(Audio::Sfx::TomatoSplat);
+        if (Crossed(13.26f)) Audio::Play(Audio::Sfx::Gunshot);
+        if (Crossed(13.6f)) Audio::Play(Audio::Sfx::BulletHit);
         if (Crossed(14.4f)) Audio::Play(Audio::Sfx::StickHit);
     }
 
@@ -88,7 +88,7 @@ namespace Cutscene
 
         const float L0 = LANE_Y[0], L1 = LANE_Y[1], L2 = LANE_Y[2];
 
-        // ---------------- lane 2 (back): El Me'allem comes out with his shield
+        // ---------------- lane 2 (back): El Hagga steps out to guard the street
         if (T > 10.6f)
         {
             float x = Lerp(1.3f, 2.4f, Smooth(Between(T, 10.6f, 11.6f)));
@@ -130,13 +130,13 @@ namespace Cutscene
             CharacterRenderer::DrawSlipper(x, L1 + 0.62f + 0.2f * (1.0f - k), T * 14.0f);
         }
 
-        // ---------------- lane 0 (front): the tomato seller vs the slingshot kid
-        float vendorX = (T < 10.8f) ? 2.3f : Lerp(2.3f, 3.6f, Smooth(Between(T, 10.8f, 11.8f)));
-        PlayerAnim vendorAnim = (T > 10.8f && T < 11.8f) ? PlayerAnim::Walk : PlayerAnim::Idle;
-        float vendorTime = T;
-        if (T > 12.9f && T < 13.6f) { vendorAnim = PlayerAnim::Attack; vendorTime = T - 12.9f; }
-        float vendorJump = 0.0f;
-        if (T > 12.75f && T < 13.35f) vendorJump = 0.7f * std::sin(3.14159f * Between(T, 12.75f, 13.35f));
+        // ---------------- lane 0 (front): El Me'allem (the gunman) vs the slingshot kid
+        float gunX = (T < 10.8f) ? 2.3f : Lerp(2.3f, 3.6f, Smooth(Between(T, 10.8f, 11.8f)));
+        PlayerAnim gunAnim = (T > 10.8f && T < 11.8f) ? PlayerAnim::Walk : PlayerAnim::Idle;
+        float gunTime = T;
+        if (T > 12.9f && T < 13.6f) { gunAnim = PlayerAnim::Attack; gunTime = T - 12.9f; }
+        float gunJump = 0.0f;
+        if (T > 12.75f && T < 13.35f) gunJump = 0.7f * std::sin(3.14159f * Between(T, 12.75f, 13.35f));
 
         float kidX = (T < 8.0f) ? Lerp(18.0f, 10.4f, Smooth(Between(T, 5.0f, 8.0f))) : 10.4f;
         EnemyAnim kidAnim = (T > 5.0f && T < 8.0f) ? EnemyAnim::Run : EnemyAnim::Idle;
@@ -147,26 +147,27 @@ namespace Cutscene
         if (T > 0.2f && T < 4.6f)
             Environment::DrawTukTuk(vec2(Lerp(-1.5f, 18.0f, Between(T, 0.3f, 4.5f)), L0 - FOOT_OFFSET), 1.1f, 1.0f, T);
 
-        float kidHit = (T > 14.0f && T < 14.4f) ? 0.7f : 0.0f;
+        float kidHit = (T > 13.6f && T < 14.0f) ? 0.7f : 0.0f;
         Renderer2D::SetDamage(kidHit);
         CharacterRenderer::Draw(kidX, L0, EnemyType::MediumRanged, kidAnim, kidTime);
         Renderer2D::SetDamage(0.0f);
-        CharacterRenderer::DrawPlayer(vendorX, L0, PlayerType::Ranged, vendorAnim, vendorTime, vendorJump, 0.0f);
+        CharacterRenderer::DrawPlayer(gunX, L0, PlayerType::Ranged, gunAnim, gunTime, gunJump, 0.0f);
 
-        // the pebble skims the ground... the vendor jumps over it
+        // the pebble skims the ground... El Me'allem jumps over it
         if (T > 12.3f && T < 13.8f)
         {
             float k = Between(T, 12.3f, 13.8f);
             CharacterRenderer::DrawPebble(Lerp(kidX - 0.4f, HOME_BASE_RIGHT, k), L0 - 0.42f);
         }
-        // the tomato flies and splats on the kid
-        if (T > 13.25f && T < 14.0f)
+        // El Me'allem fires: the bullet flies and hits the kid
+        if (T > 13.26f && T < 13.6f)
         {
-            float k = Between(T, 13.25f, 14.0f);
-            CharacterRenderer::DrawTomato(Lerp(vendorX + 0.4f, kidX - 0.2f, k), L0 + 0.5f + 0.5f * std::sin(3.14159f * k), T * 9.0f);
+            glm::vec2 muzzle = CharacterRenderer::GetGunMuzzle(gunX, L0);
+            float k = Between(T, 13.26f, 13.6f);
+            CharacterRenderer::DrawBullet(Lerp(muzzle.x, kidX - 0.2f, k), muzzle.y);
         }
-        if (T > 14.0f && T < 14.35f)
-            CharacterRenderer::DrawSplat(kidX - 0.2f, L0 + 0.4f, Between(T, 14.0f, 14.35f));
+        if (T > 13.6f && T < 13.85f)
+            CharacterRenderer::DrawBulletHit(kidX - 0.2f, CharacterRenderer::GetGunMuzzle(gunX, L0).y, Between(T, 13.6f, 13.85f));
 
         Environment::DrawForeground(T);
 

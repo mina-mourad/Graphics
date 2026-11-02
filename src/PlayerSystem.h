@@ -41,6 +41,13 @@ namespace PlayerSystem
     void RenderLane(int lane);
     void RenderProjectiles();
 
+    // El Hagga (Defense) can be put anywhere in a lane: after her card is
+    // used, the next click in a lane places her at the mouse position.
+    void StartDefensePlacement();
+    bool IsPlacingDefense();
+    void CancelPlacement();
+    void RenderPlacementPreview(float time);
+
     int GetPlayerCount();
     int GetPlayerCountInLane(int lane, bool includeDefense);
 }

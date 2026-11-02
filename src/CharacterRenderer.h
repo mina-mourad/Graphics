@@ -59,9 +59,9 @@ namespace CharacterRenderer
     void DrawPlayerAt(glm::vec2 feet, float scale, PlayerType type, PlayerAnim anim, float animTime,
                       float jump = 0.0f, float duck = 0.0f, float walkTime = -1.0f);
 
-    // Where a thrown tomato starts (the vendor's hand at PLAYER_HIT_TIME).
-    glm::vec2 GetPlayerThrowPoint(float x, float laneY);
+    // Where a bullet starts (the gunman's pistol muzzle at PLAYER_HIT_TIME).
+    glm::vec2 GetGunMuzzle(float x, float laneY);
 
-    void DrawTomato(float x, float y, float spin);
-    void DrawSplat(float x, float y, float t);   // t = 0..1 through the splat
+    void DrawBullet(float x, float y);
+    void DrawBulletHit(float x, float y, float t);   // t = 0..1 through the impact
 }

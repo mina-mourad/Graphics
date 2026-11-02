@@ -39,8 +39,9 @@ namespace
     // Data
     // ------------------------------------------------------------------
     const float MELEE_REACH   = 0.95f;   // the nabboot reaches this far forward
-    const float TOMATO_SPEED  = 5.5f;
-    const float SPLAT_TIME    = 0.35f;
+    const float BULLET_SPEED  = 11.0f;
+    const float IMPACT_TIME   = 0.25f;
+    const float HAGGA_SPACING = 0.9f;    // two Haggas cannot stand closer than this
     const float JUMP_HEIGHT   = 0.75f;
 
     struct Player
@@ -63,16 +64,16 @@ namespace
         bool moving;
     };
 
-    struct Tomato
+    struct Bullet
     {
         float x, y;
         int lane;
-        float spin;
-        float splatT;    // < 0 while flying, then 0 -> SPLAT_TIME
+        float hitT;      // < 0 while flying, then 0 -> IMPACT_TIME
     };
 
     std::vector<Player> players;
-    std::vector<Tomato> tomatoes;
+    std::vector<Bullet> bullets;
+    bool placingDefense = false;   // waiting for a click that says where El Hagga stands
     int nextId = 1;
 
     int hoveredLane = -1;
@@ -102,13 +103,13 @@ namespace
         return std::min(1.0f, std::min(k * 6.0f, (1.0f - k) * 6.0f));   // quick down, hold, quick up
     }
 
-    void SpawnPlayer(PlayerType type, int lane)
+    void SpawnPlayer(PlayerType type, int lane, float x = LANE_START_X)
     {
         Player p{};
         p.id = nextId++;
         p.type = type;
         p.lane = lane;
-        p.x = LANE_START_X;
+        p.x = x;
         p.maxHealth = p.health = PLAYER_MAX_HP[Index(type)];
         p.anim = (type == PlayerType::Defense) ? PlayerAnim::Idle : PlayerAnim::Walk;
         p.animTime = 0.0f;
@@ -131,9 +132,9 @@ namespace
         }
         else if (p.type == PlayerType::Ranged)
         {
-            glm::vec2 start = CharacterRenderer::GetPlayerThrowPoint(p.x, laneY);
-            tomatoes.push_back({ start.x, start.y, p.lane, 0.0f, -1.0f });
-            Audio::Play(Audio::Sfx::TomatoThrow, 0.6f);
+            glm::vec2 start = CharacterRenderer::GetGunMuzzle(p.x, laneY);
+            bullets.push_back({ start.x, start.y, p.lane, -1.0f });
+            Audio::Play(Audio::Sfx::Gunshot, 0.6f);
         }
     }
 
@@ -145,8 +146,14 @@ namespace
 
         if (p.type == PlayerType::Defense)
         {
-            // Stationary blocker: never moves, never attacks.
+            // Stationary blocker: never moves, never attacks. When she is
+            // hit she only shakes her fist at the thugs.
             p.animTime += dt;
+            if (p.anim == PlayerAnim::Attack && p.animTime >= CharacterRenderer::PLAYER_ATTACK_DURATION)
+            {
+                p.anim = PlayerAnim::Idle;
+                p.animTime = 0.0f;
+            }
             return;
         }
 
@@ -203,28 +210,40 @@ namespace
             p.walkTime += dt;
     }
 
-    void UpdateTomatoes(float dt)
+    void UpdateBullets(float dt)
     {
-        for (Tomato& t : tomatoes)
+        for (Bullet& b : bullets)
         {
-            if (t.splatT >= 0.0f)
+            if (b.hitT >= 0.0f)
             {
-                t.splatT += dt;
+                b.hitT += dt;
                 continue;
             }
-            t.x += TOMATO_SPEED * dt;
-            t.y += (LANE_Y[t.lane] + 0.25f - t.y) * std::min(1.0f, dt * 3.0f);   // gentle arc down to chest height
-            t.spin += dt * 9.0f;
+            b.x += BULLET_SPEED * dt;
 
-            // A tomato only ever hits enemies: it flies straight through players.
-            if (EnemySystem::HitEnemyInRange(t.lane, t.x - 0.3f, t.x + 0.3f, PLAYER_DAMAGE))
+            // A bullet only ever hits enemies: it flies straight past players.
+            if (EnemySystem::HitEnemyInRange(b.lane, b.x - 0.25f, b.x + 0.25f, PLAYER_DAMAGE))
             {
-                t.splatT = 0.0f;
-                Audio::Play(Audio::Sfx::TomatoSplat, 0.9f);
+                b.hitT = 0.0f;
+                Audio::Play(Audio::Sfx::BulletHit, 0.9f);
             }
         }
-        tomatoes.erase(std::remove_if(tomatoes.begin(), tomatoes.end(), [](const Tomato& t)
-            { return t.splatT > SPLAT_TIME || t.x > WORLD_WIDTH + 0.5f; }), tomatoes.end());
+        bullets.erase(std::remove_if(bullets.begin(), bullets.end(), [](const Bullet& b)
+            { return b.hitT > IMPACT_TIME || b.x > WORLD_WIDTH + 0.5f; }), bullets.end());
+    }
+
+    // Where El Hagga would stand for a mouse at x (inside the lane).
+    float DefenseSpot(float mouseX)
+    {
+        return std::min(WORLD_WIDTH - 1.2f, std::max(LANE_START_X, mouseX));
+    }
+
+    bool DefenseSpotFree(int lane, float x)
+    {
+        for (const Player& p : players)
+            if (p.lane == lane && p.type == PlayerType::Defense && std::fabs(p.x - x) < HAGGA_SPACING)
+                return false;
+        return true;
     }
 }
 
@@ -233,7 +252,8 @@ namespace PlayerSystem
     void Init()
     {
         players.clear();
-        tomatoes.clear();
+        bullets.clear();
+        placingDefense = false;
         nextId = 1;
         hoveredLane = -1;
         for (int i = 0; i < NUM_LANES; ++i)
@@ -263,6 +283,42 @@ namespace PlayerSystem
                 hoveredLane = lane;
                 break;
             }
+        }
+
+        // Placing El Hagga: the click says where in the lane she stands.
+        if (placingDefense)
+        {
+            if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT))
+            {
+                CancelPlacement();
+                return true;
+            }
+            if (hoveredLane != -1 && Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+            {
+                const int cost = PLAYER_COST[Index(PlayerType::Defense)];
+                const float x = DefenseSpot(mouse.x);
+                if (!Economy::CanAfford(cost))
+                {
+                    Hud::ShowToast("NOT ENOUGH COINS");
+                    Audio::Play(Audio::Sfx::Locked);
+                    placingDefense = false;
+                }
+                else if (!DefenseSpotFree(hoveredLane, x))
+                {
+                    Hud::ShowToast("EL HAGGA IS ALREADY STANDING THERE");
+                    Audio::Play(Audio::Sfx::Locked);
+                }
+                else
+                {
+                    Economy::Spend(cost);
+                    SpawnPlayer(PlayerType::Defense, hoveredLane, x);
+                    Hud::AddSpark(glm::vec2(x, LANE_Y[hoveredLane]), glm::vec3(1.0f, 0.9f, 0.5f));
+                    Audio::Play(Audio::Sfx::Place);
+                    placingDefense = false;
+                }
+                return true;
+            }
+            return false;
         }
 
         // A click toggles the lane; several lanes can stay selected.
@@ -317,17 +373,10 @@ namespace PlayerSystem
                 Hud::ShowToast("NOT ENOUGH COINS");
                 break;
             }
-            if (type == PlayerType::Defense)
+            if (type == PlayerType::Defense && !DefenseSpotFree(lane, LANE_START_X))
             {
-                // Only one mechanic fits on the spawn spot of a lane.
-                bool taken = false;
-                for (const Player& p : players)
-                    if (p.lane == lane && p.type == PlayerType::Defense) taken = true;
-                if (taken)
-                {
-                    Hud::ShowToast("EL ME'ALLEM IS ALREADY HERE");
-                    continue;
-                }
+                Hud::ShowToast("EL HAGGA IS ALREADY STANDING THERE");
+                continue;
             }
             Economy::Spend(cost);
             SpawnPlayer(type, lane);
@@ -380,6 +429,11 @@ namespace PlayerSystem
             {
                 p->health -= hit.damage;
                 p->flash = 1.0f;
+                if (p->type == PlayerType::Defense)
+                {
+                    p->anim = PlayerAnim::Attack;   // she shakes her fist at them
+                    p->animTime = 0.0f;
+                }
                 Audio::Play(Audio::Sfx::PlayerHurt, 0.8f);
                 Hud::AddSpark(glm::vec2(p->x, LANE_Y[p->lane] + 0.2f), glm::vec3(1.0f, 0.35f, 0.2f));
             }
@@ -391,7 +445,7 @@ namespace PlayerSystem
             UpdatePlayer(p, deltaTime);
             Economy::CollectAt(p.lane, p.x);
         }
-        UpdateTomatoes(deltaTime);
+        UpdateBullets(deltaTime);
 
         // 3) defeated players are removed; players that reach the far end leave
         for (const Player& p : players)
@@ -430,16 +484,52 @@ namespace PlayerSystem
 
     void RenderProjectiles()
     {
-        for (const Tomato& t : tomatoes)
+        for (const Bullet& b : bullets)
         {
-            if (t.splatT < 0.0f)
-                CharacterRenderer::DrawTomato(t.x, t.y, t.spin);
+            if (b.hitT < 0.0f)
+                CharacterRenderer::DrawBullet(b.x, b.y);
             else
-                CharacterRenderer::DrawSplat(t.x, t.y, t.splatT / SPLAT_TIME);
+                CharacterRenderer::DrawBulletHit(b.x, b.y, b.hitT / IMPACT_TIME);
         }
     }
 
     int GetPlayerCount() { return static_cast<int>(players.size()); }
+
+    // ------------------------------------------------------------------
+    // El Hagga can stand anywhere in a lane
+    // ------------------------------------------------------------------
+    void StartDefensePlacement()
+    {
+        placingDefense = true;
+        Hud::ShowToast("CLICK WHERE EL HAGGA SHOULD STAND (RIGHT CLICK: CANCEL)");
+        Audio::Play(Audio::Sfx::Click);
+    }
+
+    bool IsPlacingDefense() { return placingDefense; }
+
+    void CancelPlacement()
+    {
+        if (!placingDefense) return;
+        placingDefense = false;
+        Hud::ShowToast("PLACEMENT CANCELLED");
+    }
+
+    void RenderPlacementPreview(float time)
+    {
+        if (!placingDefense || hoveredLane < 0)
+            return;
+        const float x = DefenseSpot(Input::GetMouseWorldPos().x);
+        const float y = LANE_Y[hoveredLane];
+        const bool ok = DefenseSpotFree(hoveredLane, x);
+
+        // a marker on the ground and a see-through looking (grayed) Hagga
+        Renderer2D::DrawEllipse(glm::vec2(x, y - FOOT_OFFSET), glm::vec2(0.45f, 0.1f), ok ? glm::vec3(1.0f, 0.9f, 0.3f) : glm::vec3(0.9f, 0.2f, 0.15f));
+        Renderer2D::SetGray(0.65f);
+        Renderer2D::SetHighlight(ok ? 0.3f : 0.0f);
+        Renderer2D::SetDamage(ok ? 0.0f : 0.5f);
+        CharacterRenderer::DrawPlayer(x, y, PlayerType::Defense, PlayerAnim::Idle, time);
+        Renderer2D::ResetEffects();
+    }
 
     int GetPlayerCountInLane(int lane, bool includeDefense)
     {
