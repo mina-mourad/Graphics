@@ -18,7 +18,7 @@ void PlaceCandies(CandyType type)
     bool placed = false;
     for (int lane = 0; lane < LANES; ++lane)
     {
-        if (!laneSelected[lane] || sugar < CANDY_COST[type]) continue;
+        if (!laneSelected[lane] || !CardUnlocked(type)) continue;
         candies.push_back({ type, lane, START_X, CANDY_HP[type], 0.3f, 0, 0, 0, 0 });
         sugar -= CANDY_COST[type];
         placed = true;
@@ -38,7 +38,7 @@ void PlaceChocolate(int lane, float x)
     x = ChocolateSpot(x);
     for (Candy& c : candies)   // not on top of another chocolate bar
         if (c.type == CHOCOLATE && c.lane == lane && std::fabs(c.x - x) < 0.18f) { PlaySound("locked"); return; }
-    if (sugar < CANDY_COST[CHOCOLATE]) { PlaySound("locked"); placingChocolate = false; return; }
+    if (!CardUnlocked(CHOCOLATE)) { PlaySound("locked"); placingChocolate = false; return; }
     candies.push_back({ CHOCOLATE, lane, x, CANDY_HP[CHOCOLATE], 0.0f, 0, 0, 0, 0 });
     sugar -= CANDY_COST[CHOCOLATE];
     placingChocolate = false;
@@ -99,6 +99,7 @@ void UpdateCandies(float dt)
         for (size_t i = 0; i < cubes.size(); ++i)
             if (cubes[i].lane == c.lane && std::fabs(cubes[i].x - c.x) < 0.08f) {
                 sugar += cubes[i].value;
+                sugarCollected += cubes[i].value;
                 cubes.erase(cubes.begin() + i);
                 PlaySound("sugar");
                 break;

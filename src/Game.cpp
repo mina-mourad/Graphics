@@ -17,6 +17,7 @@ std::vector<Soda>  sodas;
 std::vector<Shot>  shots;
 std::vector<Cube>  cubes;
 int  sugar = START_SUGAR;
+int  sugarCollected = 0;
 bool laneSelected[LANES] = {};
 int  hoverLane = -1;
 bool placingChocolate = false;
@@ -36,6 +37,7 @@ void ResetGame()
 {
     candies.clear(); sodas.clear(); shots.clear(); cubes.clear();
     sugar = START_SUGAR;
+    sugarCollected = 0;
     for (int i = 0; i < LANES; ++i) laneSelected[i] = false;
     placingChocolate = false;
     ResetWaves();

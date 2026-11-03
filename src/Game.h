@@ -31,13 +31,22 @@ enum CandyType { LOLLIPOP, BONBON, CHOCOLATE };   // melee, ranged, defense (pla
 enum SodaType  { BOTTLE, CAN, CUP };              // easy, medium, hard (enemies)
 
 const int   CANDY_HP[3]   = { 5, 5, 7 };
-const int   CANDY_COST[3] = { 10, 40, 60 };         // 30 sugar at start = 3 lollipops
+// Buying candies (spec 3.2 and the table on page 9):
+//  - the Melee player (lollipop) is the basic starter player, unlocked from the start
+//  - the game starts with enough sugar for three Melee players
+//  - Long Range (bonbon) is unlocked through 2x the sugar the Melee player needs,
+//    Defense (chocolate) through 3x
+//  - "as the player collects enough coins, the other player types are progressively
+//    unlocked": only sugar COLLECTED from defeated sodas unlocks them, so at the start
+//    every card except the lollipop is locked (see CardUnlocked in Hud.cpp)
+const int   MELEE_COST    = 10;
+const int   CANDY_COST[3] = { MELEE_COST, 2 * MELEE_COST, 3 * MELEE_COST };   // 10, 20, 30
 const float CANDY_SPEED[3] = { 0.15f, 0.13f, 0.0f };
 const int   SODA_HP[3]    = { 5, 5, 7 };
 const int   SODA_DAMAGE[3] = { 1, 1, 2 };
 const float SODA_SPEED[3] = { 0.06f, 0.06f, 0.13f };   // the cup runs
 const int   SODA_SUGAR[3] = { 15, 20, 30 };             // sugar dropped when defeated
-const int   START_SUGAR = 30;
+const int   START_SUGAR = 3 * MELEE_COST;                // enough for three lollipops
 
 struct Candy
 {
@@ -85,7 +94,9 @@ extern std::vector<Candy> candies;
 extern std::vector<Soda>  sodas;
 extern std::vector<Shot>  shots;
 extern std::vector<Cube>  cubes;
-extern int  sugar;
+extern int  sugar;              // sugar you have now (to buy candies)
+extern int  sugarCollected;     // all sugar picked up from defeated sodas (unlocks cards)
+bool CardUnlocked(CandyType type);   // in Hud.cpp
 extern bool laneSelected[LANES];
 extern int  hoverLane;
 extern bool placingChocolate;   // true after the chocolate card: the next shelf click places it

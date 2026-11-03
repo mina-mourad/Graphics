@@ -15,15 +15,17 @@ The candies defend the jar, shelf by shelf.
 
 **Controls:** click shelves to select / unselect (several at once) · click a card or press `1` `2` to place on the selected shelves · chocolate bar: card or `3`, then click **anywhere on a shelf** (gray preview; click the card again to cancel) ·
 `W`/`Up` jump · `S`/`Down` duck · `Esc` pause · `Space` skips the cutscene.
-Start with 30 sugar (Lollipop 10, Bonbon 40, Chocolate 60). Defeated sodas drop sugar cubes; walk a candy into them to collect.
+Start with 30 sugar (Lollipop 10, Bonbon 20, Chocolate 30; the bonbon and chocolate unlock after you collect that much sugar). Defeated sodas drop sugar cubes; walk a candy into them to collect.
 
 ## Checked against the project PDF
 Everything in sections 2–5 of the description is implemented. Two choices to know about:
 - **Chocolate bar anywhere on a shelf** (team's choice). The PDF says a placed player appears at the
   left end of the selected lane; to follow it exactly, make the chocolate card use `PlaceCandies` like the other two.
-- **Costs 10 / 40 / 60.** The PDF says Ranged = 2x and Defense = 3x "the collectibles required to unlock the
-  Melee", but also that only Melee is unlocked with the starting coins (enough for 3 Melee). Using 20 as the
-  unlock unit (2 x 20 = 40, 3 x 20 = 60) satisfies both.
+- **Costs and unlocking (spec 3.2 + table on page 9):** Lollipop (Melee) 10, Bonbon (Long Range) 2 x 10 = 20,
+  Chocolate (Defense) 3 x 10 = 30. You start with 3 x 10 = 30 sugar (three lollipops). Only the lollipop is unlocked
+  at the start: the other cards unlock once you have *collected* that much sugar from defeated sodas ("as the player
+  collects enough coins, the other player types are progressively unlocked"), and they lock again whenever your sugar
+  is below their cost (spec 4.2). See `CardUnlocked()` in `src/Hud.cpp`.
 
 ## Files (one part each)
 

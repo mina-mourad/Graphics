@@ -19,6 +19,16 @@ bool InBox(float px, float py, float x, float y, float w, float h)
 }
 
 const float CARD_Y = 0.85f, CARD_W = 0.25f, CARD_H = 0.27f;
+
+// The lollipop is unlocked whenever you can pay for it. The bonbon and the
+// chocolate also need that much sugar COLLECTED from defeated sodas first, and
+// they lock again whenever your sugar falls below their cost (spec 4.2).
+bool CardUnlocked(CandyType type)
+{
+    if (sugar < CANDY_COST[type]) return false;
+    if (type == LOLLIPOP) return true;
+    return sugarCollected >= CANDY_COST[type];
+}
 static float CardX(int i) { return -1.15f + i * 0.29f; }
 
 void UpdateHud()
@@ -26,7 +36,7 @@ void UpdateHud()
     // a card works only when there is enough sugar (unlocked)
     for (int i = 0; i < 3; ++i)
     {
-        bool unlocked = sugar >= CANDY_COST[i];
+        bool unlocked = CardUnlocked((CandyType)i);
         bool clicked = mouseClicked && InBox(mouseX, mouseY, CardX(i), CARD_Y, CARD_W, CARD_H);
         if (unlocked && (clicked || keyPressed[GLFW_KEY_1 + i])) {
             if (i == CHOCOLATE) placingChocolate = !placingChocolate;   // then click anywhere on a shelf (click the card again to cancel)
@@ -67,7 +77,7 @@ void DrawHud()
     // candy cards: gray and not clickable when locked, highlighted on hover when unlocked
     for (int i = 0; i < 3; ++i)
     {
-        bool unlocked = sugar >= CANDY_COST[i];
+        bool unlocked = CardUnlocked((CandyType)i);
         bool hover = unlocked && InBox(mouseX, mouseY, CardX(i), CARD_Y, CARD_W, CARD_H);
         grayness = unlocked ? 0.0f : 1.0f;
         Rect(CardX(i), CARD_Y, CARD_W, CARD_H, glm::vec3(1.0f, 0.93f, 0.8f), 0.0f, hover ? 0.4f : 0.0f);
