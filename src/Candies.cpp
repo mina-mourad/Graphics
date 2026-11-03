@@ -19,15 +19,30 @@ void PlaceCandies(CandyType type)
     for (int lane = 0; lane < LANES; ++lane)
     {
         if (!laneSelected[lane] || sugar < CANDY_COST[type]) continue;
-        bool taken = false;   // only one chocolate bar fits at the left end of a shelf
-        for (Candy& c : candies)
-            if (type == CHOCOLATE && c.type == CHOCOLATE && c.lane == lane) taken = true;
-        if (taken) continue;
         candies.push_back({ type, lane, START_X, CANDY_HP[type], 0.3f, 0, 0, 0, 0 });
         sugar -= CANDY_COST[type];
         placed = true;
     }
     PlaySound(placed ? "place" : "locked");
+}
+
+float ChocolateSpot(float mouseX)
+{
+    if (mouseX < START_X) return START_X;
+    if (mouseX > LANE_RIGHT - 0.1f) return LANE_RIGHT - 0.1f;
+    return mouseX;
+}
+
+void PlaceChocolate(int lane, float x)
+{
+    x = ChocolateSpot(x);
+    for (Candy& c : candies)   // not on top of another chocolate bar
+        if (c.type == CHOCOLATE && c.lane == lane && std::fabs(c.x - x) < 0.18f) { PlaySound("locked"); return; }
+    if (sugar < CANDY_COST[CHOCOLATE]) { PlaySound("locked"); placingChocolate = false; return; }
+    candies.push_back({ CHOCOLATE, lane, x, CANDY_HP[CHOCOLATE], 0.0f, 0, 0, 0, 0 });
+    sugar -= CANDY_COST[CHOCOLATE];
+    placingChocolate = false;
+    PlaySound("place");
 }
 
 // Is a soda standing right in front of this candy?
@@ -74,7 +89,7 @@ void UpdateCandies(float dt)
                 if (s) { s->hp -= 1; s->hurt = 0.2f; PlaySound("whack"); }
             } else {
                 c.cooldown = 1.4f;
-                shots.push_back({ c.lane, c.x + 0.12f, FloorY(c.lane) + 0.08f, 0.8f, false, 1, 0.0f });
+                shots.push_back({ c.lane, c.x + 0.16f, FloorY(c.lane) + 0.15f, 0.8f, false, 1, 0.0f });
                 PlaySound("pellet");
             }
         }
@@ -134,14 +149,16 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
     {
         glm::vec3 orange(1.0f, 0.6f, 0.1f), yellow(1.0f, 0.9f, 0.3f);
         float recoil = 0.03f * attack;
-        Tri(x - 0.1f * s, P(0.1f), 0.08f * h, 0.07f * s, yellow, -1.5708f);              // wrapper ends
-        Tri(x + 0.1f * s, P(0.1f), 0.08f * h, 0.07f * s, yellow, 1.5708f);
-        Circle(x, P(0.1f), 0.08f * s, 0.075f * h, orange);                               // candy
-        Rect(x - 0.03f * s, P(0.1f), 0.018f * s, 0.14f * h, yellow);                    // stripes
-        Rect(x + 0.03f * s, P(0.1f), 0.018f * s, 0.14f * h, yellow);
-        Eyes(x - 0.005f * s, P(0.12f), s);
-        Rect(x + (0.07f - recoil) * s, P(0.06f), 0.09f * s, 0.03f * s, glm::vec3(0.45f));   // little candy launcher held in front
-        Circle(x + (0.03f - recoil) * s, P(0.06f), 0.018f * s, 0.018f * s, orange);           // hand
+        Rect(x - 0.04f * s, P(0.05f), 0.02f * s, 0.1f * h, orange);                     // two short legs
+        Rect(x + 0.04f * s, P(0.05f), 0.02f * s, 0.1f * h, orange);
+        Tri(x - 0.14f * s, P(0.2f), 0.11f * h, 0.09f * s, yellow, -1.5708f);             // wrapper ends
+        Tri(x + 0.14f * s, P(0.2f), 0.11f * h, 0.09f * s, yellow, 1.5708f);
+        Circle(x, P(0.2f), 0.11f * s, 0.105f * h, orange);                               // candy
+        Rect(x - 0.045f * s, P(0.2f), 0.022f * s, 0.2f * h, yellow);                    // stripes
+        Rect(x + 0.045f * s, P(0.2f), 0.022f * s, 0.2f * h, yellow);
+        Eyes(x - 0.005f * s, P(0.24f), s);
+        Rect(x + (0.1f - recoil) * s, P(0.15f), 0.11f * s, 0.035f * s, glm::vec3(0.45f));  // candy launcher held in front
+        Circle(x + (0.05f - recoil) * s, P(0.15f), 0.02f * s, 0.02f * s, orange);            // hand
     }
     else // CHOCOLATE
     {
@@ -159,6 +176,11 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
 
 void DrawCandies()
 {
+    if (placingChocolate && hoverLane != -1) {    // gray preview where it will stand
+        grayness = 0.7f;
+        DrawCandy(CHOCOLATE, ChocolateSpot(mouseX), FloorY(hoverLane), 1.0f, 0.0f, 1.0f);
+        grayness = 0.0f;
+    }
     for (int lane = LANES - 1; lane >= 0; --lane)
         for (Candy& c : candies)
         {

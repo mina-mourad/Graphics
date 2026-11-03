@@ -6,6 +6,7 @@
 #include "Shapes.h"
 #include "Text.h"
 #include "Sound.h"
+#include "Candies.h"
 #include <cmath>
 
 // Lab 3: which side of the line p2-p3 the point p1 is on.
@@ -33,6 +34,11 @@ void UpdateShelves()
         glm::vec2 a(LANE_LEFT, bottom), b(LANE_RIGHT, bottom), c(LANE_RIGHT, top), d(LANE_LEFT, top);
         if (pointInTriangle(mouse, a, b, c) || pointInTriangle(mouse, a, c, d))
             hoverLane = lane;
+    }
+    // placing a chocolate bar: the click says where on the shelf it stands
+    if (placingChocolate) {
+        if (mouseClicked && hoverLane != -1) PlaceChocolate(hoverLane, mouseX);
+        return;
     }
     // a click toggles the shelf; several shelves can be selected at once
     if (mouseClicked && hoverLane != -1) {

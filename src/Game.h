@@ -88,6 +88,7 @@ extern std::vector<Cube>  cubes;
 extern int  sugar;
 extern bool laneSelected[LANES];
 extern int  hoverLane;
+extern bool placingChocolate;   // true after the chocolate card: the next shelf click places it
 extern int  wave;               // 1..3
 extern float gameTime;          // seconds, for animations
 

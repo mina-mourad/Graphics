@@ -28,8 +28,10 @@ void UpdateHud()
     {
         bool unlocked = sugar >= CANDY_COST[i];
         bool clicked = mouseClicked && InBox(mouseX, mouseY, CardX(i), CARD_Y, CARD_W, CARD_H);
-        if (unlocked && (clicked || keyPressed[GLFW_KEY_1 + i]))
-            PlaceCandies((CandyType)i);
+        if (unlocked && (clicked || keyPressed[GLFW_KEY_1 + i])) {
+            if (i == CHOCOLATE) placingChocolate = true;   // then click anywhere on a shelf
+            else PlaceCandies((CandyType)i);
+        }
     }
 }
 
@@ -81,7 +83,10 @@ void DrawHud()
     SugarCube(0.9f, 0.86f, 0.09f);
     Text(std::to_string(sugar), 1.1f, 0.86f, 0.016f, glm::vec3(1.0f));
 
+    if (placingChocolate)
+        Text("CLICK A SHELF TO PUT THE CHOCOLATE - ESC: CANCEL", 0.0f, 0.66f, 0.0075f, glm::vec3(0.5f, 0.2f, 0.1f));
+
     // how to play
-    Text("CLICK SHELVES TO SELECT - CARD OR 1 2 3 TO PLACE - W JUMP - S DUCK - ESC PAUSE",
+    Text("SELECT SHELVES - CARD OR 1 2 3: PLACE - W JUMP - S DUCK - ESC PAUSE",
          0.0f, -0.96f, 0.0055f, glm::vec3(0.2f));
 }

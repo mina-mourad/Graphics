@@ -13,7 +13,7 @@ The candies defend the jar, shelf by shelf.
 | Ranged / Easy | Bonbon — shoots candy pellets that pop on hit (5 lives) | Bottle — fizz up high, **duck** (5 lives) |
 | Defense / Medium | Chocolate bar — stands still and blocks (7 hits) | Can — syrup down low, **jump** (5 lives) |
 
-**Controls:** click shelves to select / unselect (several at once) · click a card or press `1` `2` `3` to place on the selected shelves ·
+**Controls:** click shelves to select / unselect (several at once) · click a card or press `1` `2` to place on the selected shelves · chocolate bar: card or `3`, then click **anywhere on a shelf** (gray preview; `Esc` cancels) ·
 `W`/`Up` jump · `S`/`Down` duck · `Esc` pause · `Space` skips the cutscene.
 Start with 30 sugar (Lollipop 10, Bonbon 40, Chocolate 60). Defeated sodas drop sugar cubes; walk a candy into them to collect.
 

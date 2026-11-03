@@ -19,6 +19,7 @@ std::vector<Cube>  cubes;
 int  sugar = START_SUGAR;
 bool laneSelected[LANES] = {};
 int  hoverLane = -1;
+bool placingChocolate = false;
 int  wave = 1;
 float gameTime = 0.0f;
 
@@ -36,6 +37,7 @@ void ResetGame()
     candies.clear(); sodas.clear(); shots.clear(); cubes.clear();
     sugar = START_SUGAR;
     for (int i = 0; i < LANES; ++i) laneSelected[i] = false;
+    placingChocolate = false;
     ResetWaves();
 }
 
@@ -56,7 +58,10 @@ void GameUpdate(float dt)
     }
     else if (state == PLAYING)
     {
-        if (keyPressed[GLFW_KEY_ESCAPE]) { state = PAUSED; return; }
+        if (keyPressed[GLFW_KEY_ESCAPE]) {
+            if (placingChocolate) placingChocolate = false;   // Esc first cancels placing the chocolate
+            else { state = PAUSED; return; }
+        }
         UpdateHud();          // cards (clicks above the shelves)
         UpdateShelves();      // hover and select shelves
         UpdateCandies(dt);
