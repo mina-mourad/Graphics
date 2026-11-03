@@ -72,18 +72,6 @@ static void DrawCandyJar()
     Text("JAR", -1.22f, 0.0f, 0.012f, glm::vec3(0.8f, 0.1f, 0.1f));
 }
 
-// The cashier: a desk with a computer and some cash on it.
-static void DrawCashier(float x)
-{
-    Rect(x, -0.875f, 0.6f, 0.11f, glm::vec3(0.55f, 0.56f, 0.6f));            // desk
-    Rect(x, -0.815f, 0.64f, 0.02f, glm::vec3(0.4f, 0.4f, 0.44f));            // desk top
-    Rect(x + 0.12f, -0.79f, 0.02f, 0.03f, glm::vec3(0.2f));                  // computer stand
-    Rect(x + 0.12f, -0.75f, 0.16f, 0.07f, glm::vec3(0.2f));                  // computer
-    Rect(x + 0.12f, -0.75f, 0.14f, 0.055f, glm::vec3(0.45f, 0.8f, 0.9f));    // screen
-    Rect(x - 0.06f, -0.797f, 0.08f, 0.016f, glm::vec3(0.3f, 0.65f, 0.3f));   // cash (dollar bills)
-    Rect(x - 0.06f, -0.797f, 0.03f, 0.008f, glm::vec3(0.6f, 0.85f, 0.6f));
-}
-
 // A bag of chips standing on the floor.
 static void DrawChips(float x)
 {
@@ -98,11 +86,10 @@ void DrawStore(float doorOpen)
     for (float y = -0.7f; y < 1.0f; y += 0.15f)
         Rect(0.0f, y, 2 * ASPECT, 0.006f, glm::vec3(0.88f, 0.82f, 0.72f));
 
-    // floor with tiles, the cashier's desk, and 4 bags of chips on the left
+    // floor with tiles, and 4 bags of chips on the left
     Rect(0.0f, -0.86f, 2 * ASPECT, 0.28f, glm::vec3(0.7f, 0.7f, 0.72f));
     for (int i = 0; i < 14; ++i)
         Rect(-1.3f + i * 0.2f, -0.86f, 0.1f, 0.28f, glm::vec3(0.62f, 0.62f, 0.65f));
-    DrawCashier(0.35f);
     for (int i = 0; i < 4; ++i)
         DrawChips(-1.15f + i * 0.13f);
 
