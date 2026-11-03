@@ -72,6 +72,29 @@ static void DrawCandyJar()
     Text("JAR", -1.22f, 0.0f, 0.012f, glm::vec3(0.8f, 0.1f, 0.1f));
 }
 
+// The cashier's counter: a desk with a cash drawer, a computer screen,
+// a keyboard, a receipt printer and a card reader - all rectangles.
+static void DrawCashier(float x)
+{
+    glm::vec3 dark(0.2f, 0.2f, 0.22f), gray(0.55f, 0.56f, 0.6f);
+    Rect(x, -0.875f, 0.7f, 0.11f, gray);                                   // counter
+    Rect(x, -0.82f, 0.74f, 0.02f, glm::vec3(0.4f, 0.4f, 0.44f));           // counter top
+    Rect(x, -0.89f, 0.3f, 0.05f, glm::vec3(0.68f, 0.69f, 0.72f));          // cash drawer
+    Rect(x, -0.89f, 0.08f, 0.012f, dark);                                  // drawer handle
+    Rect(x + 0.15f, -0.795f, 0.02f, 0.03f, dark);                          // screen stand
+    Rect(x + 0.15f, -0.755f, 0.18f, 0.07f, dark);                          // screen frame
+    Rect(x + 0.15f, -0.755f, 0.16f, 0.055f, glm::vec3(0.45f, 0.8f, 0.9f)); // screen
+    Rect(x + 0.12f, -0.745f, 0.08f, 0.008f, glm::vec3(1.0f));              // numbers on the screen
+    Rect(x + 0.14f, -0.765f, 0.1f, 0.008f, glm::vec3(1.0f));
+    Rect(x - 0.06f, -0.803f, 0.16f, 0.015f, dark);                         // keyboard
+    for (int i = 0; i < 6; ++i)
+        Rect(x - 0.13f + i * 0.028f, -0.803f, 0.018f, 0.007f, gray);       // keys
+    Rect(x - 0.25f, -0.79f, 0.08f, 0.04f, glm::vec3(0.85f));               // receipt printer
+    Rect(x - 0.25f, -0.76f, 0.045f, 0.03f, glm::vec3(1.0f));               // receipt paper
+    Rect(x + 0.31f, -0.795f, 0.04f, 0.03f, dark);                          // card reader
+    Rect(x + 0.31f, -0.79f, 0.025f, 0.008f, glm::vec3(0.3f, 0.9f, 0.4f));  // its green light
+}
+
 void DrawStore(float doorOpen)
 {
     // back wall with tiles
@@ -79,19 +102,14 @@ void DrawStore(float doorOpen)
     for (float y = -0.7f; y < 1.0f; y += 0.15f)
         Rect(0.0f, y, 2 * ASPECT, 0.006f, glm::vec3(0.88f, 0.82f, 0.72f));
 
-    // floor with tiles, a shopping basket and cereal boxes
+    // floor with tiles, and the cashier's counter with its computer
     Rect(0.0f, -0.86f, 2 * ASPECT, 0.28f, glm::vec3(0.7f, 0.7f, 0.72f));
     for (int i = 0; i < 14; ++i)
         Rect(-1.3f + i * 0.2f, -0.86f, 0.1f, 0.28f, glm::vec3(0.62f, 0.62f, 0.65f));
-    Rect(0.6f, -0.86f, 0.24f, 0.13f, glm::vec3(0.85f, 0.2f, 0.2f));         // basket
-    Rect(0.6f, -0.78f, 0.2f, 0.02f, glm::vec3(0.6f, 0.1f, 0.1f));
-    Rect(0.6f, -0.73f, 0.03f, 0.1f, glm::vec3(0.3f));                      // basket handle
-    Rect(-0.3f, -0.83f, 0.12f, 0.18f, glm::vec3(0.95f, 0.75f, 0.2f));      // cereal box
-    Circle(-0.3f, -0.8f, 0.035f, 0.035f, glm::vec3(0.9f, 0.3f, 0.2f));
-    Rect(-0.15f, -0.85f, 0.1f, 0.14f, glm::vec3(0.3f, 0.6f, 0.9f));        // cereal box
+    DrawCashier(0.35f);
 
     // the three shelves: back panel (lights up when hovered / selected),
-    // the wooden board, brackets under it and price tags on its edge
+    // the wooden board and price tags on its edge
     for (int lane = LANES - 1; lane >= 0; --lane)
     {
         float highlight = 0.0f;
@@ -105,7 +123,6 @@ void DrawStore(float doorOpen)
         for (int i = 0; i < 6; ++i)
         {
             float x = LANE_LEFT + 0.15f + i * 0.4f;
-            Tri(x, board - 0.07f, 0.05f, 0.06f, glm::vec3(0.5f), 3.14159f);          // bracket
             Rect(x + 0.18f, board, 0.08f, 0.035f, glm::vec3(1.0f));                   // price tag
             Rect(x + 0.16f, board, 0.02f, 0.02f, glm::vec3(0.9f, 0.2f, 0.2f));
         }
