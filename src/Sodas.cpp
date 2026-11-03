@@ -10,13 +10,20 @@
 const int WAVE_SIZE[3] = { 3, 5, 10 };
 static int spawned = 0;
 static float spawnTimer = 2.0f;
+static bool betweenWaves = false;   // the last wave is beaten, the next one has not started yet
 const float ATTACK_TIME = 0.35f;
 const glm::vec3 BLACK(0.1f), WHITE(1.0f);
 
-void ResetWaves() { spawned = 0; spawnTimer = 2.0f; wave = 1; }
+void ResetWaves() { spawned = 0; spawnTimer = 2.0f; wave = 1; betweenWaves = false; }
 
 bool UpdateWaves(float dt)
 {
+    if (betweenWaves)                           // short break, then the next wave starts
+    {                                           // together with its first soda
+        spawnTimer -= dt;
+        if (spawnTimer > 0) return false;
+        betweenWaves = false; wave++; spawned = 0;   // the new wave starts now, with its first soda below
+    }
     if (spawned < WAVE_SIZE[wave - 1])
     {
         spawnTimer -= dt;
@@ -26,7 +33,7 @@ bool UpdateWaves(float dt)
             SodaType type = BOTTLE;
             if (wave == 2) type = (spawned % 2 == 0) ? BOTTLE : CAN;
             if (wave == 3) type = (SodaType)(spawned % 3);
-            sodas.push_back({ type, rand() % LANES, SPAWN_X, SODA_HP[type], 1.0f, 0, 0 });
+            sodas.push_back({ type, rand() % LANES, SPAWN_X, SODA_HP[type], 0.3f, 0, 0 });
             if (spawned == 0) PlaySound("wave");
             spawned++;
             spawnTimer = 4.0f + rand() % 3;   // 4 to 6 seconds
@@ -35,8 +42,7 @@ bool UpdateWaves(float dt)
     else if (sodas.empty())                     // the whole wave is beaten
     {
         if (wave == 3) return true;
-        wave++;
-        spawned = 0;
+        betweenWaves = true;
         spawnTimer = 3.0f;
     }
     return false;
@@ -64,10 +70,10 @@ bool UpdateSodas(float dt)
         if (s.x <= BASE_X) reachedJar = true;
 
         if (s.cooldown > 0) continue;
-        if (s.type == CUP)                        // hard: hits with its straw, up close only
+        if (s.type == CUP)                        // hard: swings its straw all the time, it only hurts up close
         {
+            s.attack = ATTACK_TIME; s.cooldown = 1.6f;
             if (blocker) {
-                s.attack = ATTACK_TIME; s.cooldown = 1.6f;
                 blocker->hp -= SODA_DAMAGE[CUP]; blocker->hurt = 0.2f;
                 PlaySound("whack");
             }

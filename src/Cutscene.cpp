@@ -64,7 +64,7 @@ void DrawCutscene(float t)
     if (t > 8.5f && t < 10.5f) Bubble("NEVER! THE JAR IS OURS!", -0.4f, FloorY(1) + 0.45f);
 
     // story text
-    if (t < 3.0f) Subtitle("THE CANDY JAR IS FULL OF SWEET SUGAR...");
+    if (t < 3.0f) Subtitle("THE CANDY JAR HOLDS THE SUGAR THAT KEEPS EVERY CANDY SWEET...");
     else if (t < 6.0f) Subtitle("BUT THE SODAS IN THE FRIDGE WANT IT TO STAY SWEET!");
     else if (t < 12.0f) Subtitle("DUCK UNDER FIZZ - JUMP OVER SYRUP");
     else {

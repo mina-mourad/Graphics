@@ -13,9 +13,17 @@ The candies defend the jar, shelf by shelf.
 | Ranged / Easy | Bonbon — shoots candy pellets that pop on hit (5 lives) | Bottle — fizz up high, **duck** (5 lives) |
 | Defense / Medium | Chocolate bar — stands still and blocks (7 hits) | Can — syrup down low, **jump** (5 lives) |
 
-**Controls:** click shelves to select / unselect (several at once) · click a card or press `1` `2` to place on the selected shelves · chocolate bar: card or `3`, then click **anywhere on a shelf** (gray preview; `Esc` cancels) ·
+**Controls:** click shelves to select / unselect (several at once) · click a card or press `1` `2` to place on the selected shelves · chocolate bar: card or `3`, then click **anywhere on a shelf** (gray preview; click the card again to cancel) ·
 `W`/`Up` jump · `S`/`Down` duck · `Esc` pause · `Space` skips the cutscene.
 Start with 30 sugar (Lollipop 10, Bonbon 40, Chocolate 60). Defeated sodas drop sugar cubes; walk a candy into them to collect.
+
+## Checked against the project PDF
+Everything in sections 2–5 of the description is implemented. Two choices to know about:
+- **Chocolate bar anywhere on a shelf** (team's choice). The PDF says a placed player appears at the
+  left end of the selected lane; to follow it exactly, make the chocolate card use `PlaceCandies` like the other two.
+- **Costs 10 / 40 / 60.** The PDF says Ranged = 2x and Defense = 3x "the collectibles required to unlock the
+  Melee", but also that only Melee is unlocked with the starting coins (enough for 3 Melee). Using 20 as the
+  unlock unit (2 x 20 = 40, 3 x 20 = 60) satisfies both.
 
 ## Files (one part each)
 

@@ -46,7 +46,7 @@ bool GameWantsExit() { return exitGame; }
 void GameUpdate(float dt)
 {
     if (dt > 0.05f) dt = 0.05f;    // a slow frame must not make things jump
-    gameTime += dt;
+    if (state == PLAYING) gameTime += dt;   // after winning / losing nothing moves any more
 
     if (state == CUTSCENE)
     {
@@ -58,10 +58,7 @@ void GameUpdate(float dt)
     }
     else if (state == PLAYING)
     {
-        if (keyPressed[GLFW_KEY_ESCAPE]) {
-            if (placingChocolate) placingChocolate = false;   // Esc first cancels placing the chocolate
-            else { state = PAUSED; return; }
-        }
+        if (keyPressed[GLFW_KEY_ESCAPE]) { placingChocolate = false; state = PAUSED; return; }
         UpdateHud();          // cards (clicks above the shelves)
         UpdateShelves();      // hover and select shelves
         UpdateCandies(dt);

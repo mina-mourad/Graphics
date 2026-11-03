@@ -72,29 +72,30 @@ void UpdateCandies(float dt)
     for (Candy& c : candies)
     {
         c.jump -= dt; c.duck -= dt; c.hurt -= dt; c.attack -= dt;
-        if (c.type == CHOCOLATE) continue;   // the chocolate bar only stands and blocks
-
-        // walk right unless a soda blocks the way
-        if (!SodaInFront(c, TOUCH))
-            c.x += CANDY_SPEED[c.type] * dt;
-
-        // attack all the time, even with no soda around
-        c.cooldown -= dt;
-        if (c.cooldown <= 0)
+        if (c.type != CHOCOLATE)   // the chocolate bar only stands and blocks
         {
-            c.attack = ATTACK_TIME;
-            if (c.type == LOLLIPOP) {
-                c.cooldown = 0.8f;
-                Soda* s = SodaInFront(c, TOUCH + 0.06f);
-                if (s) { s->hp -= 1; s->hurt = 0.2f; PlaySound("whack"); }
-            } else {
-                c.cooldown = 1.4f;
-                shots.push_back({ c.lane, c.x + 0.16f, FloorY(c.lane) + 0.15f, 0.8f, false, 1, 0.0f });
-                PlaySound("pellet");
+            // walk right unless a soda blocks the way
+            if (!SodaInFront(c, TOUCH))
+                c.x += CANDY_SPEED[c.type] * dt;
+
+            // attack all the time, even with no soda around
+            c.cooldown -= dt;
+            if (c.cooldown <= 0)
+            {
+                c.attack = ATTACK_TIME;
+                if (c.type == LOLLIPOP) {
+                    c.cooldown = 0.8f;
+                    Soda* s = SodaInFront(c, TOUCH + 0.06f);
+                    if (s) { s->hp -= 1; s->hurt = 0.2f; PlaySound("whack"); }
+                } else {
+                    c.cooldown = 1.4f;
+                    shots.push_back({ c.lane, c.x + 0.16f, FloorY(c.lane) + 0.15f, 0.8f, false, 1, 0.0f });
+                    PlaySound("pellet");
+                }
             }
         }
 
-        // pick up sugar cubes by walking into them
+        // pick up sugar cubes it touches (the chocolate bar too)
         for (size_t i = 0; i < cubes.size(); ++i)
             if (cubes[i].lane == c.lane && std::fabs(cubes[i].x - c.x) < 0.08f) {
                 sugar += cubes[i].value;

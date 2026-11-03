@@ -19,7 +19,7 @@ const float LANE_H = 0.45f;                             // height of one shelf
 const float LANE_LEFT  = -1.08f;                        // the candy jar ends here
 const float LANE_RIGHT =  1.15f;                        // the fridge starts here
 const float START_X = -0.98f;                           // candies appear here (left end)
-const float SPAWN_X =  1.22f;                           // sodas come out of the fridge here
+const float SPAWN_X =  1.10f;                           // sodas appear at the right end of the shelf (by the fridge)
 const float BASE_X  = -1.08f;                           // a soda here reached the candy jar
 const float TOUCH   =  0.16f;                           // closer than this = they collide
 
