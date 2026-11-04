@@ -5,8 +5,16 @@
 // no lab code in this file
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
+#undef PlaySound   // windows.h (via miniaudio) renames it to PlaySoundA, which breaks linking
 #include "Sound.h"
 #include <string>
+
+// SOUND_DIR (the sounds folder) is set by CMakeLists.txt. This fallback is only for
+// VS Code's error checker (IntelliSense), which does not read CMakeLists.txt and
+// would underline SOUND_DIR in red.
+#ifndef SOUND_DIR
+#define SOUND_DIR "sounds/"
+#endif
 
 static ma_engine engine;
 static ma_sound music;
