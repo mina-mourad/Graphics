@@ -82,14 +82,6 @@ static void DrawChips(float x)
     Rect(x, -0.79f, 0.08f, 0.025f, glm::vec3(0.85f, 0.15f, 0.15f));
 }
 
-// A wet floor sign: yellow triangle with a "!".
-static void DrawWetFloorSign(float x)
-{
-    Tri(x, -0.79f, 0.12f, 0.12f, glm::vec3(1.0f, 0.85f, 0.1f));
-    Rect(x, -0.79f, 0.012f, 0.035f, glm::vec3(0.1f));
-    Rect(x, -0.825f, 0.012f, 0.01f, glm::vec3(0.1f));
-}
-
 // A wooden crate with three oranges on top.
 static void DrawOrangeCrate(float x)
 {
@@ -113,7 +105,8 @@ static void DrawTrashBin(float x)
 }
 
 // ---- Environment element on the shelves ----
-// A red SALE sign at the top of a shelf (drawn before the characters, so they walk in front of it).
+// A red SALE sign hanging from the shelf above, like in a real store
+// (drawn before the characters, so they walk in front of it).
 static void DrawSaleSign(float x, float y)
 {
     Rect(x, y, 0.16f, 0.06f, glm::vec3(0.85f, 0.15f, 0.15f));
@@ -133,14 +126,13 @@ void DrawStore(float doorOpen)
         Rect(-1.3f + i * 0.2f, -0.86f, 0.1f, 0.28f, glm::vec3(0.62f, 0.62f, 0.65f));
     for (int i = 0; i < 4; ++i)
         DrawChips(-1.15f + i * 0.13f);
-    DrawWetFloorSign(-0.45f);
-    DrawOrangeCrate(-0.05f);
-    DrawBoxes(0.4f);
-    DrawTrashBin(0.85f);
+    DrawOrangeCrate(-0.3f);
+    DrawBoxes(0.25f);
+    DrawTrashBin(0.8f);
 
     // the three shelves: back panel (lights up when hovered / selected),
-    // the wooden board, price tags on its edge and a SALE sign
-    const float saleX[LANES] = { 0.55f, -0.65f, 0.15f };
+    // the wooden board, price tags on its edge and two SALE signs
+    const float saleX[LANES][2] = { { -0.35f, 0.85f }, { -0.75f, 0.05f }, { -0.35f, 0.45f } };
     for (int lane = LANES - 1; lane >= 0; --lane)
     {
         float highlight = 0.0f;
@@ -157,7 +149,8 @@ void DrawStore(float doorOpen)
             Rect(x + 0.18f, board, 0.08f, 0.035f, glm::vec3(1.0f));                   // price tag
             Rect(x + 0.16f, board, 0.02f, 0.02f, glm::vec3(0.9f, 0.2f, 0.2f));
         }
-        DrawSaleSign(saleX[lane], LANE_Y[lane] + 0.17f);
+        for (int i = 0; i < 2; ++i)
+            DrawSaleSign(saleX[lane][i], LANE_Y[lane] + 0.19f);   // its top touches the shelf above
     }
 
     DrawFridge(doorOpen);
