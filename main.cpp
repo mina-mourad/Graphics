@@ -1,5 +1,5 @@
 // Soda vs Candy - DMET 502 Project 1 (simple, lab-level version)
-// Person 1 (window, drawing and menus).
+// Person 1 (window, drawing and text).
 //
 // [LAB] This file follows the Lab 2 template and Lab 3 code.
 // Below every part that uses lab code there is a "LAB CODE" comment with the

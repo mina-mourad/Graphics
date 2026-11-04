@@ -1,4 +1,4 @@
-// Person 4 (store, game flow and text).
+// Person 4 (store, game flow and intro).
 // The game states (menus, cutscene, playing...) and the order things are
 // updated and drawn in. [NOT LAB] plain C++ (enum + switch).
 // [LAB] the mouse / key variables and Esc (Lab 3).

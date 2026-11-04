@@ -1,5 +1,5 @@
 #pragma once
-// Person 1 (window, drawing and menus).
+// Person 2 (candies, menus and sound).
 // Main menu, sound settings, pause menu, win / lose menu.
 // Each returns which button was clicked (0, 1, 2 ...) or -1 for none.
 // no lab code in this file (only declarations; the code is in the .cpp file)
