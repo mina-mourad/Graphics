@@ -34,16 +34,34 @@ Two choices to know about:
 
 ## Who does what (4 people)
 
-Each person **owns** some files: they explain them and are the one who changes them.
-**Read only** = files (or single functions) you need to open to understand your own part; don't change
-them, ask their owner. Everyone also reads `src/Game.h` (the shared numbers, types and lists).
+The files are split so that everyone gets the **same amount of difficulty**, not the same topic.
+Each file got difficulty points (how much logic it has, how many tricky ideas, and how much the
+TA is likely to ask about it):
 
-| Person | Owns (explain + change) | Read only (to understand your part) | PDF sections |
-|---|---|---|---|
-| **1 – Window, drawing and the store** | `main.cpp`, `src/Shapes.h/.cpp`, `src/Text.h/.cpp`, `src/Shelves.h/.cpp` | `src/Game.h`; `src/Game.cpp` (where `UpdateShelves` / `DrawStore` are called); `PlaceChocolate()` in `src/Candies.cpp`; labs: Lab 1 Notes, Lab 2 Template, Lab 3 `main.cpp` + `Lab3ExtraNotes.cpp` | 3.1 playfield (lanes, home base, fridge), lane hover / select, 4.2 environment (8 elements) |
-| **2 – Candies (players), cards and sugar** | `src/Candies.h/.cpp`, `src/Hud.h/.cpp` | `src/Game.h`, `src/Shapes.h`, `src/Text.h`; `pointInTriangle()` + `UpdateShelves()` in `src/Shelves.cpp`; `UpdateShots()` in `src/Sodas.cpp` (soda shots hitting candies, dodging); labs: Lab 2 Template, Lab 3 `main.cpp`, Lab 4 | 3.2 players (buy, place, walk, attack, jump / duck, red when hurt), collectibles, 4.1 health bars, 4.2 cards + sugar counter |
-| **3 – Sodas (enemies), waves and the intro** | `src/Sodas.h/.cpp`, `src/Cutscene.h/.cpp` | `src/Game.h`, `src/Shapes.h`, `src/Text.h`; `DrawCandy()` and `UpdateCandies()` in `src/Candies.cpp` (the intro draws candies; lollipops hit sodas); `DrawHealth()` in `src/Hud.cpp`; `DrawStore()` in `src/Shelves.cpp` (the fridge door opens in the intro); labs: Lab 2 Template, Lab 3 `main.cpp`, Lab 4 | 2 cutscene, 3.3 enemies + the 3 waves, shots, sugar drops |
-| **4 – Game flow, menus and sound** | `src/Game.h/.cpp`, `src/Menus.h/.cpp`, `src/Sound.h/.cpp`, `sounds/`, `CMakeLists.txt`, `README.md` | `main.cpp` (the loop calls `GameUpdate` / `GameDraw`, the callbacks fill the mouse and keys); `InBox()` in `src/Hud.cpp` (buttons); the `.h` files of persons 1–3 (the functions `Game.cpp` calls); labs: Lab 2 Template, Lab 3 `main.cpp` + `Lab3ExtraNotes.cpp` | 4.3 menus (main, pause, win / lose), game states, 5 sound (bonus), building the game |
+| File | Points | Why |
+|---|---|---|
+| `src/Sodas.cpp` | 5.5 | the 3 waves (a small state machine), enemy attacks, every shot: hits + dodging, drawing with sin / cos |
+| `src/Candies.cpp` | 5 | most player rules (timers, cooldowns, walking, attacks, picking up sugar, removing from a vector), drawing with sin / cos |
+| `src/Shapes.cpp` | 4.5 | shaders, VAO / VBO / EBO, stride, uniforms, the order of translate / rotate / scale - the core graphics |
+| `src/Shelves.cpp` | 3 | `pointInTriangle` math, lane hover / select, the store and its 8 environment elements |
+| `src/Game.h` + `src/Game.cpp` | 3 | the shared structs and numbers, the game states (switch), the update order |
+| `main.cpp` | 2.5 | window, input callbacks, mouse pixels -> our coordinates, deltaTime |
+| `src/Hud.cpp` | 2.5 | the unlock rule, gray / hover cards, health bars, sugar cubes |
+| `src/Text.cpp` | 2.5 | letters stored as bits, drawn as small squares |
+| `src/Cutscene.cpp` | 2 | a timeline: `Progress()` moves things between two times |
+| `src/Menus.cpp` | 1.5 | a button = box hover + highlight + click |
+| `src/Sound.cpp` | 1.5 | a few calls to the miniaudio library |
+
+Each person **owns** some files (with their `.h`): they explain them and are the one who changes them.
+**Read only** = files or single functions you open to understand your own part; don't change them,
+ask their owner. Everyone also reads `src/Game.h` (the shared numbers, types and lists).
+
+| Person | Owns (explain + change) | Points | Read only (to understand your part) | PDF sections |
+|---|---|---|---|---|
+| **1 – Window, drawing and menus** | `main.cpp`, `src/Shapes.cpp`, `src/Menus.cpp` | 8.5 | `src/Game.h`; `GameDraw()` in `src/Game.cpp` (what happens with the menu buttons); `InBox()` in `src/Hud.cpp`; `src/Text.h`, `src/Sound.h`; labs: Lab 1 Notes, Lab 2 Template, Lab 3 `main.cpp` + `Lab3ExtraNotes.cpp` | OpenGL 3.3+, input, 4.3 menus (main, sound settings, pause, win / lose) |
+| **2 – Candies, intro and sound** | `src/Candies.cpp`, `src/Cutscene.cpp`, `src/Sound.cpp`, `sounds/` | 8.5 | `src/Game.h`, `src/Shapes.h`, `src/Text.h`; `UpdateShelves()` in `src/Shelves.cpp` (shelf select, calls `PlaceChocolate`); `UpdateShots()` in `src/Sodas.cpp` (soda shots hitting candies, dodging); `CardUnlocked()` + `DrawHealth()` in `src/Hud.cpp`; `DrawSoda()` in `src/Sodas.cpp` + `DrawStore()` in `src/Shelves.cpp` (used in the intro); `SoundMenu()` in `src/Menus.cpp`; labs: Lab 2 Template, Lab 3 `main.cpp`, Lab 4 | 3.2 players (buy, place, walk, attack, jump / duck, red when hurt), picking up collectibles, 2 cutscene, 5 sound (bonus) |
+| **3 – Sodas, waves and the HUD** | `src/Sodas.cpp`, `src/Hud.cpp` | 8 | `src/Game.h`, `src/Shapes.h`, `src/Text.h`; `UpdateCandies()`, `PlaceCandies()` + `DrawCandy()` in `src/Candies.cpp` (lollipops hit sodas, the cards place and draw candies); `pointInTriangle()` in `src/Shelves.cpp` (used by `InBox`); labs: Lab 2 Template, Lab 3 `main.cpp`, Lab 4 | 3.3 enemies + the 3 waves, shots, sugar drops, 4.1 health bars, 4.2 cards (locked / unlocked) + sugar counter |
+| **4 – Store, game flow and text** | `src/Shelves.cpp`, `src/Game.h`, `src/Game.cpp`, `src/Text.cpp`, `CMakeLists.txt`, `README.md` | 8.5 | `main.cpp` (the loop calls `GameUpdate` / `GameDraw`, the callbacks fill the mouse and keys); `PlaceChocolate()` in `src/Candies.cpp`; the `.h` files of persons 1–3 (the functions `Game.cpp` calls); labs: Lab 2 Template, Lab 3 `main.cpp` | 3.1 playfield (lanes, home base, fridge), lane hover / select, 4.2 environment, game states (playing, paused, won, lost), building the game |
 
 ## What comes from the labs
 

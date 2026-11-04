@@ -1,5 +1,5 @@
 #pragma once
-// Person 4 (game flow, menus and sound).
+// Person 2 (candies, intro and sound).
 // Background music and sound effects (bonus). Sound files are in /sounds.
 // no lab code in this file (only declarations; the code is in the .cpp file)
 void InitSound();

@@ -1,5 +1,5 @@
 #pragma once
-// Person 2: the interface - candy cards, sugar counter, wave number,
+// Person 3: the interface - candy cards, sugar counter, wave number,
 // health bars, and the sugar cubes lying on the shelves.
 // no lab code in this file (only declarations; the code is in the .cpp file)
 void UpdateHud();                                    // card clicks and keys 1 / 2 / 3

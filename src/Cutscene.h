@@ -1,5 +1,5 @@
 #pragma once
-// Person 3 (sodas, waves and the intro).
+// Person 2 (candies, intro and sound).
 // The animated intro (about 14 seconds).
 // no lab code in this file (only declarations; the code is in the .cpp file)
 const float CUTSCENE_LENGTH = 14.0f;
