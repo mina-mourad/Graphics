@@ -1,4 +1,5 @@
 // [LAB] Almost all of this file comes from the labs:
+//   - VBO, VAO, glVertexAttribPointer, glDrawArrays  -> Lab 1
 //   - shader sources and compileShader()         -> Lab 2 template / Lab 3
 //   - aPos + aColor vertex layout, u_Transform     -> Lab 3
 //   - u_Tint (color multiply)                      -> Lab 2 template
@@ -212,6 +213,17 @@ void InitShapes()
     //   glEnableVertexAttribArray(0);
     //   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     //   glEnableVertexAttribArray(1);
+    // LAB CODE (Lab 1 Notes.pdf):
+    //   unsigned int buffer_id;
+    //   glGenBuffers(1, &buffer_id);
+    //   glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+    //   glBufferData(GL_ARRAY_BUFFER, 3 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
+    //   unsigned int VAO;
+    //   glGenVertexArrays(1, &VAO);
+    //   glBindVertexArray(VAO);
+    //   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    //   glEnableVertexAttribArray(0);
+    // (Lab 1 has only positions = 3 floats per vertex; Lab 2 and 3 add the color = 6 floats)
 
     locTransform = glGetUniformLocation(shaderProgram, "u_Transform");
     locTint = glGetUniformLocation(shaderProgram, "u_Tint");
@@ -274,6 +286,9 @@ void Tri(float x, float y, float w, float h, glm::vec3 color, float angle)
     glDrawArrays(GL_TRIANGLES, TRIANGLE_START, 3);
     // LAB CODE (Lab 2 Template/main.cpp):
     //   glDrawArrays(GL_TRIANGLES, 0, 3);
+    // LAB CODE (Lab 1 Notes.pdf):
+    //   glDrawArrays(GL_TRIANGLES, 0, 3);
+    // (our triangle starts at vertex 4 of the VBO, after the 4 corners of the square)
 }
 
 void Circle(float x, float y, float rx, float ry, glm::vec3 color)

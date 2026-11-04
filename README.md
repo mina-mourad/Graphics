@@ -32,27 +32,28 @@ Two choices to know about:
   collects enough coins, the other player types are progressively unlocked"), and they lock again whenever your sugar
   is below their cost (spec 4.2). See `CardUnlocked()` in `src/Hud.cpp`.
 
-## Files (one part each)
+## Who does what (4 people)
 
-| File | What it does | Person |
-|---|---|---|
-| `main.cpp` | window, input callbacks, main loop | all |
-| `src/Shapes.cpp` | the lab shader + square / triangle / circle | all |
-| `src/Shelves.cpp` | store background and its 8 environment elements, shelves (lanes), candy jar, shelf selection | 1 |
-| `src/Candies.cpp` | placing candies, what they do, drawing them | 2 |
-| `src/Sodas.cpp` | sodas, the 3 waves, all flying shots | 3 |
-| `src/Hud.cpp` | cards, sugar counter, health bars, sugar cubes | 4 |
-| `src/Menus.cpp`, `src/Cutscene.cpp`, `src/Game.cpp` | menus, intro, game states | 4 / all |
-| `src/Text.cpp`, `src/Sound.cpp` | block letters, sound | extra |
+Each person **owns** some files: they explain them and are the one who changes them.
+**Read only** = files (or single functions) you need to open to understand your own part; don't change
+them, ask their owner. Everyone also reads `src/Game.h` (the shared numbers, types and lists).
+
+| Person | Owns (explain + change) | Read only (to understand your part) | PDF sections |
+|---|---|---|---|
+| **1 – Window, drawing and the store** | `main.cpp`, `src/Shapes.h/.cpp`, `src/Text.h/.cpp`, `src/Shelves.h/.cpp` | `src/Game.h`; `src/Game.cpp` (where `UpdateShelves` / `DrawStore` are called); `PlaceChocolate()` in `src/Candies.cpp`; labs: Lab 1 Notes, Lab 2 Template, Lab 3 `main.cpp` + `Lab3ExtraNotes.cpp` | 3.1 playfield (lanes, home base, fridge), lane hover / select, 4.2 environment (8 elements) |
+| **2 – Candies (players), cards and sugar** | `src/Candies.h/.cpp`, `src/Hud.h/.cpp` | `src/Game.h`, `src/Shapes.h`, `src/Text.h`; `pointInTriangle()` + `UpdateShelves()` in `src/Shelves.cpp`; `UpdateShots()` in `src/Sodas.cpp` (soda shots hitting candies, dodging); labs: Lab 2 Template, Lab 3 `main.cpp`, Lab 4 | 3.2 players (buy, place, walk, attack, jump / duck, red when hurt), collectibles, 4.1 health bars, 4.2 cards + sugar counter |
+| **3 – Sodas (enemies), waves and the intro** | `src/Sodas.h/.cpp`, `src/Cutscene.h/.cpp` | `src/Game.h`, `src/Shapes.h`, `src/Text.h`; `DrawCandy()` and `UpdateCandies()` in `src/Candies.cpp` (the intro draws candies; lollipops hit sodas); `DrawHealth()` in `src/Hud.cpp`; `DrawStore()` in `src/Shelves.cpp` (the fridge door opens in the intro); labs: Lab 2 Template, Lab 3 `main.cpp`, Lab 4 | 2 cutscene, 3.3 enemies + the 3 waves, shots, sugar drops |
+| **4 – Game flow, menus and sound** | `src/Game.h/.cpp`, `src/Menus.h/.cpp`, `src/Sound.h/.cpp`, `sounds/`, `CMakeLists.txt`, `README.md` | `main.cpp` (the loop calls `GameUpdate` / `GameDraw`, the callbacks fill the mouse and keys); `InBox()` in `src/Hud.cpp` (buttons); the `.h` files of persons 1–3 (the functions `Game.cpp` calls); labs: Lab 2 Template, Lab 3 `main.cpp` + `Lab3ExtraNotes.cpp` | 4.3 menus (main, pause, win / lose), game states, 5 sound (bonus), building the game |
 
 ## What comes from the labs
 
 **In the code:** below every part that uses lab code there is a comment `// LAB CODE (lab file):` with the
-lab lines copied exactly as they are written in the lab files (`Lab 2 Template/main.cpp`, `Lab 3 Notes/main.cpp`,
+lab lines copied exactly as they are written in the lab files (`Lab 1 Notes.pdf`, `Lab 2 Template/main.cpp`, `Lab 3 Notes/main.cpp`,
 `Lab 3 Notes/Lab3ExtraNotes.cpp`, `Lab 4 Code/Lab4Camera.cpp`). Every function and file without lab code says
 `// no lab code`. Short notes in `// (...)` explain where our line differs from the lab line.
 
 **From the labs:**
+- VBO + VAO, `glVertexAttribPointer`, `glDrawArrays`, the render loop (swap buffers, poll events): Lab 1
 - window / GLAD setup, shader compile + link: Lab 2 template
 - VAO + VBO with position and color, `u_Transform`: Lab 3
 - `u_Tint` (color) — Lab 2 template; `u_Highlight` mix to yellow (hover, selected shelves) — Lab 3

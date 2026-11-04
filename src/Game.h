@@ -1,4 +1,5 @@
 #pragma once
+// Person 4 (game flow, menus and sound).
 // Shared numbers, types and lists used by every part of the game.
 // (Plain C++: structs, enums and std::vector. Not graphics, so not in the labs.)
 // no lab code in this file

@@ -1,9 +1,10 @@
 // Soda vs Candy - DMET 502 Project 1 (simple, lab-level version)
+// Person 1 (window, drawing and the store).
 //
 // [LAB] This file follows the Lab 2 template and Lab 3 code.
 // Below every part that uses lab code there is a "LAB CODE" comment with the
 // lab lines exactly as they are written in the lab files:
-//   Lab 2 Template/main.cpp, Lab 3 Notes/main.cpp, Lab 3 Notes/Lab3ExtraNotes.cpp
+//   Lab 1 Notes.pdf, Lab 2 Template/main.cpp, Lab 3 Notes/main.cpp, Lab 3 Notes/Lab3ExtraNotes.cpp
 // Parts with no lab code say "no lab code".
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
@@ -147,6 +148,13 @@ int main()
         //   glClear(GL_COLOR_BUFFER_BIT);
         //   glfwSwapBuffers(window);
         //   glfwPollEvents();
+        // LAB CODE (Lab 1 Notes.pdf):
+        //   while (!glfwWindowShouldClose(window)) {
+        //       glDrawArrays(GL_TRIANGLES, 0, 3);
+        //       glfwSwapBuffers(window);
+        //       glfwPollEvents();
+        //   }
+        // (GameDraw() does all the glDrawArrays / glDrawElements calls through Shapes.cpp)
 
         // the click / key presses of this frame are used up (no lab code)
         mouseClicked = false;

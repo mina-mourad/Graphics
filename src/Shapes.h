@@ -1,4 +1,5 @@
 #pragma once
+// Person 1 (window, drawing and the store).
 // Drawing with the lab shader: a square, a triangle and a circle, moved with
 // glm::translate / rotate / scale. Everything in the game is made of these.
 // no lab code in this file (only declarations; the code is in the .cpp file)
