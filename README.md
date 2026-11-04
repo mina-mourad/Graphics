@@ -19,9 +19,9 @@ Start with 30 sugar (Lollipop 10, Bonbon 20, Chocolate 30; the bonbon and chocol
 
 ## Checked against the project PDF
 Everything in sections 2–5 of the description is implemented.
-- **Environment (spec 4.2): 7 supermarket elements**, each only 2–4 simple shapes, all in `src/Shelves.cpp`:
+- **Environment (spec 4.2): 8 supermarket elements**, each only 2–4 simple shapes, all in `src/Shelves.cpp`:
   shelves with price tags, the soda fridge, SALE signs hanging from the shelves, bags of chips,
-  a crate of oranges, cardboard boxes and a trash bin. (The candy jar is the home base, so it is not counted.)
+  a crate of oranges, cardboard boxes, a mop in a bucket and a trash bin. (The candy jar is the home base, so it is not counted.)
 
 Two choices to know about:
 - **Chocolate bar anywhere on a shelf** (team's choice). The PDF says a placed player appears at the
@@ -38,7 +38,7 @@ Two choices to know about:
 |---|---|---|
 | `main.cpp` | window, input callbacks, main loop | all |
 | `src/Shapes.cpp` | the lab shader + square / triangle / circle | all |
-| `src/Shelves.cpp` | store background and its 7 environment elements, shelves (lanes), candy jar, shelf selection | 1 |
+| `src/Shelves.cpp` | store background and its 8 environment elements, shelves (lanes), candy jar, shelf selection | 1 |
 | `src/Candies.cpp` | placing candies, what they do, drawing them | 2 |
 | `src/Sodas.cpp` | sodas, the 3 waves, all flying shots | 3 |
 | `src/Hud.cpp` | cards, sugar counter, health bars, sugar cubes | 4 |

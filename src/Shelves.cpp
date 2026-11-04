@@ -97,6 +97,14 @@ static void DrawBoxes(float x)
     Rect(x, -0.755f, 0.1f, 0.05f, glm::vec3(0.72f, 0.54f, 0.32f));
 }
 
+// A mop standing in a blue bucket (the stick is tilted with glm::rotate, Lab 2).
+static void DrawMopBucket(float x)
+{
+    Rect(x + 0.02f, -0.77f, 0.012f, 0.14f, glm::vec3(0.55f, 0.35f, 0.2f), -0.25f);
+    Rect(x, -0.81f, 0.09f, 0.08f, glm::vec3(0.2f, 0.45f, 0.85f));
+    Rect(x, -0.77f, 0.1f, 0.012f, glm::vec3(0.12f, 0.3f, 0.6f));
+}
+
 // A trash bin: green body and a dark lid.
 static void DrawTrashBin(float x)
 {
@@ -126,13 +134,14 @@ void DrawStore(float doorOpen)
         Rect(-1.3f + i * 0.2f, -0.86f, 0.1f, 0.28f, glm::vec3(0.62f, 0.62f, 0.65f));
     for (int i = 0; i < 4; ++i)
         DrawChips(-1.15f + i * 0.13f);
-    DrawOrangeCrate(-0.3f);
-    DrawBoxes(0.25f);
-    DrawTrashBin(0.8f);
+    DrawOrangeCrate(-0.45f);
+    DrawBoxes(0.0f);
+    DrawMopBucket(0.45f);
+    DrawTrashBin(0.9f);
 
     // the three shelves: back panel (lights up when hovered / selected),
-    // the wooden board, price tags on its edge and two SALE signs
-    const float saleX[LANES][2] = { { -0.35f, 0.85f }, { -0.75f, 0.05f }, { -0.35f, 0.45f } };
+    // the wooden board, price tags on its edge and two SALE signs (same places on every shelf)
+    const float saleX[2] = { -0.75f, 0.85f };
     for (int lane = LANES - 1; lane >= 0; --lane)
     {
         float highlight = 0.0f;
@@ -150,7 +159,7 @@ void DrawStore(float doorOpen)
             Rect(x + 0.16f, board, 0.02f, 0.02f, glm::vec3(0.9f, 0.2f, 0.2f));
         }
         for (int i = 0; i < 2; ++i)
-            DrawSaleSign(saleX[lane][i], LANE_Y[lane] + 0.19f);   // its top touches the shelf above
+            DrawSaleSign(saleX[i], LANE_Y[lane] + 0.19f);   // its top touches the shelf above
     }
 
     DrawFridge(doorOpen);
