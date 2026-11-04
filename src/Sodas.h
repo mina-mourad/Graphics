@@ -1,5 +1,6 @@
 #pragma once
 // Person 3: the sodas (enemies), the three waves, and all flying shots.
+// no lab code in this file (only declarations; the code is in the .cpp file)
 #include "Game.h"
 
 bool UpdateWaves(float dt);       // returns true when all 3 waves are beaten

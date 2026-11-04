@@ -1,5 +1,9 @@
 // [LAB] Only moving / rotating / scaling shapes over time (Lab 2: sin and deltaTime).
 // [NOT LAB] Text() for the dialogue and subtitles.
+// Below every part that uses lab code there is a "LAB CODE" comment with the
+// lab lines exactly as they are written in the lab files.
+// Parts with no lab code say "no lab code".
+// (All drawing uses Rect / Tri / Circle; their lab code is in Shapes.cpp.)
 #include "Cutscene.h"
 #include "Game.h"
 #include "Shapes.h"
@@ -17,6 +21,7 @@ static float Progress(float t, float start, float end)
     if (t >= end) return 1.0f;
     return (t - start) / (end - start);
 }
+// no lab code
 
 static void Bubble(const std::string& text, float x, float y)
 {
@@ -25,12 +30,14 @@ static void Bubble(const std::string& text, float x, float y)
     Tri(x, y - 0.08f, 0.06f, 0.05f, glm::vec3(1.0f), 3.14159f);
     Text(text, x, y, 0.011f, glm::vec3(0.1f));
 }
+// no lab code
 
 static void Subtitle(const std::string& text)
 {
     Rect(0.0f, -0.93f, 2 * ASPECT, 0.12f, glm::vec3(0.1f));
     Text(text, 0.0f, -0.93f, 0.01f, glm::vec3(1.0f));
 }
+// no lab code
 
 void DrawCutscene(float t)
 {
@@ -39,6 +46,10 @@ void DrawCutscene(float t)
     // the candies wait on their shelves next to the jar
     float duck = (t > 10.0f && t < 11.0f) ? 0.55f : 1.0f;                  // the lollipop ducks under the fizz
     float swing = (t > 8.0f && t < 10.0f) ? 0.5f + 0.5f * std::sin(t * 8.0f) : 0.0f;
+    // LAB CODE (Lab 2 Template/main.cpp):
+    //   float t = currentFrame;
+    //   float pulse = 0.75f + 0.25f * sin(t * 2.0f);
+    // (the lollipop swings its cane back and forth with sin of the time)
     DrawCandy(CHOCOLATE, -0.9f, FloorY(2), 1.0f, 0.0f, 1.0f);
     DrawCandy(LOLLIPOP, -0.6f, FloorY(1), 1.0f, swing, duck);
     float shoot = (t > 11.0f && t < 11.4f) ? Progress(t, 11.0f, 11.4f) : 0.0f;
@@ -72,4 +83,5 @@ void DrawCutscene(float t)
         Text("DEFEND THE CANDY JAR!", 0.0f, 0.86f, 0.024f, glm::vec3(1.0f, 0.9f, 0.3f));
     }
     Text("SPACE: SKIP", 1.1f, 0.95f, 0.006f, glm::vec3(0.3f));
+    // no lab code (moving the characters with Progress, dialogue and subtitles)
 }

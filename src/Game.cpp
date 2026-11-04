@@ -1,5 +1,9 @@
 // The game states (menus, cutscene, playing...) and the order things are
 // updated and drawn in. [NOT LAB] plain C++ (enum + switch).
+// [LAB] the mouse / key variables and Esc (Lab 3).
+// Below every part that uses lab code there is a "LAB CODE" comment with the
+// lab lines exactly as they are written in the lab files.
+// Parts with no lab code say "no lab code".
 #include "Game.h"
 #include "Shapes.h"
 #include "Shelves.h"
@@ -27,6 +31,10 @@ float gameTime = 0.0f;
 float mouseX = 0.0f, mouseY = 0.0f;
 bool  mouseClicked = false;
 bool  keyPressed[512] = {};
+// LAB CODE (Lab 3 Notes/Lab3ExtraNotes.cpp):
+//   float mouseX = 0;
+//   float mouseY = 0;
+//   bool clicked = false;
 
 enum State { MAIN_MENU, SOUND_MENU, CUTSCENE, PLAYING, PAUSED, WON, LOST };
 static State state = MAIN_MENU;
@@ -42,8 +50,10 @@ void ResetGame()
     placingChocolate = false;
     ResetWaves();
 }
+// no lab code
 
 bool GameWantsExit() { return exitGame; }
+// no lab code (main.cpp stops its loop when this is true)
 
 void GameUpdate(float dt)
 {
@@ -61,6 +71,9 @@ void GameUpdate(float dt)
     else if (state == PLAYING)
     {
         if (keyPressed[GLFW_KEY_ESCAPE]) { placingChocolate = false; state = PAUSED; return; }
+        // LAB CODE (Lab 3 Notes/main.cpp):
+        //   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        // (Esc pauses the game instead of closing the window)
         UpdateHud();          // cards (clicks above the shelves)
         UpdateShelves();      // hover and select shelves
         UpdateCandies(dt);
@@ -72,6 +85,7 @@ void GameUpdate(float dt)
     }
     else if (state == PAUSED && keyPressed[GLFW_KEY_ESCAPE])
         state = PLAYING;
+    // no lab code (the game states)
 }
 
 static void DrawWorld()
@@ -83,6 +97,7 @@ static void DrawWorld()
     DrawShots();
     DrawHud();
 }
+// no lab code
 
 // The menus are drawn and clicked in the same function, so the state
 // changes for menu buttons happen here.
@@ -124,3 +139,4 @@ void GameDraw()
         break;
     }
 }
+// no lab code

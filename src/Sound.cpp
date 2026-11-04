@@ -2,6 +2,7 @@
 // (one header file: external/miniaudio/miniaudio.h). Its "engine" can load
 // and play a sound file in one line.
 // Sound files (from the internet, free to use - see sounds/CREDITS.txt).
+// no lab code in this file
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
 #include "Sound.h"
@@ -12,6 +13,7 @@ static ma_sound music;
 static bool ready = false;
 static float volume = 0.7f;
 static bool muted = false;
+// no lab code
 
 void InitSound()
 {
@@ -25,11 +27,13 @@ void InitSound()
     }
     ma_engine_set_volume(&engine, volume);
 }
+// no lab code
 
 void CloseSound()
 {
     if (ready) ma_engine_uninit(&engine);
 }
+// no lab code
 
 void PlaySound(const char* name)
 {
@@ -37,6 +41,7 @@ void PlaySound(const char* name)
     std::string file = std::string(SOUND_DIR) + name + ".wav";
     ma_engine_play_sound(&engine, file.c_str(), NULL);
 }
+// no lab code
 
 // The engine volume changes every sound, also the ones already playing.
 void ChangeVolume(float change)
@@ -46,12 +51,16 @@ void ChangeVolume(float change)
     if (volume > 1.0f) volume = 1.0f;
     if (ready) ma_engine_set_volume(&engine, muted ? 0.0f : volume);
 }
+// no lab code
 
 void ToggleMute()
 {
     muted = !muted;
     if (ready) ma_engine_set_volume(&engine, muted ? 0.0f : volume);
 }
+// no lab code
 
 float GetVolume() { return volume; }
+// no lab code
 bool IsMuted() { return muted; }
+// no lab code

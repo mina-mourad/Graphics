@@ -1,5 +1,6 @@
 #pragma once
 // Block letters made of small squares (5 x 7 "pixels" per letter).
+// no lab code in this file (only declarations; the code is in the .cpp file)
 #include <string>
 #include <glm/glm.hpp>
 

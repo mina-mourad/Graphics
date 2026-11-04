@@ -1,4 +1,9 @@
 // [LAB] Buttons: pointInTriangle hover test + u_Highlight (Lab 3).
+// [NOT LAB] Text() for the labels.
+// Below every part that uses lab code there is a "LAB CODE" comment with the
+// lab lines exactly as they are written in the lab files.
+// Parts with no lab code say "no lab code".
+// (All drawing uses Rect / Tri / Circle; their lab code is in Shapes.cpp.)
 #include "Menus.h"
 #include "Game.h"
 #include "Shapes.h"
@@ -14,9 +19,15 @@ static bool Button(const std::string& label, float x, float y, float w = 0.7f)
 {
     bool hover = InBox(mouseX, mouseY, x, y, w, 0.14f);
     Rect(x, y, w, 0.14f, glm::vec3(0.55f, 0.3f, 0.45f), 0.0f, hover ? 0.4f : 0.0f);
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   bool hovering = pointInTriangle(cursorNDC, a, b, c);
+    //   bool triangleHighlight = hovering;      // hovering the triangle highlights the triangle
+    //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+    // (InBox = the pointInTriangle test; the highlight goes to u_Highlight inside Rect)
     Text(label, x, y, 0.012f, glm::vec3(1.0f));
     if (hover && mouseClicked) { PlaySound("click"); return true; }
     return false;
+    // no lab code (click = hover + the click saved by mouseButtonCallback in main.cpp)
 }
 
 static void Panel(float h)
@@ -24,6 +35,7 @@ static void Panel(float h)
     Rect(0.0f, 0.0f, 1.3f, h, glm::vec3(1.0f, 0.93f, 0.8f));
     Rect(0.0f, 0.0f, 1.22f, h - 0.08f, glm::vec3(0.98f, 0.85f, 0.7f));
 }
+// no lab code
 
 int MainMenu()
 {
@@ -36,6 +48,7 @@ int MainMenu()
     if (Button("EXIT", 0.0f, -0.3f)) return 2;
     return -1;
 }
+// no lab code
 
 int SoundMenu()
 {
@@ -51,6 +64,7 @@ int SoundMenu()
     if (Button("BACK", 0.0f, -0.3f)) return 0;
     return -1;
 }
+// no lab code
 
 int PauseMenu()
 {
@@ -61,6 +75,7 @@ int PauseMenu()
     if (Button("MAIN MENU", 0.0f, -0.24f)) return 2;
     return -1;
 }
+// no lab code
 
 int EndMenu(bool won)
 {
@@ -71,3 +86,4 @@ int EndMenu(bool won)
     if (Button("MAIN MENU", 0.0f, -0.25f)) return 1;
     return -1;
 }
+// no lab code

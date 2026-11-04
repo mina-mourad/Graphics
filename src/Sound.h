@@ -1,5 +1,6 @@
 #pragma once
 // Background music and sound effects (bonus). Sound files are in /sounds.
+// no lab code in this file (only declarations; the code is in the .cpp file)
 void InitSound();
 void CloseSound();
 void PlaySound(const char* name);   // e.g. PlaySound("click") plays sounds/click.wav

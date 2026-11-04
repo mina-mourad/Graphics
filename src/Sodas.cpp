@@ -1,5 +1,9 @@
 // [LAB] Drawing: Rect / Tri / Circle from Shapes; sin() wobble (Lab 2).
 // [NOT LAB] rand() for random shelves, game rules in plain C++.
+// Below every part that uses lab code there is a "LAB CODE" comment with the
+// lab lines exactly as they are written in the lab files.
+// Parts with no lab code say "no lab code".
+// (All drawing uses Rect / Tri / Circle; their lab code is in Shapes.cpp.)
 #include "Sodas.h"
 #include "Shapes.h"
 #include "Sound.h"
@@ -15,6 +19,7 @@ const float ATTACK_TIME = 0.35f;
 const glm::vec3 BLACK(0.1f), WHITE(1.0f);
 
 void ResetWaves() { spawned = 0; spawnTimer = 2.0f; wave = 1; betweenWaves = false; }
+// no lab code
 
 bool UpdateWaves(float dt)
 {
@@ -47,6 +52,7 @@ bool UpdateWaves(float dt)
     }
     return false;
 }
+// no lab code
 
 // The first candy in front of this soda (the candy with the biggest x to its left).
 static Candy* CandyInFront(const Soda& s, float reach)
@@ -57,6 +63,7 @@ static Candy* CandyInFront(const Soda& s, float reach)
             best = &c;
     return best;
 }
+// no lab code
 
 bool UpdateSodas(float dt)
 {
@@ -67,6 +74,11 @@ bool UpdateSodas(float dt)
         Candy* blocker = CandyInFront(s, TOUCH);
         if (!blocker)
             s.x -= SODA_SPEED[s.type] * dt;      // walk left unless a candy blocks the way
+        // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
+        //   float speed = MOVE_SPEED * deltaTime;
+        // LAB CODE (Lab 3 Notes/main.cpp):
+        //   if (key == GLFW_KEY_A && action == GLFW_REPEAT) posX -= moveSpeed;
+        // (moving = position - speed; times deltaTime so it is the same speed on every computer)
         if (s.x <= BASE_X) reachedJar = true;
 
         if (s.cooldown > 0) continue;
@@ -97,6 +109,7 @@ bool UpdateSodas(float dt)
         else ++i;
     }
     return reachedJar;
+    // no lab code (attacks, shots and sugar drops are game rules)
 }
 
 void UpdateShots(float dt)
@@ -111,6 +124,10 @@ void UpdateShots(float dt)
         }
         else {
             sh.x += sh.speed * dt;
+            // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
+            //   float speed = MOVE_SPEED * deltaTime;
+            // LAB CODE (Lab 3 Notes/main.cpp):
+            //   if (key == GLFW_KEY_D && action == GLFW_REPEAT) posX += moveSpeed;
             if (sh.speed > 0) {                   // candy pellet: hits the first soda, never candies
                 for (Soda& s : sodas)
                     if (s.lane == sh.lane && std::fabs(s.x - sh.x) < 0.06f) {
@@ -137,6 +154,7 @@ void UpdateShots(float dt)
         if (remove) shots.erase(shots.begin() + i);
         else ++i;
     }
+    // no lab code (hitting, dodging and removing shots are game rules)
 }
 
 static void AngryEyes(float x, float y, float s)
@@ -145,10 +163,14 @@ static void AngryEyes(float x, float y, float s)
     Circle(x - 0.035f * s, y, 0.014f * s, 0.016f * s, BLACK);
     Rect(x - 0.017f * s, y + 0.025f * s, 0.07f * s, 0.012f * s, BLACK, -0.3f);   // angry brows (facing left)
 }
+// no lab code
 
 void DrawSoda(SodaType type, float x, float footY, float s, float attack)
 {
     float shake = 0.08f * std::sin(attack * 18.0f) * (attack > 0 ? 1.0f : 0.0f);
+    // LAB CODE (Lab 2 Template/main.cpp):
+    //   float offsetX = sin(t) * 0.5f;
+    // (the soda shakes left and right with sin while it attacks)
     if (type == BOTTLE)        // tall green glass bottle
     {
         glm::vec3 glass(0.25f, 0.65f, 0.35f);
@@ -182,8 +204,12 @@ void DrawSoda(SodaType type, float x, float footY, float s, float attack)
         float straw = 0.3f + 1.2f * attack;                                         // the straw whacks forward
         Rect(x - std::sin(straw) * 0.07f * s, footY + 0.27f * s + std::cos(straw) * 0.07f * s,
              0.022f * s, 0.15f * s, glm::vec3(0.9f, 0.2f, 0.2f), straw);
+        // LAB CODE (Lab 3 Notes/main.cpp):
+        //   cosf(angle), sinf(angle), 0.0f,
+        // (the straw turns around the lid: a point on a circle, the same math as the lab circle)
         AngryEyes(x, footY + 0.2f * s, s);
     }
+    // no lab code (the shapes of the sodas)
 }
 
 void DrawSodas()
@@ -199,6 +225,7 @@ void DrawSodas()
             DrawHealth(s.x, FloorY(lane) - 0.05f, s.hp, SODA_HP[s.type], false);
         }
 }
+// no lab code
 
 void DrawShots()
 {
@@ -209,6 +236,9 @@ void DrawShots()
                 for (int k = 0; k < 6; ++k)
                     Circle(sh.x + std::cos(k * 1.05f) * (0.2f - sh.pop) * 0.4f,
                            sh.y + std::sin(k * 1.05f) * (0.2f - sh.pop) * 0.4f, 0.012f, 0.012f, glm::vec3(1.0f, 0.4f, 0.7f));
+                // LAB CODE (Lab 3 Notes/main.cpp):
+                //   cosf(angle), sinf(angle), 0.0f,
+                // (6 pieces fly out on a growing circle, the same math as the lab circle)
             else
                 Circle(sh.x, sh.y, 0.022f, 0.022f, glm::vec3(1.0f, 0.4f, 0.7f));
         }
@@ -220,4 +250,5 @@ void DrawShots()
             Circle(sh.x, sh.y, 0.035f, 0.018f, glm::vec3(0.45f, 0.25f, 0.1f));
         }
     }
+    // no lab code (the shapes of the shots)
 }

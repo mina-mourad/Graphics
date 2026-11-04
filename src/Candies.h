@@ -1,5 +1,6 @@
 #pragma once
 // Person 2: the candies (players) - placing them, what they do, drawing them.
+// no lab code in this file (only declarations; the code is in the .cpp file)
 #include "Game.h"
 
 void PlaceCandies(CandyType type);   // one candy at the left end of every selected shelf

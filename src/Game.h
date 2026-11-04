@@ -1,6 +1,7 @@
 #pragma once
 // Shared numbers, types and lists used by every part of the game.
 // (Plain C++: structs, enums and std::vector. Not graphics, so not in the labs.)
+// no lab code in this file
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -25,6 +26,7 @@ const float TOUCH   =  0.16f;                           // closer than this = th
 
 // Feet of a character standing on shelf `lane`.
 inline float FloorY(int lane) { return LANE_Y[lane] - 0.17f; }
+// no lab code
 
 // ---- Characters ---------------------------------------------------------
 enum CandyType { LOLLIPOP, BONBON, CHOCOLATE };   // melee, ranged, defense (players)

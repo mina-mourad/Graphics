@@ -8,6 +8,8 @@
 //   - glm::translate / rotate / scale              -> Lab 2 template
 //   - scale(1/aspect) so circles stay round        -> Lab 2 template (commented lines)
 // [NOT LAB] redness / grayness: just glm::mix on the color before drawing.
+// Below every part that uses lab code there is a "LAB CODE" comment with the
+// lab lines exactly as they are written in the lab files.
 
 #include <glad/gl.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -17,9 +19,17 @@
 #include <cmath>
 #include "Shapes.h"
 #include "Game.h"
+// LAB CODE (Lab 3 Notes/main.cpp):
+//   #include <glad/glad.h>
+//   #include <iostream>
+//   #include <vector>
+//   #include <cmath>
+//   #include <glm/gtc/matrix_transform.hpp>
+//   #include <glm/gtc/type_ptr.hpp>
 
 float redness = 0.0f;
 float grayness = 0.0f;
+// no lab code
 
 static const char* vertexShaderSource = R"(
 #version 330 core
@@ -33,6 +43,20 @@ void main()
     vColor = aColor;
 }
 )";
+// LAB CODE (Lab 2 Template/main.cpp):
+//   const char* vertexShaderSource = R"(
+//   #version 430 core
+//   layout (location = 0) in vec3 aPos;
+//   layout (location = 1) in vec3 aColor;
+//   out vec3 vColor;
+//   uniform mat4 u_Transform;
+//   void main()
+//   {
+//       gl_Position = u_Transform * vec4(aPos, 1.0);
+//       vColor = aColor;
+//   }
+//   )";
+// (we use "#version 330 core" because the project asks for OpenGL 3.3+)
 
 static const char* fragmentShaderSource = R"(
 #version 330 core
@@ -47,12 +71,28 @@ void main()
     FragColor = vec4(color, 1.0);
 }
 )";
+// LAB CODE (Lab 2 Template/main.cpp):
+//   in vec3 vColor;
+//   out vec4 FragColor;
+//   uniform vec4 u_Tint;
+//   FragColor = vec4(vColor, 1.0) * u_Tint;
+// LAB CODE (Lab 3 Notes/main.cpp):
+//   uniform float u_Highlight; //Whether or not we want it yellow! 0 for no, 1 for yes
+//   vec3 finalColor = mix(vColor, vec3(1.0, 1.0, 0.0), u_Highlight); //Calculating the color we want at last, uses interpolation (WOW)
+//   FragColor = vec4(finalColor, 1.0);
 
 static GLuint VAO, VBO, EBO, shaderProgram;
 static GLint locTransform, locTint, locHighlight;
+// LAB CODE (Lab 3 Notes/main.cpp):
+//   //Global VBO, VAO AND EBO
+//   GLuint VAO, VBO, EBO;
 
 const int CIRCLE_SEGMENTS = 40;
 const int SQUARE_START = 0, TRIANGLE_START = 4, CIRCLE_START = 7;
+// LAB CODE (Lab 3 Notes/main.cpp):
+//   const int TRIANGLE_VERTEX_COUNT = 6; // vertices 0 -> 5 belong to the triangle
+//   int circleVertexStart = 0; // filled in once the circle data is appended for flexibility
+//   const int segments = 50; //increase to make smoother looking circle
 
 static GLuint compileShader(GLenum type, const char* source)
 {
@@ -67,6 +107,20 @@ static GLuint compileShader(GLenum type, const char* source)
         std::cerr << "Shader compile error:\n" << infoLog << std::endl;
     }
     return shader;
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   GLuint compileShader(GLenum type, const char* source) {
+    //       GLuint shader = glCreateShader(type);
+    //       glShaderSource(shader, 1, &source, nullptr);
+    //       glCompileShader(shader);
+    //       int success;
+    //       glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    //       if (!success) {
+    //           char infoLog[512];
+    //           glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+    //           std::cerr << "Shader compile error:\n" << infoLog << std::endl;
+    //       }
+    //       return shader;
+    //   }
 }
 
 void InitShapes()
@@ -79,6 +133,15 @@ void InitShapes()
     glLinkProgram(shaderProgram);
     glDeleteShader(vs);
     glDeleteShader(fs);
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
+    //   GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+    //   GLuint shaderProgram = glCreateProgram();
+    //   glAttachShader(shaderProgram, vertexShader);
+    //   glAttachShader(shaderProgram, fragmentShader);
+    //   glLinkProgram(shaderProgram);
+    //   glDeleteShader(vertexShader);
+    //   glDeleteShader(fragmentShader);
 
     // positions + colors (all white: the real color comes from u_Tint)
     std::vector<float> vertices = {
@@ -92,13 +155,37 @@ void InitShapes()
          0.5f, -0.5f, 0.0f,  1, 1, 1,
          0.0f,  0.5f, 0.0f,  1, 1, 1,
     };
-    // circle: center, then the points around it (Lab 3)
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   std::vector<float> vertices = {
+    //       //Positions             //Colors
+    //       -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f, //0
+    //        0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f, //3
+    //        0.0f, 0.5f, 0.0f,      0.0f, 0.0f, 1.0f  //5
+    //   };
+
+    // circle: center, then the points around it
     vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f, 1, 1, 1 });
     for (int i = 0; i <= CIRCLE_SEGMENTS; ++i) {
         float angle = 2.0f * 3.14159f * (float)i / (float)CIRCLE_SEGMENTS;
         vertices.insert(vertices.end(), { cosf(angle), sinf(angle), 0.0f, 1, 1, 1 });
     }
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f,  0.0f, 0.8f, 1.0f }); // center and cyan color
+    //   for (int i = 0; i <= segments; ++i) {
+    //       float angle = 2.0f * 3.14f * (float)i / (float)segments;
+    //       vertices.insert(vertices.end(), {
+    //           cosf(angle), sinf(angle), 0.0f,
+    //           0.0f, 0.8f, 1.0f
+    //           });
+    //   }
+
     GLuint indices[] = { 0, 1, 2,  2, 3, 0 };   // the square = 2 triangles
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   GLuint indices[] = {
+    //       0, 2, 1,
+    //       2, 3, 4,
+    //       4, 5, 1
+    //   };
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -112,10 +199,28 @@ void InitShapes()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   glGenVertexArrays(1, &VAO);
+    //   glGenBuffers(1, &VBO);
+    //   glGenBuffers(1, &EBO);
+    //   glBindVertexArray(VAO);
+    //   glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    //   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    //   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    //   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    //   glEnableVertexAttribArray(0);
+    //   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    //   glEnableVertexAttribArray(1);
 
     locTransform = glGetUniformLocation(shaderProgram, "u_Transform");
     locTint = glGetUniformLocation(shaderProgram, "u_Tint");
     locHighlight = glGetUniformLocation(shaderProgram, "u_Highlight");
+    // LAB CODE (Lab 2 Template/main.cpp):
+    //   GLint locTransform = glGetUniformLocation(shaderProgram, "u_Transform");
+    //   GLint locTint = glGetUniformLocation(shaderProgram, "u_Tint");
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   GLint locHighlight = glGetUniformLocation(shaderProgram, "u_Highlight");
 }
 
 // Sends the transform and color, ready for one draw call.
@@ -126,32 +231,56 @@ static void Prepare(float x, float y, float w, float h, float angle, glm::vec3 c
     transform = glm::translate(transform, glm::vec3(x, y, 0.0f));
     transform = glm::rotate(transform, angle, glm::vec3(0.0f, 0.0f, 1.0f));
     transform = glm::scale(transform, glm::vec3(w, h, 1.0f));
+    // LAB CODE (Lab 2 Template/main.cpp):
+    //   glm::mat4 transform = glm::mat4(1.0f);
+    //   /*float aspect = (float)g_screenWidth / (float)g_screenHeight;
+    //   transform = glm::scale(transform, glm::vec3(1.0f / aspect, 1.0f, 1.0f));*/
+    //   //transform = glm::translate(transform, glm::vec3(offsetX, 0.0f, 0.0f));
+    //   //transform = glm::rotate(transform, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    //   //transform = glm::scale(transform, glm::vec3(pulse, pulse, 1.0f));
 
     color = glm::mix(color, glm::vec3(0.9f, 0.05f, 0.05f), redness);
     float gray = (color.r + color.g + color.b) / 3.0f;
     color = glm::mix(color, glm::vec3(gray), grayness);
+    // no lab code (redness / grayness)
 
     glUseProgram(shaderProgram);
     glBindVertexArray(VAO);
     glUniformMatrix4fv(locTransform, 1, GL_FALSE, glm::value_ptr(transform));
     glUniform4f(locTint, color.r, color.g, color.b, 1.0f);
     glUniform1f(locHighlight, highlight);
+    // LAB CODE (Lab 2 Template/main.cpp):
+    //   glUseProgram(shaderProgram);
+    //   glUniformMatrix4fv(locTransform, 1, GL_FALSE, glm::value_ptr(transform));
+    //   glUniform4f(locTint, r, g, b, 1.0f);
+    //   glBindVertexArray(VAO);
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
 }
 
 void Rect(float x, float y, float w, float h, glm::vec3 color, float angle, float highlight)
 {
     Prepare(x, y, w, h, angle, color, highlight);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   // draw the triangle: indexed, uses the EBO, 9 indices for the three small triangles
+    //   glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+    // (our square needs 6 indices = 2 triangles)
 }
 
 void Tri(float x, float y, float w, float h, glm::vec3 color, float angle)
 {
     Prepare(x, y, w, h, angle, color, 0.0f);
     glDrawArrays(GL_TRIANGLES, TRIANGLE_START, 3);
+    // LAB CODE (Lab 2 Template/main.cpp):
+    //   glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 void Circle(float x, float y, float rx, float ry, glm::vec3 color)
 {
     Prepare(x, y, rx, ry, 0.0f, color, 0.0f);
     glDrawArrays(GL_TRIANGLE_FAN, CIRCLE_START, CIRCLE_SEGMENTS + 2);
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   glDrawArrays(GL_TRIANGLE_FAN, circleVertexStart, circleVertexCount);
+    //   circleVertexCount = segments + 2; // center + segments and because triangle fan... +1 for end :3
 }

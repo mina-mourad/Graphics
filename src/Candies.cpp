@@ -1,6 +1,10 @@
 // [LAB] Drawing: Rect / Tri / Circle from Shapes (Lab 2 + Lab 3).
 //       Animation: positions and angles from sin() and timers (Lab 2 template).
 // [NOT LAB] Game rules: plain C++ (vector, loops, if).
+// Below every part that uses lab code there is a "LAB CODE" comment with the
+// lab lines exactly as they are written in the lab files.
+// Parts with no lab code say "no lab code".
+// (All drawing uses Rect / Tri / Circle; their lab code is in Shapes.cpp.)
 #include "Candies.h"
 #include "Shapes.h"
 #include "Sound.h"
@@ -25,6 +29,7 @@ void PlaceCandies(CandyType type)
     }
     PlaySound(placed ? "place" : "locked");
 }
+// no lab code
 
 float ChocolateSpot(float mouseX)
 {
@@ -32,6 +37,7 @@ float ChocolateSpot(float mouseX)
     if (mouseX > LANE_RIGHT - 0.1f) return LANE_RIGHT - 0.1f;
     return mouseX;
 }
+// no lab code
 
 void PlaceChocolate(int lane, float x)
 {
@@ -44,6 +50,7 @@ void PlaceChocolate(int lane, float x)
     placingChocolate = false;
     PlaySound("place");
 }
+// no lab code
 
 // Is a soda standing right in front of this candy?
 static Soda* SodaInFront(const Candy& c, float reach)
@@ -54,6 +61,7 @@ static Soda* SodaInFront(const Candy& c, float reach)
             best = &s;
     return best;
 }
+// no lab code
 
 void UpdateCandies(float dt)
 {
@@ -68,6 +76,10 @@ void UpdateCandies(float dt)
     }
     if (up) PlaySound("jump");
     if (down) PlaySound("duck");
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   if (key == GLFW_KEY_W && action == GLFW_REPEAT) posY += moveSpeed;
+    //   if (key == GLFW_KEY_S && action == GLFW_REPEAT) posY -= moveSpeed;
+    // (W = up, S = down like in the lab; the key is saved by keyCallback in main.cpp)
 
     for (Candy& c : candies)
     {
@@ -77,6 +89,11 @@ void UpdateCandies(float dt)
             // walk right unless a soda blocks the way
             if (!SodaInFront(c, TOUCH))
                 c.x += CANDY_SPEED[c.type] * dt;
+            // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
+            //   float speed = MOVE_SPEED * deltaTime;
+            // LAB CODE (Lab 3 Notes/main.cpp):
+            //   if (key == GLFW_KEY_D && action == GLFW_REPEAT) posX += moveSpeed;
+            // (moving = position + speed; times deltaTime so it is the same speed on every computer)
 
             // attack all the time, even with no soda around
             c.cooldown -= dt;
@@ -115,6 +132,7 @@ void UpdateCandies(float dt)
         }
         else ++i;
     }
+    // no lab code (attacks, sugar pick-up and removing candies are game rules)
 }
 
 static void Eyes(float x, float y, float s)
@@ -122,6 +140,7 @@ static void Eyes(float x, float y, float s)
     Circle(x, y, 0.014f * s, 0.016f * s, BLACK);
     Circle(x + 0.035f * s, y, 0.014f * s, 0.016f * s, BLACK);
 }
+// no lab code
 
 void DrawCandy(CandyType type, float x, float footY, float s, float attack, float squash)
 {
@@ -143,6 +162,9 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
         float angle = 1.3f - 1.6f * attack;
         float hx = x + 0.05f * s, hy = P(0.11f);
         float cx = hx + std::cos(angle) * 0.07f * s, cy = hy + std::sin(angle) * 0.07f * s;
+        // LAB CODE (Lab 3 Notes/main.cpp):
+        //   cosf(angle), sinf(angle), 0.0f,
+        // (a point on a circle around the hand, the same math as the lab circle)
         Rect(cx, cy, 0.15f * s, 0.024f * s, glm::vec3(0.9f, 0.1f, 0.1f), angle);
         Rect(cx, cy, 0.03f * s, 0.026f * s, WHITE, angle);                      // stripe
         Circle(hx, hy, 0.016f * s, 0.016f * s, WHITE);                          // hand
@@ -174,6 +196,7 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
         Eyes(x - 0.01f * s, P(0.26f), s);
         Rect(x + 0.01f * s, P(0.29f), 0.07f * s, 0.012f * s, BLACK, -0.15f);      // brave eyebrows
     }
+    // no lab code (the shapes of the candies)
 }
 
 void DrawCandies()
@@ -188,6 +211,9 @@ void DrawCandies()
         {
             if (c.lane != lane) continue;
             float lift = c.jump > 0 ? 0.25f * std::sin(3.14159f * (1 - c.jump / JUMP_TIME)) : 0.0f;
+            // LAB CODE (Lab 2 Template/main.cpp):
+            //   float offsetX = sin(t) * 0.5f;
+            // (the jump goes up and down with sin)
             float squash = c.duck > 0 ? 0.55f : 1.0f;
             float attack = c.attack > 0 ? 1.0f - c.attack / ATTACK_TIME : 0.0f;
             redness = 0.6f * (1.0f - (float)c.hp / CANDY_HP[c.type]) + (c.hurt > 0 ? 0.3f : 0.0f);   // more red = more hurt
@@ -195,4 +221,5 @@ void DrawCandies()
             redness = 0;
             DrawHealth(c.x, FloorY(lane) - 0.05f, c.hp, CANDY_HP[c.type], true);
         }
+    // no lab code (ducking, attack timing, redness and the health bars)
 }

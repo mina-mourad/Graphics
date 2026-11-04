@@ -47,6 +47,11 @@ Two choices to know about:
 
 ## What comes from the labs
 
+**In the code:** below every part that uses lab code there is a comment `// LAB CODE (lab file):` with the
+lab lines copied exactly as they are written in the lab files (`Lab 2 Template/main.cpp`, `Lab 3 Notes/main.cpp`,
+`Lab 3 Notes/Lab3ExtraNotes.cpp`, `Lab 4 Code/Lab4Camera.cpp`). Every function and file without lab code says
+`// no lab code`. Short notes in `// (...)` explain where our line differs from the lab line.
+
 **From the labs:**
 - window / GLAD setup, shader compile + link: Lab 2 template
 - VAO + VBO with position and color, `u_Transform`: Lab 3
@@ -56,6 +61,7 @@ Two choices to know about:
 - key / mouse button / cursor position callbacks, pixels → -1..1 — Lab 3
 - `triSign` / `pointInTriangle` for shelves, cards and buttons — Lab 3
 - `deltaTime` from `glfwGetTime()`, `sin()` animation — Lab 2 template
+- moving with speed × `deltaTime` — Lab 4 (`float speed = MOVE_SPEED * deltaTime;`)
 
 **Not from the labs (kept as small as possible):**
 - game rules: `struct`, `std::vector`, `rand()`, `enum` + `switch` for the states (plain C++)

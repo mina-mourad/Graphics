@@ -1,6 +1,7 @@
 // [NOT LAB] The labs do not draw text. The spec needs a coin counter and menu
 // labels, so each letter is drawn as small squares using Rect() from Shapes.
 // Each letter is 7 rows; in every row the 5 lowest bits say which squares are on.
+// no lab code in this file
 
 #include "Text.h"
 #include "Shapes.h"
@@ -53,6 +54,7 @@ static const unsigned char FONT[][7] = {
     { 0x00, 0x04, 0x04, 0x1F, 0x04, 0x04, 0x00 },   // +
     { 0x01, 0x02, 0x02, 0x04, 0x08, 0x08, 0x10 },   // /
 };
+// no lab code
 
 void Text(const std::string& text, float x, float y, float size, glm::vec3 color)
 {
@@ -70,3 +72,4 @@ void Text(const std::string& text, float x, float y, float size, glm::vec3 color
                     Rect(left + (i * 6 + col + 0.5f) * size, y + (3 - row) * size, size, size, color);
     }
 }
+// no lab code (each square is drawn with Rect, whose lab code is in Shapes.cpp)

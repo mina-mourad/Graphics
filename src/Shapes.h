@@ -1,6 +1,7 @@
 #pragma once
 // Drawing with the lab shader: a square, a triangle and a circle, moved with
 // glm::translate / rotate / scale. Everything in the game is made of these.
+// no lab code in this file (only declarations; the code is in the .cpp file)
 
 #include <glm/glm.hpp>
 
