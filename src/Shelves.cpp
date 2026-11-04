@@ -72,11 +72,52 @@ static void DrawCandyJar()
     Text("JAR", -1.22f, 0.0f, 0.012f, glm::vec3(0.8f, 0.1f, 0.1f));
 }
 
-// A bag of chips standing on the floor.
+// ---- Environment elements on the floor (spec 4.2) ----
+// Each one is only 2-4 simple shapes. They all stand on the floor (bottom at y = -0.85).
+
+// A bag of chips: yellow bag with a red band.
 static void DrawChips(float x)
 {
-    Rect(x, -0.79f, 0.08f, 0.11f, glm::vec3(0.95f, 0.75f, 0.1f));    // bag
-    Rect(x, -0.79f, 0.08f, 0.025f, glm::vec3(0.85f, 0.15f, 0.15f));  // red band
+    Rect(x, -0.79f, 0.08f, 0.11f, glm::vec3(0.95f, 0.75f, 0.1f));
+    Rect(x, -0.79f, 0.08f, 0.025f, glm::vec3(0.85f, 0.15f, 0.15f));
+}
+
+// A wet floor sign: yellow triangle with a "!".
+static void DrawWetFloorSign(float x)
+{
+    Tri(x, -0.79f, 0.12f, 0.12f, glm::vec3(1.0f, 0.85f, 0.1f));
+    Rect(x, -0.79f, 0.012f, 0.035f, glm::vec3(0.1f));
+    Rect(x, -0.825f, 0.012f, 0.01f, glm::vec3(0.1f));
+}
+
+// A wooden crate with three oranges on top.
+static void DrawOrangeCrate(float x)
+{
+    for (int i = -1; i <= 1; ++i)
+        Circle(x + i * 0.05f, -0.77f, 0.025f, 0.025f, glm::vec3(1.0f, 0.55f, 0.1f));
+    Rect(x, -0.81f, 0.16f, 0.08f, glm::vec3(0.65f, 0.45f, 0.25f));
+}
+
+// Two cardboard boxes, one on top of the other.
+static void DrawBoxes(float x)
+{
+    Rect(x, -0.815f, 0.14f, 0.07f, glm::vec3(0.8f, 0.62f, 0.4f));
+    Rect(x, -0.755f, 0.1f, 0.05f, glm::vec3(0.72f, 0.54f, 0.32f));
+}
+
+// A trash bin: green body and a dark lid.
+static void DrawTrashBin(float x)
+{
+    Rect(x, -0.8f, 0.08f, 0.1f, glm::vec3(0.2f, 0.55f, 0.3f));
+    Rect(x, -0.745f, 0.1f, 0.02f, glm::vec3(0.12f, 0.35f, 0.18f));
+}
+
+// ---- Environment element on the shelves ----
+// A red SALE sign at the top of a shelf (drawn before the characters, so they walk in front of it).
+static void DrawSaleSign(float x, float y)
+{
+    Rect(x, y, 0.16f, 0.06f, glm::vec3(0.85f, 0.15f, 0.15f));
+    Text("SALE", x, y, 0.006f, glm::vec3(1.0f));
 }
 
 void DrawStore(float doorOpen)
@@ -86,15 +127,20 @@ void DrawStore(float doorOpen)
     for (float y = -0.7f; y < 1.0f; y += 0.15f)
         Rect(0.0f, y, 2 * ASPECT, 0.006f, glm::vec3(0.88f, 0.82f, 0.72f));
 
-    // floor with tiles, and 4 bags of chips on the left
+    // floor with tiles, and the things standing on it (left to right)
     Rect(0.0f, -0.86f, 2 * ASPECT, 0.28f, glm::vec3(0.7f, 0.7f, 0.72f));
     for (int i = 0; i < 14; ++i)
         Rect(-1.3f + i * 0.2f, -0.86f, 0.1f, 0.28f, glm::vec3(0.62f, 0.62f, 0.65f));
     for (int i = 0; i < 4; ++i)
         DrawChips(-1.15f + i * 0.13f);
+    DrawWetFloorSign(-0.45f);
+    DrawOrangeCrate(-0.05f);
+    DrawBoxes(0.4f);
+    DrawTrashBin(0.85f);
 
     // the three shelves: back panel (lights up when hovered / selected),
-    // the wooden board and price tags on its edge
+    // the wooden board, price tags on its edge and a SALE sign
+    const float saleX[LANES] = { 0.55f, -0.65f, 0.15f };
     for (int lane = LANES - 1; lane >= 0; --lane)
     {
         float highlight = 0.0f;
@@ -111,6 +157,7 @@ void DrawStore(float doorOpen)
             Rect(x + 0.18f, board, 0.08f, 0.035f, glm::vec3(1.0f));                   // price tag
             Rect(x + 0.16f, board, 0.02f, 0.02f, glm::vec3(0.9f, 0.2f, 0.2f));
         }
+        DrawSaleSign(saleX[lane], LANE_Y[lane] + 0.17f);
     }
 
     DrawFridge(doorOpen);

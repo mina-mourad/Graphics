@@ -18,7 +18,12 @@ The candies defend the jar, shelf by shelf.
 Start with 30 sugar (Lollipop 10, Bonbon 20, Chocolate 30; the bonbon and chocolate unlock after you collect that much sugar). Defeated sodas drop sugar cubes; walk a candy into them to collect.
 
 ## Checked against the project PDF
-Everything in sections 2–5 of the description is implemented. Two choices to know about:
+Everything in sections 2–5 of the description is implemented.
+- **Environment (spec 4.2): 8 supermarket elements**, each only 2–4 simple shapes, all in `src/Shelves.cpp`:
+  shelves with price tags, the soda fridge, SALE signs on the shelves, bags of chips, a wet floor sign,
+  a crate of oranges, cardboard boxes and a trash bin. (The candy jar is the home base, so it is not counted.)
+
+Two choices to know about:
 - **Chocolate bar anywhere on a shelf** (team's choice). The PDF says a placed player appears at the
   left end of the selected lane; to follow it exactly, make the chocolate card use `PlaceCandies` like the other two.
 - **Costs and unlocking (spec 3.2 + table on page 9):** Lollipop (Melee) 10, Bonbon (Long Range) 2 x 10 = 20,
@@ -33,7 +38,7 @@ Everything in sections 2–5 of the description is implemented. Two choices to k
 |---|---|---|
 | `main.cpp` | window, input callbacks, main loop | all |
 | `src/Shapes.cpp` | the lab shader + square / triangle / circle | all |
-| `src/Shelves.cpp` | store background, shelves (lanes), candy jar, shelf selection | 1 |
+| `src/Shelves.cpp` | store background and its 8 environment elements, shelves (lanes), candy jar, shelf selection | 1 |
 | `src/Candies.cpp` | placing candies, what they do, drawing them | 2 |
 | `src/Sodas.cpp` | sodas, the 3 waves, all flying shots | 3 |
 | `src/Hud.cpp` | cards, sugar counter, health bars, sugar cubes | 4 |
