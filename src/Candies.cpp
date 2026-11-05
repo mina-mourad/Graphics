@@ -13,9 +13,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 
-const float ATTACK_TIME = 0.35f;
-const float JUMP_TIME = 0.7f;
-const float DUCK_TIME = 0.7f;
+// The numbers used below, with a name (all times in seconds).
+const float FIRST_ATTACK = 0.3f;        // a new candy attacks 0.3 s after it is placed
+const float ATTACK_TIME = 0.35f;        // one attack animation lasts 0.35 s
+const float LOLLIPOP_COOLDOWN = 0.8f;   // the lollipop hits every 0.8 s
+const float BONBON_COOLDOWN = 1.4f;     // the bonbon shoots every 1.4 s
+const float CANE_REACH = 0.06f;         // the cane reaches this much further than touching
+const float PELLET_SPEED = 0.8f;        // how fast a candy pellet flies
+const float SODA_FLASH = 0.2f;          // a hit soda flashes red for 0.2 s
+const float PICKUP_DISTANCE = 0.08f;    // how close a sugar cube must be to pick it up
+const float JUMP_TIME = 0.7f;           // a jump lasts 0.7 s
+const float JUMP_HEIGHT = 0.25f;        // how high a candy jumps
+const float DUCK_TIME = 0.7f;           // a duck lasts 0.7 s
+const float DUCK_SQUASH = 0.55f;        // a ducking candy is 55% of its height
 const glm::vec3 BLACK(0.1f);
 
 void PlaceCandies(CandyType type)
@@ -24,7 +34,7 @@ void PlaceCandies(CandyType type)
     for (int lane = 0; lane < LANES; ++lane)
     {
         if (!laneSelected[lane] || !CardUnlocked(type)) continue;
-        candies.push_back({ type, lane, START_X, CANDY_HP[type], 0.3f, 0, 0, 0, 0 });
+        candies.push_back({ type, lane, START_X, CANDY_HP[type], FIRST_ATTACK, 0, 0, 0, 0 });
         sugar -= CANDY_COST[type];
         placed = true;
     }
@@ -54,9 +64,9 @@ static Soda* SodaInFront(const Candy& c, float reach)
 }
 // no lab code
 
-void UpdateCandies(float dt)
+// W / Up = jump, S / Down = duck, for the candies on the selected shelves.
+static void JumpAndDuck()
 {
-    // W / Up = jump, S / Down = duck, for the candies on the selected shelves
     bool up = keyPressed[GLFW_KEY_W] || keyPressed[GLFW_KEY_UP];
     bool down = keyPressed[GLFW_KEY_S] || keyPressed[GLFW_KEY_DOWN];
     for (Candy& c : candies)
@@ -72,50 +82,52 @@ void UpdateCandies(float dt)
     //   if (key == GLFW_KEY_W && action == GLFW_REPEAT) posY += moveSpeed;
     //   if (key == GLFW_KEY_S && action == GLFW_REPEAT) posY -= moveSpeed;
     // (W = up, S = down like in the lab; the key is saved by keyCallback in main.cpp)
+}
 
-    for (Candy& c : candies)
-    {
-        c.jump -= dt; c.duck -= dt; c.hurt -= dt; c.attack -= dt;
-        if (c.type != CHOCOLATE)   // the chocolate bar only stands and blocks
-        {
-            // walk right unless a soda blocks the way
-            if (!SodaInFront(c, TOUCH))
-                c.x += CANDY_SPEED[c.type] * dt;
-            // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
-            //   float speed = MOVE_SPEED * deltaTime;
-            // LAB CODE (Lab 3 Notes/main.cpp):
-            //   if (key == GLFW_KEY_D && action == GLFW_REPEAT) posX += moveSpeed;
-            // (moving = position + speed; times deltaTime so it is the same speed on every computer)
+// Walks right unless a soda blocks the way, and attacks all the time
+// (even with no soda around): the lollipop hits, the bonbon shoots a pellet.
+static void WalkAndAttack(Candy& c, float dt)
+{
+    if (!SodaInFront(c, TOUCH))
+        c.x += CANDY_SPEED[c.type] * dt;
+    // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
+    //   float speed = MOVE_SPEED * deltaTime;
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   if (key == GLFW_KEY_D && action == GLFW_REPEAT) posX += moveSpeed;
+    // (moving = position + speed; times deltaTime so it is the same speed on every computer)
 
-            // attack all the time, even with no soda around
-            c.cooldown -= dt;
-            if (c.cooldown <= 0)
-            {
-                c.attack = ATTACK_TIME;
-                if (c.type == LOLLIPOP) {
-                    c.cooldown = 0.8f;
-                    Soda* s = SodaInFront(c, TOUCH + 0.06f);
-                    if (s) { s->hp -= 1; s->hurt = 0.2f; PlaySound("whack"); }
-                } else {
-                    c.cooldown = 1.4f;
-                    shots.push_back({ c.lane, c.x + 0.16f, FloorY(c.lane) + 0.15f, 0.8f, false, 1, 0.0f });
-                    PlaySound("pellet");
-                }
-            }
-        }
-
-        // pick up sugar cubes it touches (the chocolate bar too)
-        for (size_t i = 0; i < cubes.size(); ++i)
-            if (cubes[i].lane == c.lane && std::fabs(cubes[i].x - c.x) < 0.08f) {
-                sugar += cubes[i].value;
-                sugarCollected += cubes[i].value;
-                cubes.erase(cubes.begin() + i);
-                PlaySound("sugar");
-                break;
-            }
+    c.cooldown -= dt;
+    if (c.cooldown > 0) return;             // not time to attack yet
+    c.attack = ATTACK_TIME;                 // start the attack animation
+    if (c.type == LOLLIPOP) {
+        c.cooldown = LOLLIPOP_COOLDOWN;
+        Soda* s = SodaInFront(c, TOUCH + CANE_REACH);
+        if (s) { s->hp -= 1; s->hurt = SODA_FLASH; PlaySound("whack"); }
+    } else {
+        c.cooldown = BONBON_COOLDOWN;
+        shots.push_back({ c.lane, c.x + 0.16f, FloorY(c.lane) + 0.15f, PELLET_SPEED, false, 1, 0.0f });
+        PlaySound("pellet");
     }
+    // no lab code (the attack rules)
+}
 
-    // defeated candies are removed; candies that reach the fridge are done
+// Picks up a sugar cube the candy touches (the chocolate bar too).
+static void PickUpSugar(Candy& c)
+{
+    for (size_t i = 0; i < cubes.size(); ++i)
+        if (cubes[i].lane == c.lane && std::fabs(cubes[i].x - c.x) < PICKUP_DISTANCE) {
+            sugar += cubes[i].value;
+            sugarCollected += cubes[i].value;
+            cubes.erase(cubes.begin() + i);
+            PlaySound("sugar");
+            return;
+        }
+}
+// no lab code
+
+// Defeated candies are removed; candies that reach the fridge are done too.
+static void RemoveDefeated()
+{
     for (size_t i = 0; i < candies.size(); )
     {
         if (candies[i].hp <= 0 || candies[i].x > LANE_RIGHT) {
@@ -124,8 +136,21 @@ void UpdateCandies(float dt)
         }
         else ++i;
     }
-    // no lab code (attacks, sugar pick-up and removing candies are game rules)
 }
+// no lab code
+
+void UpdateCandies(float dt)
+{
+    JumpAndDuck();
+    for (Candy& c : candies)
+    {
+        c.jump -= dt; c.duck -= dt; c.attack -= dt;     // the timers count down
+        if (c.type != CHOCOLATE) WalkAndAttack(c, dt);  // the chocolate bar only stands and blocks
+        PickUpSugar(c);
+    }
+    RemoveDefeated();
+}
+// no lab code (it only calls the four functions above)
 
 static void Eyes(float x, float y)
 {
@@ -193,15 +218,14 @@ void DrawCandies()
 {
     for (Candy& c : candies)
     {
-        float lift = c.jump > 0 ? 0.25f * std::sin(3.14159f * (1 - c.jump / JUMP_TIME)) : 0.0f;
+        float lift = c.jump > 0 ? JUMP_HEIGHT * std::sin(3.14159f * (1 - c.jump / JUMP_TIME)) : 0.0f;
         // LAB CODE (Lab 2 Template/main.cpp):
         //   float offsetX = sin(t) * 0.5f;
         // (the jump goes up and down with sin)
-        float squash = c.duck > 0 ? 0.55f : 1.0f;
+        float squash = c.duck > 0 ? DUCK_SQUASH : 1.0f;
         float attack = c.attack > 0 ? 1.0f - c.attack / ATTACK_TIME : 0.0f;
         float health = (float)c.hp / CANDY_HP[c.type];   // 1 = full health ... 0 = no health left
         redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
-        if (c.hurt > 0) redness += 0.3f;                  // a short red flash just after a hit
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
         // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
