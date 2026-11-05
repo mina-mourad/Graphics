@@ -8,7 +8,7 @@
 //   - u_Gray mix toward gray (locked cards)        -> Lab 3 (the same code as u_Highlight, but gray)
 //   - one VBO holding several shapes + EBO         -> Lab 3 ("global VBO", EBO notes)
 //   - circle as a GL_TRIANGLE_FAN                  -> Lab 3
-//   - letters as GL_LINES (+ GL_POINTS)            -> Lab 3 notes (primitive types), Lab 4 (grid / axes)
+//   - letters as GL_LINES                          -> Lab 3 notes (primitive types), Lab 4 (grid / axes)
 //   - glm::translate / rotate / scale              -> Lab 2 template
 //   - scale(1/aspect) so circles stay round        -> Lab 2 template (commented lines)
 // [NOT LAB] one line in the shader: gray = (r + g + b) / 3, the gray version of a color.
@@ -330,10 +330,4 @@ void Lines(int start, int count, float x, float y, float size, glm::vec3 color)
     //   glDrawArrays(mesh.drawMode, 0, mesh.vertexCount);
     // LAB CODE (Lab 3 Notes/Lab3ExtraNotes.cpp):
     //   //glLineWidth(4);
-
-    glPointSize(width);
-    glDrawArrays(GL_POINTS, start, count);          // a square dot on every end, so the corners look full
-    // LAB CODE (Lab 3 Notes/Lab 3 notes.pdf):
-    //   GL_POINTS: Points
-    // (glPointSize: no lab code - it sets how big each point is, like glLineWidth for lines)
 }

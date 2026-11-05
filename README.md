@@ -72,7 +72,7 @@ lab lines copied exactly as they are written in the lab files (`Lab 1 Notes.pdf`
 `// no lab code`. Short notes in `// (...)` explain where our line differs from the lab line.
 
 **From the labs:**
-- letters drawn with `GL_LINES` (+ `GL_POINTS` to fill the corners) from the shared VBO: the primitive types in the Lab 3 notes, the grid / axes in Lab 4
+- letters drawn with `GL_LINES` from the shared VBO: the primitive types in the Lab 3 notes, the grid / axes in Lab 4
 - red damage: `u_Red` in the fragment shader, a copy of the Lab 3 `u_Highlight` mix (toward red instead of yellow)
 - gray locked cards: `u_Gray` in the fragment shader, the same mix toward the color's own gray (only `gray = (r + g + b) / 3` is not lab code)
 - VBO + VAO, `glVertexAttribPointer`, `glDrawArrays`, the render loop (swap buffers, poll events): Lab 1
