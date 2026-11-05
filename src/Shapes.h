@@ -21,5 +21,5 @@ extern float redness;   // hurt characters turn red (sent to u_Red in the shader
 extern float grayness;  // locked cards are gray (sent to u_Gray in the shader)
 
 // Moves / scales a whole character as one (like the transform in Lab 2).
-// Normally glm::mat4(1.0f) = "no change"; DrawCandy sets it and resets it.
+// Normally glm::mat4(1.0f) = "no change"; DrawCandy and DrawSoda set it and reset it.
 extern glm::mat4 model;

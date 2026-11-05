@@ -34,7 +34,7 @@
 
 float redness = 0.0f;
 float grayness = 0.0f;
-glm::mat4 model = glm::mat4(1.0f);   // the transform of a whole character (set by DrawCandy)
+glm::mat4 model = glm::mat4(1.0f);   // the transform of a whole character (set by DrawCandy / DrawSoda)
 // no lab code
 
 static const char* vertexShaderSource = R"(

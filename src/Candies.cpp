@@ -159,53 +159,42 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
     //   //transform = glm::scale(transform, glm::vec3(pulse, pulse, 1.0f));
     // (model is used by every shape below - see Prepare() in Shapes.cpp)
 
-    if (type == LOLLIPOP)
+    if (type == LOLLIPOP)      // melee: a lollipop with a candy cane
     {
         glm::vec3 pink(0.95f, 0.35f, 0.6f);
         Rect(0.0f, 0.09f, 0.022f, 0.18f, WHITE);                  // stick
-        Rect(-0.035f, 0.11f, 0.05f, 0.012f, WHITE, 0.6f);         // arm
         Circle(0.0f, 0.24f, 0.085f, 0.085f, pink);                // candy head
-        Circle(0.0f, 0.24f, 0.06f, 0.06f, WHITE);                 // swirl
-        Circle(0.0f, 0.24f, 0.04f, 0.04f, pink);
-        Circle(0.0f, 0.24f, 0.018f, 0.018f, WHITE);
-        Eyes(0.02f, 0.26f);
-        // candy cane in the hand: it swings down when attacking
+        Circle(0.0f, 0.24f, 0.035f, 0.035f, WHITE);               // swirl in the middle
+        Eyes(0.015f, 0.285f);
+        // the candy cane swings down when attacking
         float angle = 1.3f - 1.6f * attack;
-        float hx = 0.05f, hy = 0.11f;                             // the hand
+        float hx = 0.015f, hy = 0.11f;                            // where the cane is held
         float cx = hx + std::cos(angle) * 0.07f, cy = hy + std::sin(angle) * 0.07f;
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   cosf(angle), sinf(angle), 0.0f,
         // (a point on a circle around the hand, the same math as the lab circle)
         Rect(cx, cy, 0.15f, 0.024f, glm::vec3(0.9f, 0.1f, 0.1f), angle);
-        Rect(cx, cy, 0.03f, 0.026f, WHITE, angle);                // stripe
-        Circle(hx, hy, 0.016f, 0.016f, WHITE);                    // hand
     }
-    else if (type == BONBON)
+    else if (type == BONBON)   // long range: a wrapped bonbon on two legs with a launcher
     {
         glm::vec3 orange(1.0f, 0.6f, 0.1f), yellow(1.0f, 0.9f, 0.3f);
-        float recoil = 0.03f * attack;
+        float recoil = 0.03f * attack;                            // the launcher kicks back when it shoots
         Rect(-0.04f, 0.05f, 0.02f, 0.1f, orange);                 // two short legs
         Rect(0.04f, 0.05f, 0.02f, 0.1f, orange);
         Tri(-0.14f, 0.2f, 0.11f, 0.09f, yellow, -1.5708f);        // wrapper ends
         Tri(0.14f, 0.2f, 0.11f, 0.09f, yellow, 1.5708f);
         Circle(0.0f, 0.2f, 0.11f, 0.105f, orange);                // candy
-        Rect(-0.045f, 0.2f, 0.022f, 0.2f, yellow);                // stripes
-        Rect(0.045f, 0.2f, 0.022f, 0.2f, yellow);
         Eyes(-0.005f, 0.24f);
-        Rect(0.1f - recoil, 0.15f, 0.11f, 0.035f, glm::vec3(0.45f));   // candy launcher held in front
-        Circle(0.05f - recoil, 0.15f, 0.02f, 0.02f, orange);           // hand
+        Rect(0.1f - recoil, 0.15f, 0.11f, 0.035f, glm::vec3(0.45f));   // candy launcher
     }
-    else // CHOCOLATE
+    else                       // defense: a chocolate bar in its foil
     {
-        glm::vec3 brown(0.4f, 0.22f, 0.1f), light(0.55f, 0.32f, 0.15f), foil(0.75f, 0.75f, 0.8f);
+        glm::vec3 brown(0.4f, 0.22f, 0.1f), dark(0.28f, 0.14f, 0.06f), foil(0.75f, 0.75f, 0.8f);
         Rect(0.0f, 0.15f, 0.16f, 0.3f, brown);                    // bar
-        for (int row = 0; row < 3; ++row)                         // squares
-            for (int col = 0; col < 2; ++col)
-                Rect((col - 0.5f) * 0.07f, 0.19f + row * 0.075f, 0.055f, 0.06f, light);
+        Rect(0.0f, 0.19f, 0.16f, 0.012f, dark);                   // lines between the squares
+        Rect(0.0f, 0.145f, 0.012f, 0.09f, dark);
         Rect(0.0f, 0.05f, 0.17f, 0.1f, foil);                     // foil wrapper
-        Tri(0.0f, 0.115f, 0.17f, 0.04f, foil, 3.14159f);
-        Eyes(-0.01f, 0.26f);
-        Rect(0.01f, 0.29f, 0.07f, 0.012f, BLACK, -0.15f);         // brave eyebrows
+        Eyes(-0.01f, 0.25f);
     }
     model = glm::mat4(1.0f);   // back to "no change" for whatever is drawn next
     // no lab code (the shapes of the candies)
