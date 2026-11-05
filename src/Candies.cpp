@@ -16,7 +16,7 @@
 const float ATTACK_TIME = 0.35f;
 const float JUMP_TIME = 0.7f;
 const float DUCK_TIME = 0.7f;
-const glm::vec3 BLACK(0.1f), WHITE(1.0f);
+const glm::vec3 BLACK(0.1f);
 
 void PlaceCandies(CandyType type)
 {
@@ -32,20 +32,10 @@ void PlaceCandies(CandyType type)
 }
 // no lab code
 
-// Keeps the chocolate bar on the shelf: not inside the jar, not inside the fridge.
-static float ChocolateSpot(float mouseX)
-{
-    if (mouseX < START_X) return START_X;
-    if (mouseX > LANE_RIGHT - 0.1f) return LANE_RIGHT - 0.1f;
-    return mouseX;
-}
-// no lab code
-
 void PlaceChocolate(int lane, float x)
 {
-    x = ChocolateSpot(x);
-    for (Candy& c : candies)   // not on top of another chocolate bar
-        if (c.type == CHOCOLATE && c.lane == lane && std::fabs(c.x - x) < 0.18f) { PlaySound("locked"); return; }
+    if (x < START_X) x = START_X;                       // not inside the jar
+    if (x > LANE_RIGHT - 0.1f) x = LANE_RIGHT - 0.1f;   // not inside the fridge
     if (!CardUnlocked(CHOCOLATE)) { PlaySound("locked"); placingChocolate = false; return; }
     candies.push_back({ CHOCOLATE, lane, x, CANDY_HP[CHOCOLATE], 0.0f, 0, 0, 0, 0 });
     sugar -= CANDY_COST[CHOCOLATE];
@@ -57,11 +47,10 @@ void PlaceChocolate(int lane, float x)
 // Is a soda standing right in front of this candy?
 static Soda* SodaInFront(const Candy& c, float reach)
 {
-    Soda* best = nullptr;
     for (Soda& s : sodas)
-        if (s.lane == c.lane && s.x - c.x >= -0.05f && s.x - c.x <= reach && (!best || s.x < best->x))
-            best = &s;
-    return best;
+        if (s.lane == c.lane && s.x - c.x >= -0.05f && s.x - c.x <= reach)
+            return &s;      // the first soda in reach
+    return nullptr;         // no soda in front
 }
 // no lab code
 
@@ -73,8 +62,9 @@ void UpdateCandies(float dt)
     for (Candy& c : candies)
     {
         if (c.type == CHOCOLATE || !laneSelected[c.lane]) continue;   // chocolate never jumps or ducks
-        if (up && c.jump <= 0 && c.duck <= 0) c.jump = JUMP_TIME;
-        if (down && c.jump <= 0 && c.duck <= 0) c.duck = DUCK_TIME;
+        if (c.jump > 0 || c.duck > 0) continue;                       // already jumping or ducking
+        if (up) c.jump = JUMP_TIME;
+        else if (down) c.duck = DUCK_TIME;
     }
     if (up) PlaySound("jump");
     if (down) PlaySound("duck");
@@ -189,9 +179,10 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
     else                       // defense: a brown chocolate bar of 4 pieces
     {
         glm::vec3 brown(0.4f, 0.22f, 0.1f);
-        for (int row = 0; row < 2; ++row)                         // 2 x 2 pieces with small gaps
-            for (int col = 0; col < 2; ++col)
-                Rect((col - 0.5f) * 0.09f, 0.075f + row * 0.16f, 0.07f, 0.14f, brown);
+        Rect(-0.045f, 0.075f, 0.07f, 0.14f, brown);               // bottom left piece
+        Rect(0.045f, 0.075f, 0.07f, 0.14f, brown);                // bottom right piece
+        Rect(-0.045f, 0.235f, 0.07f, 0.14f, brown);               // top left piece
+        Rect(0.045f, 0.235f, 0.07f, 0.14f, brown);                // top right piece
         Eyes(-0.0175f, 0.25f);
     }
     model = glm::mat4(1.0f);   // back to "no change" for whatever is drawn next
@@ -200,25 +191,23 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
 
 void DrawCandies()
 {
-    for (int lane = LANES - 1; lane >= 0; --lane)
-        for (Candy& c : candies)
-        {
-            if (c.lane != lane) continue;
-            float lift = c.jump > 0 ? 0.25f * std::sin(3.14159f * (1 - c.jump / JUMP_TIME)) : 0.0f;
-            // LAB CODE (Lab 2 Template/main.cpp):
-            //   float offsetX = sin(t) * 0.5f;
-            // (the jump goes up and down with sin)
-            float squash = c.duck > 0 ? 0.55f : 1.0f;
-            float attack = c.attack > 0 ? 1.0f - c.attack / ATTACK_TIME : 0.0f;
-            float health = (float)c.hp / CANDY_HP[c.type];   // 1 = full health ... 0 = no health left
-            redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
-            if (c.hurt > 0) redness += 0.3f;                  // a short red flash just after a hit
-            // LAB CODE (Lab 3 Notes/main.cpp):
-            //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
-            // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
-            DrawCandy(c.type, c.x, FloorY(lane) + lift, 1.0f, attack, squash);
-            redness = 0;
-            DrawHealth(c.x, FloorY(lane) - 0.05f, c.hp, CANDY_HP[c.type], true);
-        }
+    for (Candy& c : candies)
+    {
+        float lift = c.jump > 0 ? 0.25f * std::sin(3.14159f * (1 - c.jump / JUMP_TIME)) : 0.0f;
+        // LAB CODE (Lab 2 Template/main.cpp):
+        //   float offsetX = sin(t) * 0.5f;
+        // (the jump goes up and down with sin)
+        float squash = c.duck > 0 ? 0.55f : 1.0f;
+        float attack = c.attack > 0 ? 1.0f - c.attack / ATTACK_TIME : 0.0f;
+        float health = (float)c.hp / CANDY_HP[c.type];   // 1 = full health ... 0 = no health left
+        redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
+        if (c.hurt > 0) redness += 0.3f;                  // a short red flash just after a hit
+        // LAB CODE (Lab 3 Notes/main.cpp):
+        //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+        // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
+        DrawCandy(c.type, c.x, FloorY(c.lane) + lift, 1.0f, attack, squash);
+        redness = 0;
+        DrawHealth(c.x, FloorY(c.lane) - 0.05f, c.hp, CANDY_HP[c.type], true);
+    }
     // no lab code (ducking, attack timing and the health bars)
 }
