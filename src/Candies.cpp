@@ -17,9 +17,9 @@
 const float FIRST_ATTACK = 0.3f;        // a new candy attacks 0.3 s after it is placed
 const float ATTACK_TIME = 0.35f;        // one attack animation lasts 0.35 s
 const float LOLLIPOP_COOLDOWN = 0.8f;   // the lollipop hits every 0.8 s
-const float BONBON_COOLDOWN = 1.4f;     // the bonbon shoots every 1.4 s
+const float BONBON_COOLDOWN = 5.0f;     // the bonbon shoots every 5 s (like the bottle and the can)
 const float CANE_REACH = 0.06f;         // the cane reaches this much further than touching
-const float PELLET_SPEED = 0.8f;        // how fast a candy pellet flies
+const float PELLET_SPEED = 0.6f;        // how fast a candy pellet flies (like the soda shots)
 const float SODA_FLASH = 0.2f;          // a hit soda flashes red for 0.2 s
 const float PICKUP_DISTANCE = 0.08f;    // how close a sugar cube must be to pick it up
 const float JUMP_TIME = 0.7f;           // a jump lasts 0.7 s
