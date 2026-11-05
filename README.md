@@ -73,6 +73,7 @@ lab lines copied exactly as they are written in the lab files (`Lab 1 Notes.pdf`
 
 **From the labs:**
 - red damage: `u_Red` in the fragment shader, a copy of the Lab 3 `u_Highlight` mix (toward red instead of yellow)
+- gray locked cards: `u_Gray` in the fragment shader, the same mix toward the color's own gray (only `gray = (r + g + b) / 3` is not lab code)
 - VBO + VAO, `glVertexAttribPointer`, `glDrawArrays`, the render loop (swap buffers, poll events): Lab 1
 - window / GLAD setup, shader compile + link: Lab 2 template
 - VAO + VBO with position and color, `u_Transform`: Lab 3
@@ -87,7 +88,6 @@ lab lines copied exactly as they are written in the lab files (`Lab 1 Notes.pdf`
 **Not from the labs (kept as small as possible):**
 - game rules: `struct`, `std::vector`, `rand()`, `enum` + `switch` for the states (plain C++)
 - `Text.cpp`: letters drawn as small squares (the spec needs a coin counter and menu labels)
-- gray locked cards: `glm::mix` on the color before drawing
 - `Sound.cpp`: the labs have no sound, so it uses the one-header library **miniaudio** (`external/miniaudio/miniaudio.h`)
 
 Not used at all: textures, images, transparency, 3D, any other library.

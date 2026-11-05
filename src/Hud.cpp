@@ -99,6 +99,9 @@ void DrawHud()
         bool unlocked = CardUnlocked((CandyType)i);
         bool hover = unlocked && InBox(mouseX, mouseY, CardX(i), CARD_Y, CARD_W, CARD_H);
         grayness = unlocked ? 0.0f : 1.0f;
+        // LAB CODE (Lab 3 Notes/main.cpp):
+        //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+        // (grayness goes to u_Gray in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
         Rect(CardX(i), CARD_Y, CARD_W, CARD_H, glm::vec3(1.0f, 0.93f, 0.8f), 0.0f, hover ? 0.4f : 0.0f);
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   bool hovering = pointInTriangle(cursorNDC, a, b, c);
@@ -122,5 +125,5 @@ void DrawHud()
     // how to play
     Text("SELECT SHELVES - CARD OR 1 2 3: PLACE - W JUMP - S DUCK - ESC PAUSE",
          0.0f, -0.96f, 0.0055f, glm::vec3(0.2f));
-    // no lab code (Text, grayness)
+    // no lab code (Text)
 }

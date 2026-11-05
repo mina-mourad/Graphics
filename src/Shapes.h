@@ -15,4 +15,4 @@ void Circle(float x, float y, float rx, float ry, glm::vec3 color);
 
 // Effects for everything drawn after them (0 = off, 1 = full).
 extern float redness;   // hurt characters turn red (sent to u_Red in the shader)
-extern float grayness;  // locked cards are gray
+extern float grayness;  // locked cards are gray (sent to u_Gray in the shader)

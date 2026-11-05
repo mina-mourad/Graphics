@@ -205,6 +205,9 @@ void DrawCandies()
         grayness = 0.7f;
         DrawCandy(CHOCOLATE, ChocolateSpot(mouseX), FloorY(hoverLane), 1.0f, 0.0f, 1.0f);
         grayness = 0.0f;
+        // LAB CODE (Lab 3 Notes/main.cpp):
+        //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+        // (grayness goes to u_Gray in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
     }
     for (int lane = LANES - 1; lane >= 0; --lane)
         for (Candy& c : candies)
