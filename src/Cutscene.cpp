@@ -62,6 +62,9 @@ void DrawCutscene(float t)
     if (t > 2.8f) DrawSoda(BOTTLE, bottleX, FloorY(1), 1.0f, bottleAttack);
     if (t > 3.4f) {
         redness = (t > 11.6f && t < 12.0f) ? 0.7f : 0.0f;   // the can gets hit
+        // LAB CODE (Lab 3 Notes/main.cpp):
+        //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+        // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
         DrawSoda(CAN, canX, FloorY(0), 1.0f, 0.0f);
         redness = 0.0f;
     }
