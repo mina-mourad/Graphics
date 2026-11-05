@@ -36,10 +36,10 @@ bool UpdateWaves(float dt)
         if (spawnTimer <= 0)
         {
             // wave 1: bottles only, wave 2: bottles and cans, wave 3: all three
-            SodaType type = BOTTLE;
-            if (wave == 2) type = (spawned % 2 == 0) ? BOTTLE : CAN;
+            SodaType type = Bottle;
+            if (wave == 2) type = (spawned % 2 == 0) ? Bottle : Can;
             if (wave == 3) type = (SodaType)(spawned % 3);
-            sodas.push_back({ type, rand() % LANES, SPAWN_X, SODA_HP[type], 0.3f, 0, 0 });
+            sodas.push_back({ type, rand() % Lanes, SpawnX, SodaHp[type], 0.3f, 0, 0 });
             if (spawned == 0) PlaySound("wave");
             spawned++;
             spawnTimer = 4.0f + rand() % 3;   // 4 to 6 seconds
@@ -72,29 +72,29 @@ bool UpdateSodas(float dt)
     for (Soda& s : sodas)
     {
         s.hurt -= dt; s.attack -= dt; s.cooldown -= dt;
-        Candy* blocker = CandyInFront(s, TOUCH);
+        Candy* blocker = CandyInFront(s, Touch);
         if (!blocker)
-            s.x -= SODA_SPEED[s.type] * dt;      // walk left unless a candy blocks the way
+            s.x -= SodaSpeed[s.type] * dt;      // walk left unless a candy blocks the way
         // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
         //   float speed = MOVE_SPEED * deltaTime;
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   if (key == GLFW_KEY_A && action == GLFW_REPEAT) posX -= moveSpeed;
         // (moving = position - speed; times deltaTime so it is the same speed on every computer)
-        if (s.x <= BASE_X) reachedJar = true;
+        if (s.x <= BaseX) reachedJar = true;
 
         if (s.cooldown > 0) continue;
-        if (s.type == CUP)                        // hard: swings its straw all the time, it only hurts up close
+        if (s.type == Cup)                        // hard: swings its straw all the time, it only hurts up close
         {
             s.attack = ATTACK_TIME; s.cooldown = 1.6f;
             if (blocker) {
-                blocker->hp -= SODA_DAMAGE[CUP]; blocker->hurt = 0.2f;
+                blocker->hp -= SodaDamage[Cup]; blocker->hurt = 0.2f;
                 PlaySound("whack");
             }
         }
         else                                      // bottle: fizz up high, can: syrup down low
         {
             s.attack = ATTACK_TIME; s.cooldown = 5.0f;
-            bool high = (s.type == BOTTLE);
+            bool high = (s.type == Bottle);
             shots.push_back({ s.lane, s.x - 0.08f, FloorY(s.lane) + (high ? 0.27f : 0.03f), -0.6f, high, 1, 0.0f });
             PlaySound("fizz");
         }
@@ -103,7 +103,7 @@ bool UpdateSodas(float dt)
     for (size_t i = 0; i < sodas.size(); )
     {
         if (sodas[i].hp <= 0) {
-            cubes.push_back({ sodas[i].lane, sodas[i].x, SODA_SUGAR[sodas[i].type] });
+            cubes.push_back({ sodas[i].lane, sodas[i].x, SodaSugar[sodas[i].type] });
             PlaySound("defeated");
             sodas.erase(sodas.begin() + i);
         }
@@ -135,13 +135,13 @@ void UpdateShots(float dt)
                         s.hp -= sh.damage; s.hurt = 0.2f; sh.pop = 0.2f;
                         break;
                     }
-                remove = sh.x > LANE_RIGHT;
+                remove = sh.x > LaneRight;
             }
             else {                                // soda shot: hits the first candy that does not dodge
                 Candy* target = nullptr;
                 for (Candy& c : candies) {
                     if (c.lane != sh.lane || std::fabs(c.x - sh.x) > 0.06f) continue;
-                    bool dodged = c.type != CHOCOLATE && ((sh.high && c.duck > 0) || (!sh.high && c.jump > 0));
+                    bool dodged = c.type != Chocolate && ((sh.high && c.duck > 0) || (!sh.high && c.jump > 0));
                     if (!dodged && (!target || c.x > target->x)) target = &c;
                 }
                 if (target) {
@@ -149,7 +149,7 @@ void UpdateShots(float dt)
                     PlaySound("hurt");
                     remove = true;
                 }
-                if (sh.x < BASE_X) remove = true;
+                if (sh.x < BaseX) remove = true;
             }
         }
         if (remove) shots.erase(shots.begin() + i);
@@ -178,7 +178,7 @@ void DrawSoda(SodaType type, float x, float footY, float s, float attack)
     //   //transform = glm::scale(transform, glm::vec3(pulse, pulse, 1.0f));
     // (model is used by every shape below - see Prepare() in Shapes.cpp)
 
-    if (type == BOTTLE)        // easy: a green bottle (fizz up high)
+    if (type == Bottle)        // easy: a green bottle (fizz up high)
     {
         glm::vec3 green(0.25f, 0.65f, 0.35f);
         Rect(0.0f, 0.11f, 0.11f, 0.22f, green);                   // body
@@ -186,7 +186,7 @@ void DrawSoda(SodaType type, float x, float footY, float s, float attack)
         Rect(0.0f, 0.295f, 0.06f, 0.025f, green);                 // cap
         Eyes(-0.005f, 0.15f);
     }
-    else if (type == CAN)      // medium: a red can (syrup down low)
+    else if (type == Can)      // medium: a red can (syrup down low)
     {
         glm::vec3 red(0.8f, 0.1f, 0.12f);
         Rect(0.0f, 0.075f, 0.13f, 0.15f, red);                    // can
@@ -211,12 +211,12 @@ void DrawSoda(SodaType type, float x, float footY, float s, float attack)
 
 void DrawSodas()
 {
-    for (int lane = LANES - 1; lane >= 0; --lane)
+    for (int lane = Lanes - 1; lane >= 0; --lane)
         for (Soda& s : sodas)
         {
             if (s.lane != lane) continue;
             float attack = s.attack > 0 ? 1.0f - s.attack / ATTACK_TIME : 0.0f;
-            float health = (float)s.hp / SODA_HP[s.type];   // 1 = full health ... 0 = no health left
+            float health = (float)s.hp / SodaHp[s.type];   // 1 = full health ... 0 = no health left
             redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
             if (s.hurt > 0) redness += 0.3f;                  // a short red flash just after a hit
             // LAB CODE (Lab 3 Notes/main.cpp):
@@ -224,7 +224,7 @@ void DrawSodas()
             // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
             DrawSoda(s.type, s.x, FloorY(lane), 1.0f, attack);
             redness = 0;
-            DrawHealth(s.x, FloorY(lane) - 0.05f, s.hp, SODA_HP[s.type], false);
+            DrawHealth(s.x, FloorY(lane) - 0.05f, s.hp, SodaHp[s.type], false);
         }
 }
 // no lab code

@@ -255,7 +255,7 @@ void InitShapes()
 static void Prepare(float x, float y, float w, float h, float angle, glm::vec3 color, float highlight)
 {
     glm::mat4 transform = glm::mat4(1.0f);
-    transform = glm::scale(transform, glm::vec3(1.0f / ASPECT, 1.0f, 1.0f));   // keep shapes round on a wide window
+    transform = glm::scale(transform, glm::vec3(1.0f / Aspect, 1.0f, 1.0f));   // keep shapes round on a wide window
     transform = transform * model;   // the whole character (moved / scaled as one; normally "no change")
     transform = glm::translate(transform, glm::vec3(x, y, 0.0f));
     transform = glm::rotate(transform, angle, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -319,7 +319,7 @@ void Circle(float x, float y, float rx, float ry, glm::vec3 color)
 void Lines(int start, int count, float x, float y, float size, glm::vec3 color)
 {
     Prepare(x, y, size, size, 0.0f, color, 0.0f);
-    float width = size * WINDOW_H / 2.0f;           // line thickness in pixels: one step of the letter grid
+    float width = size * WindowH / 2.0f;           // line thickness in pixels: one step of the letter grid
     if (width < 1.0f) width = 1.0f;
     glLineWidth(width);
     glDrawArrays(GL_LINES, start, count);

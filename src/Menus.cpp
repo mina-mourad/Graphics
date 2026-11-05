@@ -41,8 +41,8 @@ int MainMenu()
 {
     Text("SODA VS CANDY", 0.0f, 0.55f, 0.022f, glm::vec3(0.6f, 0.15f, 0.35f));
     Text("DEFEND THE CANDY JAR!", 0.0f, 0.38f, 0.012f, glm::vec3(0.3f, 0.15f, 0.1f));
-    DrawCandy(LOLLIPOP, -0.75f, -0.35f, 1.6f, 0.0f, 1.0f);
-    DrawSoda(BOTTLE, 0.75f, -0.35f, 1.6f, 0.0f);
+    DrawCandy(Lollipop, -0.75f, -0.35f, 1.6f, 0.0f, 1.0f);
+    DrawSoda(Bottle, 0.75f, -0.35f, 1.6f, 0.0f);
     if (Button("START", 0.0f, 0.1f)) return 0;
     if (Button("SOUND", 0.0f, -0.1f)) return 1;
     if (Button("EXIT", 0.0f, -0.3f)) return 2;

@@ -44,11 +44,11 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 //       if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 //           clicked = true;
 
-// Mouse position: pixels -> -1..1, then x times ASPECT (see Shapes.cpp).
+// Mouse position: pixels -> -1..1, then x times Aspect (see Shapes.cpp).
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    mouseX = ((float)xpos / (WINDOW_W / 2.0f) - 1.0f) * ASPECT;
-    mouseY = 1.0f - (float)ypos / (WINDOW_H / 2.0f);
+    mouseX = ((float)xpos / (WindowW / 2.0f) - 1.0f) * Aspect;
+    mouseY = 1.0f - (float)ypos / (WindowH / 2.0f);
 }
 // LAB CODE (Lab 3 Notes/Lab3ExtraNotes.cpp):
 //   void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
@@ -56,7 +56,7 @@ void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 //       mouseX = (float)xpos / 400.0f - 1.0f;
 //       mouseY = 1.0f - (float)ypos / 300.0f;
 //   }
-// (400 and 300 are half of the lab's 800 x 600 window; ours is WINDOW_W / 2 and WINDOW_H / 2)
+// (400 and 300 are half of the lab's 800 x 600 window; ours is WindowW / 2 and WindowH / 2)
 
 int main()
 {
@@ -73,7 +73,7 @@ int main()
     //   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     // (the project asks for OpenGL 3.3+, so we ask for 3.3)
 
-    GLFWwindow* window = glfwCreateWindow(WINDOW_W, WINDOW_H, "Soda vs Candy", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WindowW, WindowH, "Soda vs Candy", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create window\n";
         glfwTerminate();

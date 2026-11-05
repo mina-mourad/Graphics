@@ -34,7 +34,7 @@ static void Bubble(const std::string& text, float x, float y)
 
 static void Subtitle(const std::string& text)
 {
-    Rect(0.0f, -0.93f, 2 * ASPECT, 0.12f, glm::vec3(0.1f));
+    Rect(0.0f, -0.93f, 2 * Aspect, 0.12f, glm::vec3(0.1f));
     Text(text, 0.0f, -0.93f, 0.01f, glm::vec3(1.0f));
 }
 // no lab code
@@ -50,22 +50,22 @@ void DrawCutscene(float t)
     //   float t = currentFrame;
     //   float pulse = 0.75f + 0.25f * sin(t * 2.0f);
     // (the lollipop swings its cane back and forth with sin of the time)
-    DrawCandy(CHOCOLATE, -0.9f, FloorY(2), 1.0f, 0.0f, 1.0f);
-    DrawCandy(LOLLIPOP, -0.6f, FloorY(1), 1.0f, swing, duck);
+    DrawCandy(Chocolate, -0.9f, FloorY(2), 1.0f, 0.0f, 1.0f);
+    DrawCandy(Lollipop, -0.6f, FloorY(1), 1.0f, swing, duck);
     float shoot = (t > 11.0f && t < 11.4f) ? Progress(t, 11.0f, 11.4f) : 0.0f;
-    DrawCandy(BONBON, -0.75f, FloorY(0), 1.0f, shoot, 1.0f);
+    DrawCandy(Bonbon, -0.75f, FloorY(0), 1.0f, shoot, 1.0f);
 
     // the sodas come out of the fridge
     float bottleX = 1.22f - 0.8f * Progress(t, 3.0f, 5.5f);
     float canX = 1.22f - 0.6f * Progress(t, 3.6f, 6.0f);
     float bottleAttack = (t > 9.6f && t < 10.0f) ? Progress(t, 9.6f, 10.0f) : 0.0f;
-    if (t > 2.8f) DrawSoda(BOTTLE, bottleX, FloorY(1), 1.0f, bottleAttack);
+    if (t > 2.8f) DrawSoda(Bottle, bottleX, FloorY(1), 1.0f, bottleAttack);
     if (t > 3.4f) {
         redness = (t > 11.6f && t < 12.0f) ? 0.7f : 0.0f;   // the can gets hit
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
         // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
-        DrawSoda(CAN, canX, FloorY(0), 1.0f, 0.0f);
+        DrawSoda(Can, canX, FloorY(0), 1.0f, 0.0f);
         redness = 0.0f;
     }
 
@@ -82,7 +82,7 @@ void DrawCutscene(float t)
     else if (t < 6.0f) Subtitle("BUT THE SODAS IN THE FRIDGE WANT IT TO STAY SWEET!");
     else if (t < 12.0f) Subtitle("DUCK UNDER FIZZ - JUMP OVER SYRUP");
     else {
-        Rect(0.0f, 0.86f, 2 * ASPECT, 0.25f, glm::vec3(0.45f, 0.25f, 0.35f));
+        Rect(0.0f, 0.86f, 2 * Aspect, 0.25f, glm::vec3(0.45f, 0.25f, 0.35f));
         Text("DEFEND THE CANDY JAR!", 0.0f, 0.86f, 0.024f, glm::vec3(1.0f, 0.9f, 0.3f));
     }
     Text("SPACE: SKIP", 1.1f, 0.95f, 0.006f, glm::vec3(0.3f));

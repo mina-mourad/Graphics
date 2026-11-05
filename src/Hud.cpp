@@ -32,9 +32,9 @@ const float CARD_Y = 0.85f, CARD_W = 0.25f, CARD_H = 0.27f;
 // they lock again whenever your sugar falls below their cost (spec 4.2).
 bool CardUnlocked(CandyType type)
 {
-    if (sugar < CANDY_COST[type]) return false;
-    if (type == LOLLIPOP) return true;
-    return sugarCollected >= CANDY_COST[type];
+    if (sugar < CandyCost[type]) return false;
+    if (type == Lollipop) return true;
+    return sugarCollected >= CandyCost[type];
 }
 // no lab code
 
@@ -48,22 +48,20 @@ void UpdateHud()
     {
         bool unlocked = CardUnlocked((CandyType)i);
         bool clicked = mouseClicked && InBox(mouseX, mouseY, CardX(i), CARD_Y, CARD_W, CARD_H);
-        if (unlocked && (clicked || keyPressed[GLFW_KEY_1 + i])) {
-            if (i == CHOCOLATE) placingChocolate = !placingChocolate;   // then click anywhere on a shelf (click the card again to cancel)
+        if (unlocked && clicked) {
+            if (i == Chocolate) placingChocolate = !placingChocolate;   // then click anywhere on a shelf (click the card again to cancel)
             else PlaceCandies((CandyType)i);
         }
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   bool hovering = pointInTriangle(cursorNDC, a, b, c);
         //   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        // (InBox = the pointInTriangle test; keys 1 2 3 are pressed once, saved by keyCallback in main.cpp)
+        // (InBox = the pointInTriangle test; cards are activated by mouse clicks)
     }
 }
 
 void SugarCube(float x, float y, float size)
 {
     Rect(x, y, size, size, glm::vec3(1.0f));
-    Rect(x + size * 0.15f, y - size * 0.15f, size * 0.7f, size * 0.7f, glm::vec3(0.9f, 0.9f, 0.95f));
-    Circle(x - size * 0.2f, y + size * 0.2f, size * 0.08f, size * 0.08f, glm::vec3(0.8f, 0.8f, 0.85f));
 }
 // no lab code
 
@@ -91,7 +89,7 @@ void DrawHealth(float x, float y, int hp, int maxHp, bool isCandy)
 void DrawHud()
 {
     // top bar
-    Rect(0.0f, 0.86f, 2 * ASPECT, 0.28f, glm::vec3(0.45f, 0.25f, 0.35f));
+    Rect(0.0f, 0.86f, 2 * Aspect, 0.28f, glm::vec3(0.45f, 0.25f, 0.35f));
 
     // candy cards: gray and not clickable when locked, highlighted on hover when unlocked
     for (int i = 0; i < 3; ++i)
@@ -109,7 +107,7 @@ void DrawHud()
         // (InBox = the pointInTriangle test; the highlight goes to u_Highlight inside Rect)
         DrawCandy((CandyType)i, CardX(i), CARD_Y - 0.07f, 0.55f, 0.0f, 1.0f);
         SugarCube(CardX(i) - 0.07f, CARD_Y - 0.1f, 0.035f);
-        Text(std::to_string(CANDY_COST[i]), CardX(i) + 0.04f, CARD_Y - 0.1f, 0.009f, glm::vec3(0.3f, 0.15f, 0.1f));
+        Text(std::to_string(CandyCost[i]), CardX(i) + 0.04f, CARD_Y - 0.1f, 0.009f, glm::vec3(0.3f, 0.15f, 0.1f));
         Text(std::to_string(i + 1), CardX(i) - 0.09f, CARD_Y + 0.1f, 0.007f, glm::vec3(0.3f, 0.15f, 0.1f));
         grayness = 0.0f;
     }
@@ -123,7 +121,7 @@ void DrawHud()
         Text("CLICK A SHELF TO PUT THE CHOCOLATE - CARD AGAIN: CANCEL", 0.0f, 0.66f, 0.0075f, glm::vec3(0.5f, 0.2f, 0.1f));
 
     // how to play
-    Text("SELECT SHELVES - CARD OR 1 2 3: PLACE - W JUMP - S DUCK - ESC PAUSE",
+    Text("SELECT SHELVES - CLICK CARD: PLACE - W JUMP - S DUCK - ESC PAUSE",
          0.0f, -0.96f, 0.0055f, glm::vec3(0.2f));
     // no lab code (Text)
 }

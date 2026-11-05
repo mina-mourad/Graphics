@@ -35,18 +35,18 @@ const glm::vec3 BLACK(0.1f);
 // Adds a new candy on a shelf and pays for it.
 static void Buy(CandyType type, int lane, float x)
 {
-    candies.push_back({ type, lane, x, CANDY_HP[type], FIRST_ATTACK, 0, 0, 0, 0 });
-    sugar -= CANDY_COST[type];
+    candies.push_back({ type, lane, x, CandyHp[type], FIRST_ATTACK, 0, 0, 0, 0 });
+    sugar -= CandyCost[type];
 }
 // no lab code
 
 void PlaceCandies(CandyType type)
 {
     bool placed = false;
-    for (int lane = 0; lane < LANES; ++lane)
+    for (int lane = 0; lane < Lanes; ++lane)
     {
         if (!laneSelected[lane] || !CardUnlocked(type)) continue;
-        Buy(type, lane, START_X);
+        Buy(type, lane, StartX);
         placed = true;
     }
     PlaySound(placed ? "place" : "locked");
@@ -56,10 +56,10 @@ void PlaceCandies(CandyType type)
 void PlaceChocolate(int lane, float x)
 {
     placingChocolate = false;                                     // this click is used up either way
-    if (!CardUnlocked(CHOCOLATE)) { PlaySound("locked"); return; }
-    if (x < START_X) x = START_X;                                 // not inside the jar
-    if (x > LANE_RIGHT - FRIDGE_GAP) x = LANE_RIGHT - FRIDGE_GAP; // not inside the fridge
-    Buy(CHOCOLATE, lane, x);
+    if (!CardUnlocked(Chocolate)) { PlaySound("locked"); return; }
+    if (x < StartX) x = StartX;                                 // not inside the jar
+    if (x > LaneRight - FRIDGE_GAP) x = LaneRight - FRIDGE_GAP; // not inside the fridge
+    Buy(Chocolate, lane, x);
     PlaySound("place");
 }
 // no lab code
@@ -81,7 +81,7 @@ static void JumpAndDuck()
     bool down = keyPressed[GLFW_KEY_S] || keyPressed[GLFW_KEY_DOWN];
     for (Candy& c : candies)
     {
-        if (c.type == CHOCOLATE || !laneSelected[c.lane]) continue;   // chocolate never jumps or ducks
+        if (c.type == Chocolate || !laneSelected[c.lane]) continue;   // chocolate never jumps or ducks
         if (c.jump > 0 || c.duck > 0) continue;                       // already jumping or ducking
         if (up) c.jump = JUMP_TIME;
         else if (down) c.duck = DUCK_TIME;
@@ -98,8 +98,8 @@ static void JumpAndDuck()
 // (even with no soda around): the lollipop hits, the bonbon shoots a pellet.
 static void WalkAndAttack(Candy& c, float dt)
 {
-    if (!SodaInFront(c, TOUCH))
-        c.x += CANDY_SPEED[c.type] * dt;
+    if (!SodaInFront(c, Touch))
+        c.x += CandySpeed[c.type] * dt;
     // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
     //   float speed = MOVE_SPEED * deltaTime;
     // LAB CODE (Lab 3 Notes/main.cpp):
@@ -109,9 +109,9 @@ static void WalkAndAttack(Candy& c, float dt)
     c.cooldown -= dt;
     if (c.cooldown > 0) return;             // not time to attack yet
     c.attack = ATTACK_TIME;                 // start the attack animation
-    if (c.type == LOLLIPOP) {
+    if (c.type == Lollipop) {
         c.cooldown = LOLLIPOP_COOLDOWN;
-        Soda* s = SodaInFront(c, TOUCH + CANE_REACH);
+        Soda* s = SodaInFront(c, Touch + CANE_REACH);
         if (s) { s->hp -= 1; s->hurt = SODA_FLASH; PlaySound("whack"); }
     } else {
         c.cooldown = BONBON_COOLDOWN;
@@ -140,7 +140,7 @@ static void RemoveDefeated()
 {
     for (size_t i = 0; i < candies.size(); )
     {
-        if (candies[i].hp <= 0 || candies[i].x > LANE_RIGHT) {
+        if (candies[i].hp <= 0 || candies[i].x > LaneRight) {
             if (candies[i].hp <= 0) PlaySound("defeated");
             candies.erase(candies.begin() + i);
         }
@@ -155,7 +155,7 @@ void UpdateCandies(float dt)
     for (Candy& c : candies)
     {
         c.jump -= dt; c.duck -= dt; c.attack -= dt;     // the timers count down
-        if (c.type != CHOCOLATE) WalkAndAttack(c, dt);  // the chocolate bar only stands and blocks
+        if (c.type != Chocolate) WalkAndAttack(c, dt);  // the chocolate bar only stands and blocks
         PickUpSugar(c);
     }
     RemoveDefeated();
@@ -184,7 +184,7 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
     //   //transform = glm::scale(transform, glm::vec3(pulse, pulse, 1.0f));
     // (model is used by every shape below - see Prepare() in Shapes.cpp)
 
-    if (type == LOLLIPOP)      // melee: a pink lollipop with a candy cane
+    if (type == Lollipop)      // melee: a pink lollipop with a candy cane
     {
         glm::vec3 pink(0.95f, 0.35f, 0.6f);
         Rect(0.0f, 0.09f, 0.022f, 0.18f, pink);                   // stick
@@ -198,7 +198,7 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
         // (like offsetX in Lab 2: the cane moves along x with sin; its x goes through glm::translate in Prepare())
         Rect(0.07f + poke, 0.13f, 0.15f, 0.024f, glm::vec3(0.85f, 0.1f, 0.1f));   // candy cane (red, so it shows)
     }
-    else if (type == BONBON)   // long range: an orange bonbon in a yellow wrapper, with a launcher
+    else if (type == Bonbon)   // long range: an orange bonbon in a yellow wrapper, with a launcher
     {
         glm::vec3 orange(1.0f, 0.6f, 0.1f), yellow(1.0f, 0.9f, 0.3f);
         Rect(-0.04f, 0.05f, 0.02f, 0.1f, orange);                 // two short legs
@@ -232,14 +232,14 @@ void DrawCandies()
         // (the jump goes up and down with sin)
         float squash = c.duck > 0 ? DUCK_SQUASH : 1.0f;
         float attack = c.attack > 0 ? 1.0f - c.attack / ATTACK_TIME : 0.0f;
-        float health = (float)c.hp / CANDY_HP[c.type];   // 1 = full health ... 0 = no health left
+        float health = (float)c.hp / CandyHp[c.type];   // 1 = full health ... 0 = no health left
         redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
         // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
         DrawCandy(c.type, c.x, FloorY(c.lane) + lift, 1.0f, attack, squash);
         redness = 0;
-        DrawHealth(c.x, FloorY(c.lane) - 0.05f, c.hp, CANDY_HP[c.type], true);
+        DrawHealth(c.x, FloorY(c.lane) - 0.05f, c.hp, CandyHp[c.type], true);
     }
     // no lab code (ducking, attack timing and the health bars)
 }
