@@ -196,7 +196,7 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
         //   float offsetX = sin(t) * 0.5f;
         //   //transform = glm::translate(transform, glm::vec3(offsetX, 0.0f, 0.0f));
         // (like offsetX in Lab 2: the cane moves along x with sin; its x goes through glm::translate in Prepare())
-        Rect(0.07f + poke, 0.13f, 0.15f, 0.024f, pink);           // candy cane
+        Rect(0.07f + poke, 0.13f, 0.15f, 0.024f, glm::vec3(0.85f, 0.1f, 0.1f));   // candy cane (red, so it shows)
     }
     else if (type == BONBON)   // long range: an orange bonbon in a yellow wrapper, with a launcher
     {
@@ -207,7 +207,7 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
         Tri(0.14f, 0.2f, 0.11f, 0.09f, yellow, 1.5708f);
         Circle(0.0f, 0.2f, 0.11f, 0.105f, orange);                // candy
         Eyes(-0.005f, 0.24f);
-        Rect(0.1f, 0.15f, 0.11f, 0.035f, yellow);                 // candy launcher
+        Rect(0.1f, 0.15f, 0.11f, 0.035f, glm::vec3(0.4f));        // candy launcher (gray, so it shows)
     }
     else                       // defense: a brown chocolate bar of 4 pieces
     {
