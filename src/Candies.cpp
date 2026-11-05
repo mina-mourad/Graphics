@@ -31,7 +31,8 @@ void PlaceCandies(CandyType type)
 }
 // no lab code
 
-float ChocolateSpot(float mouseX)
+// Keeps the chocolate bar on the shelf: not inside the jar, not inside the fridge.
+static float ChocolateSpot(float mouseX)
 {
     if (mouseX < START_X) return START_X;
     if (mouseX > LANE_RIGHT - 0.1f) return LANE_RIGHT - 0.1f;
@@ -201,14 +202,6 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
 
 void DrawCandies()
 {
-    if (placingChocolate && hoverLane != -1) {    // gray preview where it will stand
-        grayness = 0.7f;
-        DrawCandy(CHOCOLATE, ChocolateSpot(mouseX), FloorY(hoverLane), 1.0f, 0.0f, 1.0f);
-        grayness = 0.0f;
-        // LAB CODE (Lab 3 Notes/main.cpp):
-        //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
-        // (grayness goes to u_Gray in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
-    }
     for (int lane = LANES - 1; lane >= 0; --lane)
         for (Candy& c : candies)
         {
