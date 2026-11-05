@@ -37,8 +37,8 @@ bool  keyPressed[512] = {};
 //   float mouseY = 0;
 //   bool clicked = false;
 
-enum State { MAIN_MENU, SOUND_MENU, CUTSCENE, PLAYING, PAUSED, WON, LOST };
-static State state = MAIN_MENU;
+enum State { MainMenuState, SoundMenuState, Cutscene, Playing, Paused, Won, Lost };
+static State state = MainMenuState;
 static float cutsceneTime = 0.0f;
 static bool exitGame = false;
 
@@ -59,19 +59,19 @@ bool GameWantsExit() { return exitGame; }
 void GameUpdate(float dt)
 {
     if (dt > 0.05f) dt = 0.05f;    // a slow frame must not make things jump
-    if (state == PLAYING) gameTime += dt;   // after winning / losing nothing moves any more
+    if (state == Playing) gameTime += dt;   // after winning / losing nothing moves any more
 
-    if (state == CUTSCENE)
+    if (state == Cutscene)
     {
         cutsceneTime += dt;
-        if (cutsceneTime > CUTSCENE_LENGTH || keyPressed[GLFW_KEY_SPACE] || keyPressed[GLFW_KEY_ENTER]) {
+        if (cutsceneTime > CutsceneLength || keyPressed[GLFW_KEY_SPACE] || keyPressed[GLFW_KEY_ENTER]) {
             ResetGame();
-            state = PLAYING;
+            state = Playing;
         }
     }
-    else if (state == PLAYING)
+    else if (state == Playing)
     {
-        if (keyPressed[GLFW_KEY_ESCAPE]) { placingChocolate = false; state = PAUSED; return; }
+        if (keyPressed[GLFW_KEY_ESCAPE]) { placingChocolate = false; state = Paused; return; }
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         // (Esc pauses the game instead of closing the window)
@@ -81,11 +81,11 @@ void GameUpdate(float dt)
         bool lost = UpdateSodas(dt);
         UpdateShots(dt);
         bool won = UpdateWaves(dt);
-        if (lost) { state = LOST; PlaySound("lose"); }   // everything stops here
-        else if (won) { state = WON; PlaySound("win"); }
+        if (lost) { state = Lost; PlaySound("lose"); }   // everything stops here
+        else if (won) { state = Won; PlaySound("win"); }
     }
-    else if (state == PAUSED && keyPressed[GLFW_KEY_ESCAPE])
-        state = PLAYING;
+    else if (state == Paused && keyPressed[GLFW_KEY_ESCAPE])
+        state = Playing;
     // no lab code (the game states)
 }
 
@@ -107,36 +107,36 @@ void GameDraw()
     int button;
     switch (state)
     {
-    case MAIN_MENU:
+    case MainMenuState:
         DrawStore(0.0f);
         button = MainMenu();
-        if (button == 0) { state = CUTSCENE; cutsceneTime = 0.0f; }
-        if (button == 1) state = SOUND_MENU;
+        if (button == 0) { state = Cutscene; cutsceneTime = 0.0f; }
+        if (button == 1) state = SoundMenuState;
         if (button == 2) exitGame = true;
         break;
-    case SOUND_MENU:
+    case SoundMenuState:
         DrawStore(0.0f);
-        if (SoundMenu() == 0) state = MAIN_MENU;
+        if (SoundMenu() == 0) state = MainMenuState;
         break;
-    case CUTSCENE:
+    case Cutscene:
         DrawCutscene(cutsceneTime);
         break;
-    case PLAYING:
+    case Playing:
         DrawWorld();
         break;
-    case PAUSED:
+    case Paused:
         DrawWorld();
         button = PauseMenu();
-        if (button == 0) state = PLAYING;
-        if (button == 1) { ResetGame(); state = PLAYING; }
-        if (button == 2) { ResetGame(); state = MAIN_MENU; }
+        if (button == 0) state = Playing;
+        if (button == 1) { ResetGame(); state = Playing; }
+        if (button == 2) { ResetGame(); state = MainMenuState; }
         break;
-    case WON:
-    case LOST:
+    case Won:
+    case Lost:
         DrawWorld();                       // the scene stays frozen behind the menu
-        button = EndMenu(state == WON);
-        if (button == 0) { ResetGame(); state = PLAYING; }
-        if (button == 1) { ResetGame(); state = MAIN_MENU; }
+        button = EndMenu(state == Won);
+        if (button == 0) { ResetGame(); state = Playing; }
+        if (button == 1) { ResetGame(); state = MainMenuState; }
         break;
     }
 }

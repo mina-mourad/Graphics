@@ -25,7 +25,7 @@ bool InBox(float px, float py, float x, float y, float w, float h)
     // (a box is a rectangle, so we test its 2 triangles)
 }
 
-const float CARD_Y = 0.85f, CARD_W = 0.25f, CARD_H = 0.27f;
+const float CardY = 0.85f, CardW = 0.25f, CardH = 0.27f;
 
 // The lollipop is unlocked whenever you can pay for it. The bonbon and the
 // chocolate also need that much sugar COLLECTED from defeated sodas first, and
@@ -47,7 +47,7 @@ void UpdateHud()
     for (int i = 0; i < 3; ++i)
     {
         bool unlocked = CardUnlocked((CandyType)i);
-        bool clicked = mouseClicked && InBox(mouseX, mouseY, CardX(i), CARD_Y, CARD_W, CARD_H);
+        bool clicked = mouseClicked && InBox(mouseX, mouseY, CardX(i), CardY, CardW, CardH);
         if (unlocked && clicked) {
             if (i == Chocolate) placingChocolate = !placingChocolate;   // then click anywhere on a shelf (click the card again to cancel)
             else PlaceCandies((CandyType)i);
@@ -106,7 +106,7 @@ void DrawHud()
     for (int i = 0; i < 3; ++i)
     {
         bool unlocked = CardUnlocked((CandyType)i);
-        bool hover = unlocked && InBox(mouseX, mouseY, CardX(i), CARD_Y, CARD_W, CARD_H);
+        bool hover = unlocked && InBox(mouseX, mouseY, CardX(i), CardY, CardW, CardH);
         if (unlocked) {
             grayness = 0.0f;
         }
@@ -123,15 +123,14 @@ void DrawHud()
         else {
             highlight = 0.0f;
         }
-        Rect(CardX(i), CARD_Y, CARD_W, CARD_H, glm::vec3(1.0f, 0.93f, 0.8f), 0.0f, highlight);
+        Rect(CardX(i), CardY, CardW, CardH, glm::vec3(1.0f, 0.93f, 0.8f), 0.0f, highlight);
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   bool hovering = pointInTriangle(cursorNDC, a, b, c);
         //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
         // (InBox = the pointInTriangle test; the highlight goes to u_Highlight inside Rect)
-        DrawCandy((CandyType)i, CardX(i), CARD_Y - 0.07f, 0.55f, 0.0f, 1.0f);
-        SugarCube(CardX(i) - 0.07f, CARD_Y - 0.1f, 0.035f);
-        Text(std::to_string(CandyCost[i]), CardX(i) + 0.04f, CARD_Y - 0.1f, 0.009f, glm::vec3(0.3f, 0.15f, 0.1f));
-        Text(std::to_string(i + 1), CardX(i) - 0.09f, CARD_Y + 0.1f, 0.007f, glm::vec3(0.3f, 0.15f, 0.1f));
+        DrawCandy((CandyType)i, CardX(i), CardY - 0.07f, 0.55f, 0.0f, 1.0f);
+        SugarCube(CardX(i) - 0.07f, CardY - 0.1f, 0.035f);
+        Text(std::to_string(CandyCost[i]), CardX(i) + 0.04f, CardY - 0.1f, 0.009f, glm::vec3(0.3f, 0.15f, 0.1f));
         grayness = 0.0f;
     }
 

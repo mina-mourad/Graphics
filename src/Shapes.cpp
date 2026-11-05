@@ -93,14 +93,14 @@ void main()
 //   FragColor = vec4(finalColor, 1.0);
 // (u_Red and u_Gray are copies of u_Highlight: the same mix, toward red / gray instead of yellow)
 
-static GLuint VAO, VBO, EBO, shaderProgram;
+static GLuint Vao, Vbo, Ebo, shaderProgram;
 static GLint locTransform, locTint, locHighlight, locRed, locGray;
 // LAB CODE (Lab 3 Notes/main.cpp):
 //   //Global VBO, VAO AND EBO
 //   GLuint VAO, VBO, EBO;
 
-const int CIRCLE_SEGMENTS = 40;
-const int SQUARE_START = 0, TRIANGLE_START = 4, CIRCLE_START = 7;
+const int CircleSegments = 40;
+const int SquareStart = 0, TriangleStart = 4, CircleStart = 7;
 // LAB CODE (Lab 3 Notes/main.cpp):
 //   const int TRIANGLE_VERTEX_COUNT = 6; // vertices 0 -> 5 belong to the triangle
 //   int circleVertexStart = 0; // filled in once the circle data is appended for flexibility
@@ -177,8 +177,8 @@ void InitShapes()
 
     // circle: center, then the points around it
     vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f, 1, 1, 1 });
-    for (int i = 0; i <= CIRCLE_SEGMENTS; ++i) {
-        float angle = 2.0f * 3.14159f * (float)i / (float)CIRCLE_SEGMENTS;
+    for (int i = 0; i <= CircleSegments; ++i) {
+        float angle = 2.0f * 3.14159f * (float)i / (float)CircleSegments;
         vertices.insert(vertices.end(), { cosf(angle), sinf(angle), 0.0f, 1, 1, 1 });
     }
     // LAB CODE (Lab 3 Notes/main.cpp):
@@ -201,13 +201,13 @@ void InitShapes()
     //       4, 5, 1
     //   };
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glGenVertexArrays(1, &Vao);
+    glGenBuffers(1, &Vbo);
+    glGenBuffers(1, &Ebo);
+    glBindVertexArray(Vao);
+    glBindBuffer(GL_ARRAY_BUFFER, Vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -270,7 +270,7 @@ static void Prepare(float x, float y, float w, float h, float angle, glm::vec3 c
     // (transform * model: not lab code - it puts the whole character's transform in front of this shape's own)
 
     glUseProgram(shaderProgram);
-    glBindVertexArray(VAO);
+    glBindVertexArray(Vao);
     glUniformMatrix4fv(locTransform, 1, GL_FALSE, glm::value_ptr(transform));
     glUniform4f(locTint, color.r, color.g, color.b, 1.0f);
     glUniform1f(locHighlight, highlight);
@@ -299,7 +299,7 @@ void Rect(float x, float y, float w, float h, glm::vec3 color, float angle, floa
 void Tri(float x, float y, float w, float h, glm::vec3 color, float angle)
 {
     Prepare(x, y, w, h, angle, color, 0.0f);
-    glDrawArrays(GL_TRIANGLES, TRIANGLE_START, 3);
+    glDrawArrays(GL_TRIANGLES, TriangleStart, 3);
     // LAB CODE (Lab 2 Template/main.cpp):
     //   glDrawArrays(GL_TRIANGLES, 0, 3);
     // LAB CODE (Lab 1 Notes.pdf):
@@ -310,7 +310,7 @@ void Tri(float x, float y, float w, float h, glm::vec3 color, float angle)
 void Circle(float x, float y, float rx, float ry, glm::vec3 color)
 {
     Prepare(x, y, rx, ry, 0.0f, color, 0.0f);
-    glDrawArrays(GL_TRIANGLE_FAN, CIRCLE_START, CIRCLE_SEGMENTS + 2);
+    glDrawArrays(GL_TRIANGLE_FAN, CircleStart, CircleSegments + 2);
     // LAB CODE (Lab 3 Notes/main.cpp):
     //   glDrawArrays(GL_TRIANGLE_FAN, circleVertexStart, circleVertexCount);
     //   circleVertexCount = segments + 2; // center + segments and because triangle fan... +1 for end :3

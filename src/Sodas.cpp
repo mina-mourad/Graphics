@@ -12,12 +12,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 
-const int WAVE_SIZE[3] = { 3, 5, 10 };
+const int WaveSize[3] = { 3, 5, 10 };
 static int spawned = 0;
 static float spawnTimer = 2.0f;
 static bool betweenWaves = false;   // the last wave is beaten, the next one has not started yet
-const float ATTACK_TIME = 0.35f;
-const glm::vec3 BLACK(0.1f), WHITE(1.0f);
+const float AttackTime = 0.35f;
+const glm::vec3 Black(0.1f), White(1.0f);
 
 void ResetWaves() { spawned = 0; spawnTimer = 2.0f; wave = 1; betweenWaves = false; }
 // no lab code
@@ -30,7 +30,7 @@ bool UpdateWaves(float dt)
         if (spawnTimer > 0) return false;
         betweenWaves = false; wave++; spawned = 0;   // the new wave starts now, with its first soda below
     }
-    if (spawned < WAVE_SIZE[wave - 1])
+    if (spawned < WaveSize[wave - 1])
     {
         spawnTimer -= dt;
         if (spawnTimer <= 0)
@@ -100,7 +100,7 @@ bool UpdateSodas(float dt)
         if (s.cooldown > 0) continue;
         if (s.type == Cup)                        // hard: swings its straw all the time, it only hurts up close
         {
-            s.attack = ATTACK_TIME; s.cooldown = 1.6f;
+            s.attack = AttackTime; s.cooldown = 1.6f;
             if (blocker) {
                 blocker->hp -= SodaDamage[Cup]; blocker->hurt = 0.2f;
                 PlaySound("whack");
@@ -108,7 +108,7 @@ bool UpdateSodas(float dt)
         }
         else                                      // bottle: fizz up high, can: syrup down low
         {
-            s.attack = ATTACK_TIME; s.cooldown = 5.0f;
+            s.attack = AttackTime; s.cooldown = 5.0f;
             bool high = (s.type == Bottle);
             float shotHeight;
             if (high) {
@@ -196,8 +196,8 @@ void UpdateShots(float dt)
 
 static void Eyes(float x, float y)          // two eyes looking left, at the candies
 {
-    Circle(x, y, 0.014f, 0.016f, BLACK);
-    Circle(x - 0.035f, y, 0.014f, 0.016f, BLACK);
+    Circle(x, y, 0.014f, 0.016f, Black);
+    Circle(x - 0.035f, y, 0.014f, 0.016f, Black);
 }
 // no lab code
 
@@ -253,7 +253,7 @@ void DrawSodas()
             if (s.lane != lane) continue;
             float attack;
             if (s.attack > 0) {
-                attack = 1.0f - s.attack / ATTACK_TIME;
+                attack = 1.0f - s.attack / AttackTime;
             }
             else {
                 attack = 0.0f;

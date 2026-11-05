@@ -14,28 +14,28 @@
 #include <cmath>
 
 // The numbers used below, with a name (all times in seconds).
-const float FIRST_ATTACK = 0.3f;        // a new candy attacks 0.3 s after it is placed
-const float ATTACK_TIME = 0.35f;        // one attack animation lasts 0.35 s
-const float LOLLIPOP_COOLDOWN = 0.8f;   // the lollipop hits every 0.8 s
-const float BONBON_COOLDOWN = 5.0f;     // the bonbon shoots every 5 s (like the bottle and the can)
-const float CANE_REACH = 0.06f;         // the cane reaches this much further than touching
-const float PELLET_SPEED = 0.6f;        // how fast a candy pellet flies (like the soda shots)
-const float SODA_FLASH = 0.2f;          // a hit soda flashes red for 0.2 s
-const float PICKUP_DISTANCE = 0.08f;    // how close a sugar cube must be to pick it up
-const float JUMP_TIME = 0.7f;           // a jump lasts 0.7 s
-const float JUMP_HEIGHT = 0.25f;        // how high a candy jumps
-const float DUCK_TIME = 0.7f;           // a duck lasts 0.7 s
-const float DUCK_SQUASH = 0.55f;        // a ducking candy is 55% of its height
-const float LAUNCHER_X = 0.16f;         // a pellet leaves the launcher this far in front of the bonbon
-const float LAUNCHER_Y = 0.15f;         // ... and this high above its feet
-const float FRIDGE_GAP = 0.1f;          // the chocolate bar stays this far from the fridge
-const float BEHIND = 0.05f;             // a soda this little behind a candy still counts as touching it
-const glm::vec3 BLACK(0.1f);
+const float FirstAttack = 0.3f;        // a new candy attacks 0.3 s after it is placed
+const float AttackTime = 0.35f;        // one attack animation lasts 0.35 s
+const float LollipopCooldown = 0.8f;   // the lollipop hits every 0.8 s
+const float BonbonCooldown = 5.0f;     // the bonbon shoots every 5 s (like the bottle and the can)
+const float CaneReach = 0.06f;         // the cane reaches this much further than touching
+const float PelletSpeed = 0.6f;        // how fast a candy pellet flies (like the soda shots)
+const float SodaFlash = 0.2f;          // a hit soda flashes red for 0.2 s
+const float PickupDistance = 0.08f;    // how close a sugar cube must be to pick it up
+const float JumpTime = 0.7f;           // a jump lasts 0.7 s
+const float JumpHeight = 0.25f;        // how high a candy jumps
+const float DuckTime = 0.7f;           // a duck lasts 0.7 s
+const float DuckSquash = 0.55f;        // a ducking candy is 55% of its height
+const float LauncherX = 0.16f;         // a pellet leaves the launcher this far in front of the bonbon
+const float LauncherY = 0.15f;         // ... and this high above its feet
+const float FridgeGap = 0.1f;          // the chocolate bar stays this far from the fridge
+const float Behind = 0.05f;             // a soda this little behind a candy still counts as touching it
+const glm::vec3 Black(0.1f);
 
 // Adds a new candy on a shelf and pays for it.
 static void Buy(CandyType type, int lane, float x)
 {
-    candies.push_back({ type, lane, x, CandyHp[type], FIRST_ATTACK, 0, 0, 0, 0 });
+    candies.push_back({ type, lane, x, CandyHp[type], FirstAttack, 0, 0, 0, 0 });
     sugar -= CandyCost[type];
 }
 // no lab code
@@ -63,7 +63,7 @@ void PlaceChocolate(int lane, float x)
     placingChocolate = false;                                     // this click is used up either way
     if (!CardUnlocked(Chocolate)) { PlaySound("locked"); return; }
     if (x < StartX) x = StartX;                                 // not inside the jar
-    if (x > LaneRight - FRIDGE_GAP) x = LaneRight - FRIDGE_GAP; // not inside the fridge
+    if (x > LaneRight - FridgeGap) x = LaneRight - FridgeGap; // not inside the fridge
     Buy(Chocolate, lane, x);
     PlaySound("place");
 }
@@ -72,9 +72,11 @@ void PlaceChocolate(int lane, float x)
 // Is a soda standing right in front of this candy?
 static Soda* SodaInFront(const Candy& c, float reach)
 {
-    for (Soda& s : sodas)
-        if (s.lane == c.lane && s.x - c.x >= -BEHIND && s.x - c.x <= reach)
+    for (Soda& s : sodas) {
+        if (s.lane != c.lane) continue;
+        if (s.x - c.x >= -Behind && s.x - c.x <= reach)
             return &s;      // the first soda in reach
+    }
     return nullptr;         // no soda in front
 }
 // no lab code
@@ -88,8 +90,8 @@ static void JumpAndDuck()
     {
         if (c.type == Chocolate || !laneSelected[c.lane]) continue;   // chocolate never jumps or ducks
         if (c.jump > 0 || c.duck > 0) continue;                       // already jumping or ducking
-        if (up) c.jump = JUMP_TIME;
-        else if (down) c.duck = DUCK_TIME;
+        if (up) c.jump = JumpTime;
+        else if (down) c.duck = DuckTime;
     }
     if (up) PlaySound("jump");
     if (down) PlaySound("duck");
@@ -113,14 +115,14 @@ static void WalkAndAttack(Candy& c, float dt)
 
     c.cooldown -= dt;
     if (c.cooldown > 0) return;             // not time to attack yet
-    c.attack = ATTACK_TIME;                 // start the attack animation
+    c.attack = AttackTime;                 // start the attack animation
     if (c.type == Lollipop) {
-        c.cooldown = LOLLIPOP_COOLDOWN;
-        Soda* s = SodaInFront(c, Touch + CANE_REACH);
-        if (s) { s->hp -= 1; s->hurt = SODA_FLASH; PlaySound("whack"); }
+        c.cooldown = LollipopCooldown;
+        Soda* s = SodaInFront(c, Touch + CaneReach);
+        if (s) { s->hp -= 1; s->hurt = SodaFlash; PlaySound("whack"); }
     } else {
-        c.cooldown = BONBON_COOLDOWN;
-        shots.push_back({ c.lane, c.x + LAUNCHER_X, FloorY(c.lane) + LAUNCHER_Y, PELLET_SPEED, false, 1, 0.0f });
+        c.cooldown = BonbonCooldown;
+        shots.push_back({ c.lane, c.x + LauncherX, FloorY(c.lane) + LauncherY, PelletSpeed, false, 1, 0.0f });
         PlaySound("pellet");
     }
     // no lab code (the attack rules)
@@ -130,7 +132,7 @@ static void WalkAndAttack(Candy& c, float dt)
 static void PickUpSugar(Candy& c)
 {
     for (size_t i = 0; i < cubes.size(); ++i)
-        if (cubes[i].lane == c.lane && std::fabs(cubes[i].x - c.x) < PICKUP_DISTANCE) {
+        if (cubes[i].lane == c.lane && std::fabs(cubes[i].x - c.x) < PickupDistance) {
             sugar += cubes[i].value;
             sugarCollected += cubes[i].value;
             cubes.erase(cubes.begin() + i);
@@ -169,8 +171,8 @@ void UpdateCandies(float dt)
 
 static void Eyes(float x, float y)
 {
-    Circle(x, y, 0.014f, 0.016f, BLACK);
-    Circle(x + 0.035f, y, 0.014f, 0.016f, BLACK);
+    Circle(x, y, 0.014f, 0.016f, Black);
+    Circle(x + 0.035f, y, 0.014f, 0.016f, Black);
 }
 // no lab code
 
@@ -233,7 +235,7 @@ void DrawCandies()
     {
         float lift;
         if (c.jump > 0) {
-            lift = JUMP_HEIGHT * std::sin(3.14159f * (1 - c.jump / JUMP_TIME));
+            lift = JumpHeight * std::sin(3.14159f * (1 - c.jump / JumpTime));
         }
         else {
             lift = 0.0f;
@@ -243,14 +245,14 @@ void DrawCandies()
         // (the jump goes up and down with sin)
         float squash;
         if (c.duck > 0) {
-            squash = DUCK_SQUASH;
+            squash = DuckSquash;
         }
         else {
             squash = 1.0f;
         }
         float attack;
         if (c.attack > 0) {
-            attack = 1.0f - c.attack / ATTACK_TIME;
+            attack = 1.0f - c.attack / AttackTime;
         }
         else {
             attack = 0.0f;
