@@ -1,6 +1,6 @@
 // [LAB] Mouse over a card = pointInTriangle on its two triangles (Lab 3),
 //       hover color with u_Highlight (Lab 3).
-// [NOT LAB] Text() for numbers (block letters made of squares).
+// [NOT LAB] Text() for numbers (digits like a digital clock - see Text.cpp).
 // Below every part that uses lab code there is a "LAB CODE" comment with the
 // lab lines exactly as they are written in the lab files.
 // Parts with no lab code say "no lab code".

@@ -47,7 +47,7 @@ studied it in the labs and the lab lines are written right beside it.
 | `src/Shelves.cpp` | 3 | `pointInTriangle` math, lane hover / select, the store and its 8 environment elements |
 | `src/Game.h` + `src/Game.cpp` | 3 | the shared structs and numbers, the game states (switch), the update order |
 | `src/Hud.cpp` | 2.5 | the unlock rule, gray / hover cards, health bars, sugar cubes |
-| `src/Text.cpp` | 2.5 | letters stored as bits, drawn as small squares (not lab code) |
+| `src/Text.cpp` | 2.5 | letters as lines (`GL_LINES`) read from a small table, digits as 7 rectangles like a digital clock |
 | `main.cpp` | 2 | the Lab 2 template: window, input callbacks, deltaTime; plus mouse pixels -> our coordinates |
 | `src/Cutscene.cpp` | 2 | a timeline: `Progress()` moves things between two times |
 | `src/Menus.cpp` | 1.5 | a button = box hover + highlight + click |
@@ -72,6 +72,7 @@ lab lines copied exactly as they are written in the lab files (`Lab 1 Notes.pdf`
 `// no lab code`. Short notes in `// (...)` explain where our line differs from the lab line.
 
 **From the labs:**
+- letters drawn with `GL_LINES` (+ `GL_POINTS` to fill the corners) from the shared VBO: the primitive types in the Lab 3 notes, the grid / axes in Lab 4
 - red damage: `u_Red` in the fragment shader, a copy of the Lab 3 `u_Highlight` mix (toward red instead of yellow)
 - gray locked cards: `u_Gray` in the fragment shader, the same mix toward the color's own gray (only `gray = (r + g + b) / 3` is not lab code)
 - VBO + VAO, `glVertexAttribPointer`, `glDrawArrays`, the render loop (swap buffers, poll events): Lab 1
@@ -87,7 +88,7 @@ lab lines copied exactly as they are written in the lab files (`Lab 1 Notes.pdf`
 
 **Not from the labs (kept as small as possible):**
 - game rules: `struct`, `std::vector`, `rand()`, `enum` + `switch` for the states (plain C++)
-- `Text.cpp`: letters drawn as small squares (the spec needs a coin counter and menu labels)
+- `Text.cpp`: the letter and digit tables (which lines / segments each character has); drawing them uses lab code
 - `Sound.cpp`: the labs have no sound, so it uses the one-header library **miniaudio** (`external/miniaudio/miniaudio.h`)
 
 Not used at all: textures, images, transparency, 3D, any other library.

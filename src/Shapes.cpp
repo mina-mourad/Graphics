@@ -8,6 +8,7 @@
 //   - u_Gray mix toward gray (locked cards)        -> Lab 3 (the same code as u_Highlight, but gray)
 //   - one VBO holding several shapes + EBO         -> Lab 3 ("global VBO", EBO notes)
 //   - circle as a GL_TRIANGLE_FAN                  -> Lab 3
+//   - letters as GL_LINES (+ GL_POINTS)            -> Lab 3 notes (primitive types), Lab 4 (grid / axes)
 //   - glm::translate / rotate / scale              -> Lab 2 template
 //   - scale(1/aspect) so circles stay round        -> Lab 2 template (commented lines)
 // [NOT LAB] one line in the shader: gray = (r + g + b) / 3, the gray version of a color.
@@ -22,6 +23,7 @@
 #include <cmath>
 #include "Shapes.h"
 #include "Game.h"
+#include "Text.h"
 // LAB CODE (Lab 3 Notes/main.cpp):
 //   #include <glad/glad.h>
 //   #include <iostream>
@@ -189,6 +191,8 @@ void InitShapes()
     //           });
     //   }
 
+    AddLetterLines(vertices);   // the lines of every letter, after the circle (see Text.cpp)
+
     GLuint indices[] = { 0, 1, 2,  2, 3, 0 };   // the square = 2 triangles
     // LAB CODE (Lab 3 Notes/main.cpp):
     //   GLuint indices[] = {
@@ -310,4 +314,26 @@ void Circle(float x, float y, float rx, float ry, glm::vec3 color)
     // LAB CODE (Lab 3 Notes/main.cpp):
     //   glDrawArrays(GL_TRIANGLE_FAN, circleVertexStart, circleVertexCount);
     //   circleVertexCount = segments + 2; // center + segments and because triangle fan... +1 for end :3
+}
+
+void Lines(int start, int count, float x, float y, float size, glm::vec3 color)
+{
+    Prepare(x, y, size, size, 0.0f, color, 0.0f);
+    float width = size * WINDOW_H / 2.0f;           // line thickness in pixels: one step of the letter grid
+    if (width < 1.0f) width = 1.0f;
+    glLineWidth(width);
+    glDrawArrays(GL_LINES, start, count);
+    // LAB CODE (Lab 3 Notes/Lab 3 notes.pdf):
+    //   GL_LINES: only 2 points make a line so discontinuous lines
+    // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
+    //   GLenum  drawMode = GL_TRIANGLES;   // GL_TRIANGLES for solids, GL_LINES for grid/axes
+    //   glDrawArrays(mesh.drawMode, 0, mesh.vertexCount);
+    // LAB CODE (Lab 3 Notes/Lab3ExtraNotes.cpp):
+    //   //glLineWidth(4);
+
+    glPointSize(width);
+    glDrawArrays(GL_POINTS, start, count);          // a square dot on every end, so the corners look full
+    // LAB CODE (Lab 3 Notes/Lab 3 notes.pdf):
+    //   GL_POINTS: Points
+    // (glPointSize: no lab code - it sets how big each point is, like glLineWidth for lines)
 }

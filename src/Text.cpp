@@ -1,75 +1,123 @@
-// [NOT LAB] The labs do not draw text. The spec needs a coin counter and menu
-// labels, so each letter is drawn as small squares using Rect() from Shapes.
-// Each letter is 7 rows; in every row the 5 lowest bits say which squares are on.
-// no lab code in this file
+// Person 1 (window, drawing and text).
+// The labs do not draw text. The spec needs a coin counter and menu labels, so:
+//   - LETTERS are line drawings: a few straight lines each, drawn with GL_LINES
+//     (a primitive type from the Lab 3 notes, used for the grid / axes in Lab 4).
+//     All the lines are stored once in the shared VBO (see InitShapes in Shapes.cpp).
+//   - DIGITS look like a digital clock: 7 rectangles (segments), some on, some off.
+// Below every part that uses lab code there is a "LAB CODE" comment with the
+// lab lines exactly as they are written in the lab files.
+// Parts with no lab code say "no lab code".
 
 #include "Text.h"
 #include "Shapes.h"
 
-static const char LETTERS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?.,:'-+/";
-static const unsigned char FONT[][7] = {
-    { 0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11 },   // A
-    { 0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E },   // B
-    { 0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E },   // C
-    { 0x1E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1E },   // D
-    { 0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x1F },   // E
-    { 0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x10 },   // F
-    { 0x0E, 0x11, 0x10, 0x17, 0x11, 0x11, 0x0E },   // G
-    { 0x11, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11 },   // H
-    { 0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1F },   // I
-    { 0x07, 0x02, 0x02, 0x02, 0x12, 0x12, 0x0C },   // J
-    { 0x11, 0x12, 0x14, 0x18, 0x14, 0x12, 0x11 },   // K
-    { 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1F },   // L
-    { 0x11, 0x1B, 0x15, 0x11, 0x11, 0x11, 0x11 },   // M
-    { 0x11, 0x19, 0x15, 0x13, 0x11, 0x11, 0x11 },   // N
-    { 0x0E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E },   // O
-    { 0x1E, 0x11, 0x11, 0x1E, 0x10, 0x10, 0x10 },   // P
-    { 0x0E, 0x11, 0x11, 0x11, 0x15, 0x12, 0x0D },   // Q
-    { 0x1E, 0x11, 0x11, 0x1E, 0x14, 0x12, 0x11 },   // R
-    { 0x0F, 0x10, 0x10, 0x0E, 0x01, 0x01, 0x1E },   // S
-    { 0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04 },   // T
-    { 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E },   // U
-    { 0x11, 0x11, 0x11, 0x11, 0x0A, 0x0A, 0x04 },   // V
-    { 0x11, 0x11, 0x11, 0x15, 0x15, 0x0A, 0x0A },   // W
-    { 0x11, 0x0A, 0x04, 0x04, 0x0A, 0x11, 0x11 },   // X
-    { 0x11, 0x0A, 0x04, 0x04, 0x04, 0x04, 0x04 },   // Y
-    { 0x1F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1F },   // Z
-    { 0x0E, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0E },   // 0
-    { 0x04, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x0E },   // 1
-    { 0x0E, 0x11, 0x01, 0x02, 0x04, 0x08, 0x1F },   // 2
-    { 0x1E, 0x01, 0x01, 0x0E, 0x01, 0x01, 0x1E },   // 3
-    { 0x02, 0x06, 0x0A, 0x12, 0x1F, 0x02, 0x02 },   // 4
-    { 0x1F, 0x10, 0x1E, 0x01, 0x01, 0x11, 0x0E },   // 5
-    { 0x06, 0x08, 0x10, 0x1E, 0x11, 0x11, 0x0E },   // 6
-    { 0x1F, 0x01, 0x02, 0x04, 0x08, 0x08, 0x08 },   // 7
-    { 0x0E, 0x11, 0x11, 0x0E, 0x11, 0x11, 0x0E },   // 8
-    { 0x0E, 0x11, 0x11, 0x0F, 0x01, 0x02, 0x0C },   // 9
-    { 0x04, 0x04, 0x04, 0x04, 0x04, 0x00, 0x04 },   // !
-    { 0x0E, 0x11, 0x01, 0x02, 0x04, 0x00, 0x04 },   // ?
-    { 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x0C },   // .
-    { 0x00, 0x00, 0x00, 0x00, 0x0C, 0x04, 0x08 },   // ,
-    { 0x00, 0x0C, 0x0C, 0x00, 0x0C, 0x0C, 0x00 },   // :
-    { 0x04, 0x04, 0x08, 0x00, 0x00, 0x00, 0x00 },   // '
-    { 0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00 },   // -
-    { 0x00, 0x04, 0x04, 0x1F, 0x04, 0x04, 0x00 },   // +
-    { 0x01, 0x02, 0x02, 0x04, 0x08, 0x08, 0x10 },   // /
+// Every letter sits on a small grid: x from 0 to 4, y from 0 (bottom) to 6 (top).
+// "00-06" is one line from point (0,0) to point (0,6).
+static const char LETTERS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?.,:'-+/";
+static const char* LINES[] = {
+    "00-04 04-26 26-44 44-40 03-43",                       // A
+    "00-06 06-36 36-45 45-44 44-33 03-33 33-42 42-41 41-30 30-00",   // B
+    "46-16 16-05 05-01 01-10 10-40",                       // C
+    "00-06 06-26 26-44 44-42 42-20 20-00",                 // D
+    "46-06 06-00 00-40 03-33",                             // E
+    "46-06 06-00 03-33",                                   // F
+    "46-16 16-05 05-01 01-10 10-40 40-43 43-23",           // G
+    "00-06 40-46 03-43",                                   // H
+    "06-46 00-40 20-26",                                   // I
+    "06-46 36-31 31-20 20-10 10-01",                       // J
+    "00-06 02-46 13-40",                                   // K
+    "06-00 00-40",                                         // L
+    "00-06 06-23 23-46 46-40",                             // M
+    "00-06 06-40 40-46",                                   // N
+    "10-30 30-41 41-45 45-36 36-16 16-05 05-01 01-10",     // O
+    "00-06 06-36 36-45 45-44 44-33 33-03",                 // P
+    "10-30 30-41 41-45 45-36 36-16 16-05 05-01 01-10 22-40",   // Q
+    "00-06 06-36 36-45 45-44 44-33 33-03 23-40",           // R
+    "46-16 16-05 05-04 04-13 13-33 33-42 42-41 41-30 30-00",   // S
+    "06-46 26-20",                                         // T
+    "06-01 01-10 10-30 30-41 41-46",                       // U
+    "06-20 20-46",                                         // V
+    "06-10 10-23 23-30 30-46",                             // W
+    "00-46 06-40",                                         // X
+    "06-23 46-23 23-20",                                   // Y
+    "06-46 46-00 00-40",                                   // Z
+    "26-23 21-20",                                         // !
+    "05-16 16-36 36-45 45-44 44-23 23-22 21-20",           // ?
+    "20-21",                                               // .
+    "21-10",                                               // ,
+    "24-25 21-22",                                         // :
+    "26-24",                                               // '
+    "13-33",                                               // -
+    "03-43 21-25",                                         // +
+    "00-46",                                               // /
 };
-// no lab code
+static int lineStart[64], lineCount[64];   // where each letter's lines are in the VBO
+// no lab code (the shapes of the letters are ours)
+
+// Called by InitShapes() before the VBO is filled: adds every letter's lines
+// (2 points = 1 line) to the vertex list, and remembers where each letter starts.
+void AddLetterLines(std::vector<float>& vertices)
+{
+    for (int k = 0; LETTERS[k] != 0; ++k)
+    {
+        lineStart[k] = (int)vertices.size() / 6;           // 6 floats per vertex (position + color)
+        const char* s = LINES[k];
+        for (int j = 0; s[j] != 0; ++j)
+            if (s[j] >= '0' && s[j] <= '9' && s[j + 1] >= '0' && s[j + 1] <= '9')
+            {
+                float x = (float)(s[j] - '0'), y = (float)(s[j + 1] - '0');
+                vertices.insert(vertices.end(), { x, y, 0.0f,  1.0f, 1.0f, 1.0f });
+                ++j;                                        // the y digit is used up too
+            }
+        lineCount[k] = (int)vertices.size() / 6 - lineStart[k];
+    }
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   int circleVertexStart = 0; // filled in once the circle data is appended for flexibility
+    //   circleVertexStart = TRIANGLE_VERTEX_COUNT; // = 6
+    //   vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f,  0.0f, 0.8f, 1.0f }); // center and cyan color
+    // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
+    //   const float AXES_VERTICES[] = {
+    //       // X axis - red
+    //       0.0f, 0.01f, 0.0f,     1.0f, 0.0f, 0.0f,
+    //       5.0f, 0.01f, 0.0f,     1.0f, 0.0f, 0.0f,
+    // (each line = 2 points with position + color, like the lab's axes; reading the
+    //  "00-06" strings is our own code)
+}
+
+// Digits like a digital clock. Segments: a = top, b = top right, c = bottom right,
+// d = bottom, e = bottom left, f = top left, g = middle.
+static const char* DIGITS[10] = {
+    "abcdef", "bc", "abdeg", "abcdg", "bcfg", "acdfg", "acdefg", "abc", "abcdefg", "abcdfg"
+};
+
+// One digit with its bottom-left corner at (x0, y0), on the same 4 x 6 grid as the letters.
+static void Digit(int d, float x0, float y0, float size, glm::vec3 color)
+{
+    for (const char* seg = DIGITS[d]; *seg != 0; ++seg)
+    {
+        if (*seg == 'a') Rect(x0 + 2 * size, y0 + 6 * size, 5 * size, size, color);    // top
+        if (*seg == 'b') Rect(x0 + 4 * size, y0 + 4.5f * size, size, 4 * size, color); // top right
+        if (*seg == 'c') Rect(x0 + 4 * size, y0 + 1.5f * size, size, 4 * size, color); // bottom right
+        if (*seg == 'd') Rect(x0 + 2 * size, y0, 5 * size, size, color);               // bottom
+        if (*seg == 'e') Rect(x0, y0 + 1.5f * size, size, 4 * size, color);            // bottom left
+        if (*seg == 'f') Rect(x0, y0 + 4.5f * size, size, 4 * size, color);            // top left
+        if (*seg == 'g') Rect(x0 + 2 * size, y0 + 3 * size, 5 * size, size, color);    // middle
+    }
+}
+// no lab code (each segment is a Rect, whose lab code is in Shapes.cpp)
 
 void Text(const std::string& text, float x, float y, float size, glm::vec3 color)
 {
-    float width = text.size() * 6.0f * size;              // 5 squares + 1 gap per letter
-    float left = x - width / 2.0f;
+    float width = text.size() * 6.0f * size;                // 5 wide + 1 gap per character
+    float left = x - width / 2.0f;                          // centered on x
     for (size_t i = 0; i < text.size(); ++i)
     {
-        int index = -1;
-        for (int k = 0; LETTERS[k] != 0; ++k)
-            if (LETTERS[k] == text[i]) index = k;
-        if (index < 0) continue;                           // space or unknown letter
-        for (int row = 0; row < 7; ++row)
-            for (int col = 0; col < 5; ++col)
-                if (FONT[index][row] & (1 << (4 - col)))
-                    Rect(left + (i * 6 + col + 0.5f) * size, y + (3 - row) * size, size, size, color);
+        float x0 = left + (i * 6 + 0.5f) * size;            // bottom-left of this character's grid
+        float y0 = y - 3.0f * size;
+        char ch = text[i];
+        if (ch >= '0' && ch <= '9') { Digit(ch - '0', x0, y0, size, color); continue; }
+        for (int k = 0; LETTERS[k] != 0; ++k)               // a space is not in the list: nothing drawn
+            if (LETTERS[k] == ch) Lines(lineStart[k], lineCount[k], x0, y0, size, color);
     }
 }
-// no lab code (each square is drawn with Rect, whose lab code is in Shapes.cpp)
+// no lab code (choosing the letter / digit and its place; the drawing is in Lines() and Rect())
