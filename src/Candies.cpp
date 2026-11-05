@@ -26,7 +26,19 @@ const float JUMP_TIME = 0.7f;           // a jump lasts 0.7 s
 const float JUMP_HEIGHT = 0.25f;        // how high a candy jumps
 const float DUCK_TIME = 0.7f;           // a duck lasts 0.7 s
 const float DUCK_SQUASH = 0.55f;        // a ducking candy is 55% of its height
+const float LAUNCHER_X = 0.16f;         // a pellet leaves the launcher this far in front of the bonbon
+const float LAUNCHER_Y = 0.15f;         // ... and this high above its feet
+const float FRIDGE_GAP = 0.1f;          // the chocolate bar stays this far from the fridge
+const float BEHIND = 0.05f;             // a soda this little behind a candy still counts as touching it
 const glm::vec3 BLACK(0.1f);
+
+// Adds a new candy on a shelf and pays for it.
+static void Buy(CandyType type, int lane, float x)
+{
+    candies.push_back({ type, lane, x, CANDY_HP[type], FIRST_ATTACK, 0, 0, 0, 0 });
+    sugar -= CANDY_COST[type];
+}
+// no lab code
 
 void PlaceCandies(CandyType type)
 {
@@ -34,8 +46,7 @@ void PlaceCandies(CandyType type)
     for (int lane = 0; lane < LANES; ++lane)
     {
         if (!laneSelected[lane] || !CardUnlocked(type)) continue;
-        candies.push_back({ type, lane, START_X, CANDY_HP[type], FIRST_ATTACK, 0, 0, 0, 0 });
-        sugar -= CANDY_COST[type];
+        Buy(type, lane, START_X);
         placed = true;
     }
     PlaySound(placed ? "place" : "locked");
@@ -44,12 +55,11 @@ void PlaceCandies(CandyType type)
 
 void PlaceChocolate(int lane, float x)
 {
-    if (x < START_X) x = START_X;                       // not inside the jar
-    if (x > LANE_RIGHT - 0.1f) x = LANE_RIGHT - 0.1f;   // not inside the fridge
-    if (!CardUnlocked(CHOCOLATE)) { PlaySound("locked"); placingChocolate = false; return; }
-    candies.push_back({ CHOCOLATE, lane, x, CANDY_HP[CHOCOLATE], 0.0f, 0, 0, 0, 0 });
-    sugar -= CANDY_COST[CHOCOLATE];
-    placingChocolate = false;
+    placingChocolate = false;                                     // this click is used up either way
+    if (!CardUnlocked(CHOCOLATE)) { PlaySound("locked"); return; }
+    if (x < START_X) x = START_X;                                 // not inside the jar
+    if (x > LANE_RIGHT - FRIDGE_GAP) x = LANE_RIGHT - FRIDGE_GAP; // not inside the fridge
+    Buy(CHOCOLATE, lane, x);
     PlaySound("place");
 }
 // no lab code
@@ -58,7 +68,7 @@ void PlaceChocolate(int lane, float x)
 static Soda* SodaInFront(const Candy& c, float reach)
 {
     for (Soda& s : sodas)
-        if (s.lane == c.lane && s.x - c.x >= -0.05f && s.x - c.x <= reach)
+        if (s.lane == c.lane && s.x - c.x >= -BEHIND && s.x - c.x <= reach)
             return &s;      // the first soda in reach
     return nullptr;         // no soda in front
 }
@@ -105,7 +115,7 @@ static void WalkAndAttack(Candy& c, float dt)
         if (s) { s->hp -= 1; s->hurt = SODA_FLASH; PlaySound("whack"); }
     } else {
         c.cooldown = BONBON_COOLDOWN;
-        shots.push_back({ c.lane, c.x + 0.16f, FloorY(c.lane) + 0.15f, PELLET_SPEED, false, 1, 0.0f });
+        shots.push_back({ c.lane, c.x + LAUNCHER_X, FloorY(c.lane) + LAUNCHER_Y, PELLET_SPEED, false, 1, 0.0f });
         PlaySound("pellet");
     }
     // no lab code (the attack rules)
@@ -180,26 +190,24 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
         Rect(0.0f, 0.09f, 0.022f, 0.18f, pink);                   // stick
         Circle(0.0f, 0.24f, 0.085f, 0.085f, pink);                // candy head
         Eyes(-0.005f, 0.25f);
-        // the candy cane swings down when attacking
-        float angle = 0.9f - 1.2f * attack;
-        float hx = 0.015f, hy = 0.11f;                            // where the cane is held
-        float cx = hx + std::cos(angle) * 0.07f, cy = hy + std::sin(angle) * 0.07f;
-        // LAB CODE (Lab 3 Notes/main.cpp):
-        //   cosf(angle), sinf(angle), 0.0f,
-        // (a point on a circle around the hand, the same math as the lab circle)
-        Rect(cx, cy, 0.15f, 0.024f, pink, angle);                 // candy cane
+        // the candy cane jabs forward and comes back when attacking
+        float poke = 0.05f * std::sin(3.14159f * attack);
+        // LAB CODE (Lab 2 Template/main.cpp):
+        //   float offsetX = sin(t) * 0.5f;
+        //   //transform = glm::translate(transform, glm::vec3(offsetX, 0.0f, 0.0f));
+        // (like offsetX in Lab 2: the cane moves along x with sin; its x goes through glm::translate in Prepare())
+        Rect(0.07f + poke, 0.13f, 0.15f, 0.024f, pink);           // candy cane
     }
     else if (type == BONBON)   // long range: an orange bonbon in a yellow wrapper, with a launcher
     {
         glm::vec3 orange(1.0f, 0.6f, 0.1f), yellow(1.0f, 0.9f, 0.3f);
-        float recoil = 0.03f * attack;                            // the launcher kicks back when it shoots
         Rect(-0.04f, 0.05f, 0.02f, 0.1f, orange);                 // two short legs
         Rect(0.04f, 0.05f, 0.02f, 0.1f, orange);
         Tri(-0.14f, 0.2f, 0.11f, 0.09f, yellow, -1.5708f);        // wrapper ends
         Tri(0.14f, 0.2f, 0.11f, 0.09f, yellow, 1.5708f);
         Circle(0.0f, 0.2f, 0.11f, 0.105f, orange);                // candy
         Eyes(-0.005f, 0.24f);
-        Rect(0.1f - recoil, 0.15f, 0.11f, 0.035f, yellow);        // candy launcher
+        Rect(0.1f, 0.15f, 0.11f, 0.035f, yellow);                 // candy launcher
     }
     else                       // defense: a brown chocolate bar of 4 pieces
     {
