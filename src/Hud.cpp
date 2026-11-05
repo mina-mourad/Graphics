@@ -80,7 +80,18 @@ void DrawHealth(float x, float y, int hp, int maxHp, bool isCandy)
     Rect(x, y, maxHp * w + 0.01f, 0.03f, glm::vec3(0.15f));
     for (int i = 0; i < maxHp; ++i)
     {
-        glm::vec3 color = i < hp ? (isCandy ? glm::vec3(0.3f, 0.85f, 0.3f) : glm::vec3(0.95f, 0.3f, 0.2f)) : glm::vec3(0.35f);
+        glm::vec3 color;
+        if (i < hp) {
+            if (isCandy) {
+                color = glm::vec3(0.3f, 0.85f, 0.3f);
+            }
+            else {
+                color = glm::vec3(0.95f, 0.3f, 0.2f);
+            }
+        }
+        else {
+            color = glm::vec3(0.35f);
+        }
         Rect(x - maxHp * w / 2 + (i + 0.5f) * w, y, w - 0.005f, 0.018f, color);
     }
 }
@@ -96,11 +107,23 @@ void DrawHud()
     {
         bool unlocked = CardUnlocked((CandyType)i);
         bool hover = unlocked && InBox(mouseX, mouseY, CardX(i), CARD_Y, CARD_W, CARD_H);
-        grayness = unlocked ? 0.0f : 1.0f;
+        if (unlocked) {
+            grayness = 0.0f;
+        }
+        else {
+            grayness = 1.0f;
+        }
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
         // (grayness goes to u_Gray in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
-        Rect(CardX(i), CARD_Y, CARD_W, CARD_H, glm::vec3(1.0f, 0.93f, 0.8f), 0.0f, hover ? 0.4f : 0.0f);
+        float highlight;
+        if (hover) {
+            highlight = 0.4f;
+        }
+        else {
+            highlight = 0.0f;
+        }
+        Rect(CardX(i), CARD_Y, CARD_W, CARD_H, glm::vec3(1.0f, 0.93f, 0.8f), 0.0f, highlight);
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   bool hovering = pointInTriangle(cursorNDC, a, b, c);
         //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);

@@ -49,7 +49,12 @@ void PlaceCandies(CandyType type)
         Buy(type, lane, StartX);
         placed = true;
     }
-    PlaySound(placed ? "place" : "locked");
+    if (placed) {
+        PlaySound("place");
+    }
+    else {
+        PlaySound("locked");
+    }
 }
 // no lab code
 
@@ -226,12 +231,30 @@ void DrawCandies()
 {
     for (Candy& c : candies)
     {
-        float lift = c.jump > 0 ? JUMP_HEIGHT * std::sin(3.14159f * (1 - c.jump / JUMP_TIME)) : 0.0f;
+        float lift;
+        if (c.jump > 0) {
+            lift = JUMP_HEIGHT * std::sin(3.14159f * (1 - c.jump / JUMP_TIME));
+        }
+        else {
+            lift = 0.0f;
+        }
         // LAB CODE (Lab 2 Template/main.cpp):
         //   float offsetX = sin(t) * 0.5f;
         // (the jump goes up and down with sin)
-        float squash = c.duck > 0 ? DUCK_SQUASH : 1.0f;
-        float attack = c.attack > 0 ? 1.0f - c.attack / ATTACK_TIME : 0.0f;
+        float squash;
+        if (c.duck > 0) {
+            squash = DUCK_SQUASH;
+        }
+        else {
+            squash = 1.0f;
+        }
+        float attack;
+        if (c.attack > 0) {
+            attack = 1.0f - c.attack / ATTACK_TIME;
+        }
+        else {
+            attack = 0.0f;
+        }
         float health = (float)c.hp / CandyHp[c.type];   // 1 = full health ... 0 = no health left
         redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
         // LAB CODE (Lab 3 Notes/main.cpp):

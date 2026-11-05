@@ -37,7 +37,14 @@ bool UpdateWaves(float dt)
         {
             // wave 1: bottles only, wave 2: bottles and cans, wave 3: all three
             SodaType type = Bottle;
-            if (wave == 2) type = (spawned % 2 == 0) ? Bottle : Can;
+            if (wave == 2) {
+                if (spawned % 2 == 0) {
+                    type = Bottle;
+                }
+                else {
+                    type = Can;
+                }
+            }
             if (wave == 3) type = (SodaType)(spawned % 3);
             sodas.push_back({ type, rand() % Lanes, SpawnX, SodaHp[type], 0.3f, 0, 0 });
             if (spawned == 0) PlaySound("wave");
@@ -59,9 +66,17 @@ bool UpdateWaves(float dt)
 static Candy* CandyInFront(const Soda& s, float reach)
 {
     Candy* best = nullptr;
-    for (Candy& c : candies)
-        if (c.lane == s.lane && s.x - c.x >= -0.05f && s.x - c.x <= reach && (!best || c.x > best->x))
-            best = &c;
+    for (Candy& c : candies) {
+        if (c.lane != s.lane) continue;
+        if (s.x - c.x >= -0.05f && s.x - c.x <= reach) {
+            if (!best) {
+                best = &c;
+            }
+            else if (c.x > best->x) {
+                best = &c;
+            }
+        }
+    }
     return best;
 }
 // no lab code
@@ -95,7 +110,14 @@ bool UpdateSodas(float dt)
         {
             s.attack = ATTACK_TIME; s.cooldown = 5.0f;
             bool high = (s.type == Bottle);
-            shots.push_back({ s.lane, s.x - 0.08f, FloorY(s.lane) + (high ? 0.27f : 0.03f), -0.6f, high, 1, 0.0f });
+            float shotHeight;
+            if (high) {
+                shotHeight = 0.27f;
+            }
+            else {
+                shotHeight = 0.03f;
+            }
+            shots.push_back({ s.lane, s.x - 0.08f, FloorY(s.lane) + shotHeight, -0.6f, high, 1, 0.0f });
             PlaySound("fizz");
         }
     }
@@ -141,8 +163,22 @@ void UpdateShots(float dt)
                 Candy* target = nullptr;
                 for (Candy& c : candies) {
                     if (c.lane != sh.lane || std::fabs(c.x - sh.x) > 0.06f) continue;
-                    bool dodged = c.type != Chocolate && ((sh.high && c.duck > 0) || (!sh.high && c.jump > 0));
-                    if (!dodged && (!target || c.x > target->x)) target = &c;
+                    bool dodged = false;
+                    if (c.type != Chocolate) {
+                        if (sh.high && c.duck > 0) {
+                            dodged = true;
+                        }
+                        else if (!sh.high && c.jump > 0) {
+                            dodged = true;
+                        }
+                    }
+                    if (dodged) continue;
+                    if (!target) {
+                        target = &c;
+                    }
+                    else if (c.x > target->x) {
+                        target = &c;
+                    }
                 }
                 if (target) {
                     target->hp -= sh.damage; target->hurt = 0.2f;
@@ -215,7 +251,13 @@ void DrawSodas()
         for (Soda& s : sodas)
         {
             if (s.lane != lane) continue;
-            float attack = s.attack > 0 ? 1.0f - s.attack / ATTACK_TIME : 0.0f;
+            float attack;
+            if (s.attack > 0) {
+                attack = 1.0f - s.attack / ATTACK_TIME;
+            }
+            else {
+                attack = 0.0f;
+            }
             float health = (float)s.hp / SodaHp[s.type];   // 1 = full health ... 0 = no health left
             redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
             if (s.hurt > 0) redness += 0.3f;                  // a short red flash just after a hit

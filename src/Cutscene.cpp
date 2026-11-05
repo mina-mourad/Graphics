@@ -44,24 +44,54 @@ void DrawCutscene(float t)
     DrawStore(Progress(t, 2.5f, 3.5f));   // the fridge door opens at 2.5 s
 
     // the candies wait on their shelves next to the jar
-    float duck = (t > 10.0f && t < 11.0f) ? 0.55f : 1.0f;                  // the lollipop ducks under the fizz
-    float swing = (t > 8.0f && t < 10.0f) ? 0.5f + 0.5f * std::sin(t * 8.0f) : 0.0f;
+    float duck;                  // the lollipop ducks under the fizz
+    if (t > 10.0f && t < 11.0f) {
+        duck = 0.55f;
+    }
+    else {
+        duck = 1.0f;
+    }
+    float swing;
+    if (t > 8.0f && t < 10.0f) {
+        swing = 0.5f + 0.5f * std::sin(t * 8.0f);
+    }
+    else {
+        swing = 0.0f;
+    }
     // LAB CODE (Lab 2 Template/main.cpp):
     //   float t = currentFrame;
     //   float pulse = 0.75f + 0.25f * sin(t * 2.0f);
     // (the lollipop swings its cane back and forth with sin of the time)
     DrawCandy(Chocolate, -0.9f, FloorY(2), 1.0f, 0.0f, 1.0f);
     DrawCandy(Lollipop, -0.6f, FloorY(1), 1.0f, swing, duck);
-    float shoot = (t > 11.0f && t < 11.4f) ? Progress(t, 11.0f, 11.4f) : 0.0f;
+    float shoot;
+    if (t > 11.0f && t < 11.4f) {
+        shoot = Progress(t, 11.0f, 11.4f);
+    }
+    else {
+        shoot = 0.0f;
+    }
     DrawCandy(Bonbon, -0.75f, FloorY(0), 1.0f, shoot, 1.0f);
 
     // the sodas come out of the fridge
     float bottleX = 1.22f - 0.8f * Progress(t, 3.0f, 5.5f);
     float canX = 1.22f - 0.6f * Progress(t, 3.6f, 6.0f);
-    float bottleAttack = (t > 9.6f && t < 10.0f) ? Progress(t, 9.6f, 10.0f) : 0.0f;
+    float bottleAttack;
+    if (t > 9.6f && t < 10.0f) {
+        bottleAttack = Progress(t, 9.6f, 10.0f);
+    }
+    else {
+        bottleAttack = 0.0f;
+    }
     if (t > 2.8f) DrawSoda(Bottle, bottleX, FloorY(1), 1.0f, bottleAttack);
     if (t > 3.4f) {
-        redness = (t > 11.6f && t < 12.0f) ? 0.7f : 0.0f;   // the can gets hit
+        // the can gets hit
+        if (t > 11.6f && t < 12.0f) {
+            redness = 0.7f;
+        }
+        else {
+            redness = 0.0f;
+        }
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
         // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)

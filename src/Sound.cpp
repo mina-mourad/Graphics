@@ -57,14 +57,28 @@ void ChangeVolume(float change)
     volume += change;
     if (volume < 0.0f) volume = 0.0f;
     if (volume > 1.0f) volume = 1.0f;
-    if (ready) ma_engine_set_volume(&engine, muted ? 0.0f : volume);
+    if (ready) {
+        if (muted) {
+            ma_engine_set_volume(&engine, 0.0f);
+        }
+        else {
+            ma_engine_set_volume(&engine, volume);
+        }
+    }
 }
 // no lab code
 
 void ToggleMute()
 {
     muted = !muted;
-    if (ready) ma_engine_set_volume(&engine, muted ? 0.0f : volume);
+    if (ready) {
+        if (muted) {
+            ma_engine_set_volume(&engine, 0.0f);
+        }
+        else {
+            ma_engine_set_volume(&engine, volume);
+        }
+    }
 }
 // no lab code
 
