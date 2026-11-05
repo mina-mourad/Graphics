@@ -4,11 +4,12 @@
 //   - aPos + aColor vertex layout, u_Transform     -> Lab 3
 //   - u_Tint (color multiply)                      -> Lab 2 template
 //   - u_Highlight mix toward yellow                -> Lab 3
+//   - u_Red mix toward red (hurt characters)       -> Lab 3 (the same code as u_Highlight, but red)
 //   - one VBO holding several shapes + EBO         -> Lab 3 ("global VBO", EBO notes)
 //   - circle as a GL_TRIANGLE_FAN                  -> Lab 3
 //   - glm::translate / rotate / scale              -> Lab 2 template
 //   - scale(1/aspect) so circles stay round        -> Lab 2 template (commented lines)
-// [NOT LAB] redness / grayness: just glm::mix on the color before drawing.
+// [NOT LAB] grayness: just glm::mix on the color before drawing.
 // Below every part that uses lab code there is a "LAB CODE" comment with the
 // lab lines exactly as they are written in the lab files.
 
@@ -65,10 +66,12 @@ in vec3 vColor;
 out vec4 FragColor;
 uniform vec4 u_Tint;
 uniform float u_Highlight;
+uniform float u_Red;
 void main()
 {
-    vec3 color = vColor * u_Tint.rgb;                   // Lab 2: tint
-    color = mix(color, vec3(1.0, 1.0, 0.0), u_Highlight); // Lab 3: highlight
+    vec3 color = vColor * u_Tint.rgb;                     // Lab 2: tint
+    color = mix(color, vec3(1.0, 1.0, 0.0), u_Highlight); // Lab 3: highlight (yellow)
+    color = mix(color, vec3(0.9, 0.05, 0.05), u_Red);     // like Lab 3 highlight, but red
     FragColor = vec4(color, 1.0);
 }
 )";
@@ -81,9 +84,10 @@ void main()
 //   uniform float u_Highlight; //Whether or not we want it yellow! 0 for no, 1 for yes
 //   vec3 finalColor = mix(vColor, vec3(1.0, 1.0, 0.0), u_Highlight); //Calculating the color we want at last, uses interpolation (WOW)
 //   FragColor = vec4(finalColor, 1.0);
+// (u_Red is a copy of u_Highlight: the same mix, toward red instead of yellow)
 
 static GLuint VAO, VBO, EBO, shaderProgram;
-static GLint locTransform, locTint, locHighlight;
+static GLint locTransform, locTint, locHighlight, locRed;
 // LAB CODE (Lab 3 Notes/main.cpp):
 //   //Global VBO, VAO AND EBO
 //   GLuint VAO, VBO, EBO;
@@ -228,11 +232,13 @@ void InitShapes()
     locTransform = glGetUniformLocation(shaderProgram, "u_Transform");
     locTint = glGetUniformLocation(shaderProgram, "u_Tint");
     locHighlight = glGetUniformLocation(shaderProgram, "u_Highlight");
+    locRed = glGetUniformLocation(shaderProgram, "u_Red");
     // LAB CODE (Lab 2 Template/main.cpp):
     //   GLint locTransform = glGetUniformLocation(shaderProgram, "u_Transform");
     //   GLint locTint = glGetUniformLocation(shaderProgram, "u_Tint");
     // LAB CODE (Lab 3 Notes/main.cpp):
     //   GLint locHighlight = glGetUniformLocation(shaderProgram, "u_Highlight");
+    // (locRed is found the same way as locHighlight)
 }
 
 // Sends the transform and color, ready for one draw call.
@@ -251,16 +257,16 @@ static void Prepare(float x, float y, float w, float h, float angle, glm::vec3 c
     //   //transform = glm::rotate(transform, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     //   //transform = glm::scale(transform, glm::vec3(pulse, pulse, 1.0f));
 
-    color = glm::mix(color, glm::vec3(0.9f, 0.05f, 0.05f), redness);
     float gray = (color.r + color.g + color.b) / 3.0f;
     color = glm::mix(color, glm::vec3(gray), grayness);
-    // no lab code (redness / grayness)
+    // no lab code (grayness)
 
     glUseProgram(shaderProgram);
     glBindVertexArray(VAO);
     glUniformMatrix4fv(locTransform, 1, GL_FALSE, glm::value_ptr(transform));
     glUniform4f(locTint, color.r, color.g, color.b, 1.0f);
     glUniform1f(locHighlight, highlight);
+    glUniform1f(locRed, redness);
     // LAB CODE (Lab 2 Template/main.cpp):
     //   glUseProgram(shaderProgram);
     //   glUniformMatrix4fv(locTransform, 1, GL_FALSE, glm::value_ptr(transform));
@@ -268,6 +274,7 @@ static void Prepare(float x, float y, float w, float h, float angle, glm::vec3 c
     //   glBindVertexArray(VAO);
     // LAB CODE (Lab 3 Notes/main.cpp):
     //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+    // (redness is sent to u_Red the same way)
 }
 
 void Rect(float x, float y, float w, float h, glm::vec3 color, float angle, float highlight)

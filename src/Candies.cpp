@@ -216,10 +216,15 @@ void DrawCandies()
             // (the jump goes up and down with sin)
             float squash = c.duck > 0 ? 0.55f : 1.0f;
             float attack = c.attack > 0 ? 1.0f - c.attack / ATTACK_TIME : 0.0f;
-            redness = 0.6f * (1.0f - (float)c.hp / CANDY_HP[c.type]) + (c.hurt > 0 ? 0.3f : 0.0f);   // more red = more hurt
+            float health = (float)c.hp / CANDY_HP[c.type];   // 1 = full health ... 0 = no health left
+            redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
+            if (c.hurt > 0) redness += 0.3f;                  // a short red flash just after a hit
+            // LAB CODE (Lab 3 Notes/main.cpp):
+            //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+            // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
             DrawCandy(c.type, c.x, FloorY(lane) + lift, 1.0f, attack, squash);
             redness = 0;
             DrawHealth(c.x, FloorY(lane) - 0.05f, c.hp, CANDY_HP[c.type], true);
         }
-    // no lab code (ducking, attack timing, redness and the health bars)
+    // no lab code (ducking, attack timing and the health bars)
 }

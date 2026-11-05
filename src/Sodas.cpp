@@ -219,7 +219,12 @@ void DrawSodas()
         {
             if (s.lane != lane) continue;
             float attack = s.attack > 0 ? 1.0f - s.attack / ATTACK_TIME : 0.0f;
-            redness = 0.6f * (1.0f - (float)s.hp / SODA_HP[s.type]) + (s.hurt > 0 ? 0.3f : 0.0f);
+            float health = (float)s.hp / SODA_HP[s.type];   // 1 = full health ... 0 = no health left
+            redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
+            if (s.hurt > 0) redness += 0.3f;                  // a short red flash just after a hit
+            // LAB CODE (Lab 3 Notes/main.cpp):
+            //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+            // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
             DrawSoda(s.type, s.x, FloorY(lane), 1.0f, attack);
             redness = 0;
             DrawHealth(s.x, FloorY(lane) - 0.05f, s.hp, SODA_HP[s.type], false);
