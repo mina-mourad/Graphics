@@ -1,9 +1,9 @@
 // Person 1 (window, drawing and text).
 // The labs do not draw text. The spec needs a coin counter and menu labels, so:
-//   - LETTERS are line drawings: a few straight lines each, drawn with GL_LINES
+//   - Letters are line drawings: a few straight lines each, drawn with GL_LINES
 //     (a primitive type from the Lab 3 notes, used for the grid / axes in Lab 4).
 //     All the lines are stored once in the shared VBO (see InitShapes in Shapes.cpp).
-//   - DIGITS look like a digital clock: 7 rectangles (segments), some on, some off.
+//   - Digits look like a digital clock: 7 rectangles (segments), some on, some off.
 // Below every part that uses lab code there is a "LAB CODE" comment with the
 // lab lines exactly as they are written in the lab files.
 // Parts with no lab code say "no lab code".
@@ -12,99 +12,97 @@
 #include "Shapes.h"
 
 // Every letter sits on a small grid: x from 0 to 4, y from 0 (bottom) to 6 (top).
-// "00-06" is one line from point (0,0) to point (0,6).
-// The letters are kept blocky (mostly straight lines along the edges and the middle),
+// Line(0,0, 0,6) is one line from point (0,0) to point (0,6).
+// The letters are kept blocky (straight lines along the edges and the middle),
 // so they match the digital-clock digits and need only 1 to 6 lines each.
-static const char LETTERS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!?.,:'-+/";
-static const char* LINES[] = {
-    "00-06 06-46 46-40 03-43",              // A
-    "00-06 06-36 36-33 03-43 43-40 40-00",  // B
-    "46-06 06-00 00-40",                    // C
-    "00-06 06-26 26-43 43-20 20-00",        // D
-    "46-06 06-00 00-40 03-33",              // E
-    "46-06 06-00 03-33",                    // F
-    "46-06 06-00 00-40 40-43 43-23",        // G
-    "00-06 40-46 03-43",                    // H
-    "06-46 00-40 20-26",                    // I
-    "46-40 40-00 00-02",                    // J
-    "00-06 03-46 03-40",                    // K
-    "06-00 00-40",                          // L
-    "00-06 06-23 23-46 46-40",              // M
-    "00-06 06-40 40-46",                    // N
-    "00-06 06-46 46-40 40-00",              // O
-    "00-06 06-46 46-43 43-03",              // P
-    "00-06 06-46 46-40 40-00 22-40",        // Q
-    "00-06 06-46 46-43 43-03 23-40",        // R
-    "46-06 06-03 03-43 43-40 40-00",        // S
-    "06-46 26-20",                          // T
-    "06-00 00-40 40-46",                    // U
-    "06-20 20-46",                          // V
-    "06-00 00-40 40-46 20-23",              // W
-    "00-46 06-40",                          // X
-    "06-23 46-23 23-20",                    // Y
-    "06-46 46-00 00-40",                    // Z
-    "26-22 20-21",                          // !
-    "06-46 46-43 43-23 23-22 20-21",        // ?
-    "20-21",                                // .
-    "21-10",                                // ,
-    "24-25 21-22",                          // :
-    "26-24",                                // '
-    "13-33",                                // -
-    "03-43 21-25",                          // +
-    "00-46",                                // /
-};
-static int lineStart[64], lineCount[64];   // where each letter's lines are in the VBO
-// no lab code (the shapes of the letters are ours)
 
-// Called by InitShapes() before the VBO is filled: adds every letter's lines
-// (2 points = 1 line) to the vertex list, and remembers where each letter starts.
-void AddLetterLines(std::vector<float>& vertices)
+static std::vector<float>* points;              // the vertex list Line() adds to
+static int lineStart[128], lineCount[128];      // where each character's lines are in the VBO
+
+// One line of a letter = 2 points (position + white color, 6 floats each).
+static void Line(float x1, float y1, float x2, float y2)
 {
-    for (int k = 0; LETTERS[k] != 0; ++k)
-    {
-        lineStart[k] = (int)vertices.size() / 6;           // 6 floats per vertex (position + color)
-        const char* s = LINES[k];
-        for (int j = 0; s[j] != 0; ++j)
-            if (s[j] >= '0' && s[j] <= '9' && s[j + 1] >= '0' && s[j + 1] <= '9')
-            {
-                float x = (float)(s[j] - '0'), y = (float)(s[j + 1] - '0');
-                vertices.insert(vertices.end(), { x, y, 0.0f,  1.0f, 1.0f, 1.0f });
-                ++j;                                        // the y digit is used up too
-            }
-        lineCount[k] = (int)vertices.size() / 6 - lineStart[k];
-    }
-    // LAB CODE (Lab 3 Notes/main.cpp):
-    //   int circleVertexStart = 0; // filled in once the circle data is appended for flexibility
-    //   circleVertexStart = TRIANGLE_VERTEX_COUNT; // = 6
-    //   vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f,  0.0f, 0.8f, 1.0f }); // center and cyan color
+    points->insert(points->end(), { x1, y1, 0.0f,  1.0f, 1.0f, 1.0f,
+                                    x2, y2, 0.0f,  1.0f, 1.0f, 1.0f });
     // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
     //   const float AXES_VERTICES[] = {
     //       // X axis - red
     //       0.0f, 0.01f, 0.0f,     1.0f, 0.0f, 0.0f,
     //       5.0f, 0.01f, 0.0f,     1.0f, 0.0f, 0.0f,
-    // (each line = 2 points with position + color, like the lab's axes; reading the
-    //  "00-06" strings is our own code)
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f,  0.0f, 0.8f, 1.0f }); // center and cyan color
+    // (2 points with position + color make one line, like the lab's axes)
 }
 
-// Digits like a digital clock. Segments: a = top, b = top right, c = bottom right,
-// d = bottom, e = bottom left, f = top left, g = middle.
-static const char* DIGITS[10] = {
-    "abcdef", "bc", "abdeg", "abcdg", "bcfg", "acdfg", "acdefg", "abc", "abcdefg", "abcdfg"
-};
+// The lines of one character (characters that are not here, like a space, have none).
+static void LetterLines(char ch)
+{
+    if (ch == 'A') { Line(0,0, 0,6); Line(0,6, 4,6); Line(4,6, 4,0); Line(0,3, 4,3); }
+    if (ch == 'B') { Line(0,0, 0,6); Line(0,6, 3,6); Line(3,6, 3,3); Line(0,3, 4,3); Line(4,3, 4,0); Line(4,0, 0,0); }
+    if (ch == 'C') { Line(4,6, 0,6); Line(0,6, 0,0); Line(0,0, 4,0); }
+    if (ch == 'D') { Line(0,0, 0,6); Line(0,6, 2,6); Line(2,6, 4,3); Line(4,3, 2,0); Line(2,0, 0,0); }
+    if (ch == 'E') { Line(4,6, 0,6); Line(0,6, 0,0); Line(0,0, 4,0); Line(0,3, 3,3); }
+    if (ch == 'F') { Line(4,6, 0,6); Line(0,6, 0,0); Line(0,3, 3,3); }
+    if (ch == 'G') { Line(4,6, 0,6); Line(0,6, 0,0); Line(0,0, 4,0); Line(4,0, 4,3); Line(4,3, 2,3); }
+    if (ch == 'H') { Line(0,0, 0,6); Line(4,0, 4,6); Line(0,3, 4,3); }
+    if (ch == 'I') { Line(0,6, 4,6); Line(0,0, 4,0); Line(2,0, 2,6); }
+    if (ch == 'J') { Line(4,6, 4,0); Line(4,0, 0,0); Line(0,0, 0,2); }
+    if (ch == 'K') { Line(0,0, 0,6); Line(0,3, 4,6); Line(0,3, 4,0); }
+    if (ch == 'L') { Line(0,6, 0,0); Line(0,0, 4,0); }
+    if (ch == 'M') { Line(0,0, 0,6); Line(0,6, 2,3); Line(2,3, 4,6); Line(4,6, 4,0); }
+    if (ch == 'N') { Line(0,0, 0,6); Line(0,6, 4,0); Line(4,0, 4,6); }
+    if (ch == 'O') { Line(0,0, 0,6); Line(0,6, 4,6); Line(4,6, 4,0); Line(4,0, 0,0); }
+    if (ch == 'P') { Line(0,0, 0,6); Line(0,6, 4,6); Line(4,6, 4,3); Line(4,3, 0,3); }
+    if (ch == 'Q') { Line(0,0, 0,6); Line(0,6, 4,6); Line(4,6, 4,0); Line(4,0, 0,0); Line(2,2, 4,0); }
+    if (ch == 'R') { Line(0,0, 0,6); Line(0,6, 4,6); Line(4,6, 4,3); Line(4,3, 0,3); Line(2,3, 4,0); }
+    if (ch == 'S') { Line(4,6, 0,6); Line(0,6, 0,3); Line(0,3, 4,3); Line(4,3, 4,0); Line(4,0, 0,0); }
+    if (ch == 'T') { Line(0,6, 4,6); Line(2,6, 2,0); }
+    if (ch == 'U') { Line(0,6, 0,0); Line(0,0, 4,0); Line(4,0, 4,6); }
+    if (ch == 'V') { Line(0,6, 2,0); Line(2,0, 4,6); }
+    if (ch == 'W') { Line(0,6, 0,0); Line(0,0, 4,0); Line(4,0, 4,6); Line(2,0, 2,3); }
+    if (ch == 'X') { Line(0,0, 4,6); Line(0,6, 4,0); }
+    if (ch == 'Y') { Line(0,6, 2,3); Line(4,6, 2,3); Line(2,3, 2,0); }
+    if (ch == 'Z') { Line(0,6, 4,6); Line(4,6, 0,0); Line(0,0, 4,0); }
+    if (ch == '!') { Line(2,6, 2,2); Line(2,0, 2,1); }
+    if (ch == '?') { Line(0,6, 4,6); Line(4,6, 4,3); Line(4,3, 2,3); Line(2,3, 2,2); Line(2,0, 2,1); }
+    if (ch == '.') { Line(2,0, 2,1); }
+    if (ch == ',') { Line(2,1, 1,0); }
+    if (ch == ':') { Line(2,4, 2,5); Line(2,1, 2,2); }
+    if (ch == '\'') { Line(2,6, 2,4); }
+    if (ch == '-') { Line(1,3, 3,3); }
+    if (ch == '+') { Line(0,3, 4,3); Line(2,1, 2,5); }
+    if (ch == '/') { Line(0,0, 4,6); }
+}
+// no lab code (the shapes of the letters are ours)
 
-// One digit with its bottom-left corner at (x0, y0), on the same 4 x 6 grid as the letters.
+// Called by InitShapes() before the VBO is filled: adds the lines of every character
+// to the vertex list, and remembers where each character starts and how many points it has.
+void AddLetterLines(std::vector<float>& vertices)
+{
+    points = &vertices;
+    for (int c = 0; c < 128; ++c)
+    {
+        lineStart[c] = (int)vertices.size() / 6;           // 6 floats per point
+        LetterLines((char)c);
+        lineCount[c] = (int)vertices.size() / 6 - lineStart[c];
+    }
+    // LAB CODE (Lab 3 Notes/main.cpp):
+    //   int circleVertexStart = 0; // filled in once the circle data is appended for flexibility
+    //   circleVertexStart = TRIANGLE_VERTEX_COUNT; // = 6
+    // (like the lab remembers where the circle starts in the VBO, we remember where each letter starts)
+}
+
+// Digits like a digital clock: 7 rectangles (segments), each one on or off.
+// (x0, y0) = bottom-left corner, on the same 4 x 6 grid as the letters.
 static void Digit(int d, float x0, float y0, float size, glm::vec3 color)
 {
-    for (const char* seg = DIGITS[d]; *seg != 0; ++seg)
-    {
-        if (*seg == 'a') Rect(x0 + 2 * size, y0 + 6 * size, 5 * size, size, color);    // top
-        if (*seg == 'b') Rect(x0 + 4 * size, y0 + 4.5f * size, size, 4 * size, color); // top right
-        if (*seg == 'c') Rect(x0 + 4 * size, y0 + 1.5f * size, size, 4 * size, color); // bottom right
-        if (*seg == 'd') Rect(x0 + 2 * size, y0, 5 * size, size, color);               // bottom
-        if (*seg == 'e') Rect(x0, y0 + 1.5f * size, size, 4 * size, color);            // bottom left
-        if (*seg == 'f') Rect(x0, y0 + 4.5f * size, size, 4 * size, color);            // top left
-        if (*seg == 'g') Rect(x0 + 2 * size, y0 + 3 * size, 5 * size, size, color);    // middle
-    }
+    if (d != 1 && d != 4)                      Rect(x0 + 2 * size, y0 + 6 * size, 5 * size, size, color);     // top
+    if (d != 5 && d != 6)                      Rect(x0 + 4 * size, y0 + 4.5f * size, size, 4 * size, color);  // top right
+    if (d != 2)                                Rect(x0 + 4 * size, y0 + 1.5f * size, size, 4 * size, color);  // bottom right
+    if (d != 1 && d != 4 && d != 7)            Rect(x0 + 2 * size, y0, 5 * size, size, color);                // bottom
+    if (d == 0 || d == 2 || d == 6 || d == 8)  Rect(x0, y0 + 1.5f * size, size, 4 * size, color);             // bottom left
+    if (d != 1 && d != 2 && d != 3 && d != 7)  Rect(x0, y0 + 4.5f * size, size, 4 * size, color);             // top left
+    if (d != 0 && d != 1 && d != 7)            Rect(x0 + 2 * size, y0 + 3 * size, 5 * size, size, color);     // middle
 }
 // no lab code (each segment is a Rect, whose lab code is in Shapes.cpp)
 
@@ -118,8 +116,9 @@ void Text(const std::string& text, float x, float y, float size, glm::vec3 color
         float y0 = y - 3.0f * size;
         char ch = text[i];
         if (ch >= '0' && ch <= '9') { Digit(ch - '0', x0, y0, size, color); continue; }
-        for (int k = 0; LETTERS[k] != 0; ++k)               // a space is not in the list: nothing drawn
-            if (LETTERS[k] == ch) Lines(lineStart[k], lineCount[k], x0, y0, size, color);
+        int c = (unsigned char)ch;
+        if (c < 128 && lineCount[c] > 0)                    // a space has no lines: nothing drawn
+            Lines(lineStart[c], lineCount[c], x0, y0, size, color);
     }
 }
 // no lab code (choosing the letter / digit and its place; the drawing is in Lines() and Rect())
