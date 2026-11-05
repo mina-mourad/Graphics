@@ -32,6 +32,7 @@
 
 float redness = 0.0f;
 float grayness = 0.0f;
+glm::mat4 model = glm::mat4(1.0f);   // the transform of a whole character (set by DrawCandy)
 // no lab code
 
 static const char* vertexShaderSource = R"(
@@ -251,6 +252,7 @@ static void Prepare(float x, float y, float w, float h, float angle, glm::vec3 c
 {
     glm::mat4 transform = glm::mat4(1.0f);
     transform = glm::scale(transform, glm::vec3(1.0f / ASPECT, 1.0f, 1.0f));   // keep shapes round on a wide window
+    transform = transform * model;   // the whole character (moved / scaled as one; normally "no change")
     transform = glm::translate(transform, glm::vec3(x, y, 0.0f));
     transform = glm::rotate(transform, angle, glm::vec3(0.0f, 0.0f, 1.0f));
     transform = glm::scale(transform, glm::vec3(w, h, 1.0f));
@@ -261,6 +263,7 @@ static void Prepare(float x, float y, float w, float h, float angle, glm::vec3 c
     //   //transform = glm::translate(transform, glm::vec3(offsetX, 0.0f, 0.0f));
     //   //transform = glm::rotate(transform, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     //   //transform = glm::scale(transform, glm::vec3(pulse, pulse, 1.0f));
+    // (transform * model: not lab code - it puts the whole character's transform in front of this shape's own)
 
     glUseProgram(shaderProgram);
     glBindVertexArray(VAO);

@@ -10,6 +10,7 @@
 #include "Sound.h"
 #include "Hud.h"
 #include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 
 const float ATTACK_TIME = 0.35f;
@@ -136,67 +137,77 @@ void UpdateCandies(float dt)
     // no lab code (attacks, sugar pick-up and removing candies are game rules)
 }
 
-static void Eyes(float x, float y, float s)
+static void Eyes(float x, float y)
 {
-    Circle(x, y, 0.014f * s, 0.016f * s, BLACK);
-    Circle(x + 0.035f * s, y, 0.014f * s, 0.016f * s, BLACK);
+    Circle(x, y, 0.014f, 0.016f, BLACK);
+    Circle(x + 0.035f, y, 0.014f, 0.016f, BLACK);
 }
 // no lab code
 
 void DrawCandy(CandyType type, float x, float footY, float s, float attack, float squash)
 {
-    // P(dy) = height above the feet; ducking squashes everything down
-    auto P = [&](float dy) { return footY + dy * s * squash; };
-    float h = s * squash;
+    // Like Lab 2: one transform moves the whole candy to its place and scales it.
+    // s = size (1 normal, smaller on the cards), squash < 1 = flattened while ducking.
+    // The parts below are drawn around (0, 0) = the middle of the candy's feet,
+    // so the squash pushes it down onto the shelf.
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(x, footY, 0.0f));
+    model = glm::scale(model, glm::vec3(s, s * squash, 1.0f));
+    // LAB CODE (Lab 2 Template/main.cpp):
+    //   glm::mat4 transform = glm::mat4(1.0f);
+    //   //transform = glm::translate(transform, glm::vec3(offsetX, 0.0f, 0.0f));
+    //   //transform = glm::scale(transform, glm::vec3(pulse, pulse, 1.0f));
+    // (model is used by every shape below - see Prepare() in Shapes.cpp)
 
     if (type == LOLLIPOP)
     {
         glm::vec3 pink(0.95f, 0.35f, 0.6f);
-        Rect(x, P(0.09f), 0.022f * s, 0.18f * h, WHITE);                       // stick
-        Rect(x - 0.035f * s, P(0.11f), 0.05f * s, 0.012f * s, WHITE, 0.6f);    // arm
-        Circle(x, P(0.24f), 0.085f * s, 0.085f * h, pink);                     // candy head
-        Circle(x, P(0.24f), 0.06f * s, 0.06f * h, WHITE);                      // swirl
-        Circle(x, P(0.24f), 0.04f * s, 0.04f * h, pink);
-        Circle(x, P(0.24f), 0.018f * s, 0.018f * h, WHITE);
-        Eyes(x + 0.02f * s, P(0.26f), s);
-        // candy cane in the hand: it swings down when attacking (rotation, Lab 2)
+        Rect(0.0f, 0.09f, 0.022f, 0.18f, WHITE);                  // stick
+        Rect(-0.035f, 0.11f, 0.05f, 0.012f, WHITE, 0.6f);         // arm
+        Circle(0.0f, 0.24f, 0.085f, 0.085f, pink);                // candy head
+        Circle(0.0f, 0.24f, 0.06f, 0.06f, WHITE);                 // swirl
+        Circle(0.0f, 0.24f, 0.04f, 0.04f, pink);
+        Circle(0.0f, 0.24f, 0.018f, 0.018f, WHITE);
+        Eyes(0.02f, 0.26f);
+        // candy cane in the hand: it swings down when attacking
         float angle = 1.3f - 1.6f * attack;
-        float hx = x + 0.05f * s, hy = P(0.11f);
-        float cx = hx + std::cos(angle) * 0.07f * s, cy = hy + std::sin(angle) * 0.07f * s;
+        float hx = 0.05f, hy = 0.11f;                             // the hand
+        float cx = hx + std::cos(angle) * 0.07f, cy = hy + std::sin(angle) * 0.07f;
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   cosf(angle), sinf(angle), 0.0f,
         // (a point on a circle around the hand, the same math as the lab circle)
-        Rect(cx, cy, 0.15f * s, 0.024f * s, glm::vec3(0.9f, 0.1f, 0.1f), angle);
-        Rect(cx, cy, 0.03f * s, 0.026f * s, WHITE, angle);                      // stripe
-        Circle(hx, hy, 0.016f * s, 0.016f * s, WHITE);                          // hand
+        Rect(cx, cy, 0.15f, 0.024f, glm::vec3(0.9f, 0.1f, 0.1f), angle);
+        Rect(cx, cy, 0.03f, 0.026f, WHITE, angle);                // stripe
+        Circle(hx, hy, 0.016f, 0.016f, WHITE);                    // hand
     }
     else if (type == BONBON)
     {
         glm::vec3 orange(1.0f, 0.6f, 0.1f), yellow(1.0f, 0.9f, 0.3f);
         float recoil = 0.03f * attack;
-        Rect(x - 0.04f * s, P(0.05f), 0.02f * s, 0.1f * h, orange);                     // two short legs
-        Rect(x + 0.04f * s, P(0.05f), 0.02f * s, 0.1f * h, orange);
-        Tri(x - 0.14f * s, P(0.2f), 0.11f * h, 0.09f * s, yellow, -1.5708f);             // wrapper ends
-        Tri(x + 0.14f * s, P(0.2f), 0.11f * h, 0.09f * s, yellow, 1.5708f);
-        Circle(x, P(0.2f), 0.11f * s, 0.105f * h, orange);                               // candy
-        Rect(x - 0.045f * s, P(0.2f), 0.022f * s, 0.2f * h, yellow);                    // stripes
-        Rect(x + 0.045f * s, P(0.2f), 0.022f * s, 0.2f * h, yellow);
-        Eyes(x - 0.005f * s, P(0.24f), s);
-        Rect(x + (0.1f - recoil) * s, P(0.15f), 0.11f * s, 0.035f * s, glm::vec3(0.45f));  // candy launcher held in front
-        Circle(x + (0.05f - recoil) * s, P(0.15f), 0.02f * s, 0.02f * s, orange);            // hand
+        Rect(-0.04f, 0.05f, 0.02f, 0.1f, orange);                 // two short legs
+        Rect(0.04f, 0.05f, 0.02f, 0.1f, orange);
+        Tri(-0.14f, 0.2f, 0.11f, 0.09f, yellow, -1.5708f);        // wrapper ends
+        Tri(0.14f, 0.2f, 0.11f, 0.09f, yellow, 1.5708f);
+        Circle(0.0f, 0.2f, 0.11f, 0.105f, orange);                // candy
+        Rect(-0.045f, 0.2f, 0.022f, 0.2f, yellow);                // stripes
+        Rect(0.045f, 0.2f, 0.022f, 0.2f, yellow);
+        Eyes(-0.005f, 0.24f);
+        Rect(0.1f - recoil, 0.15f, 0.11f, 0.035f, glm::vec3(0.45f));   // candy launcher held in front
+        Circle(0.05f - recoil, 0.15f, 0.02f, 0.02f, orange);           // hand
     }
     else // CHOCOLATE
     {
-        glm::vec3 brown(0.4f, 0.22f, 0.1f), light(0.55f, 0.32f, 0.15f);
-        Rect(x, P(0.15f), 0.16f * s, 0.3f * h, brown);                              // bar
-        for (int row = 0; row < 3; ++row)                                          // squares
+        glm::vec3 brown(0.4f, 0.22f, 0.1f), light(0.55f, 0.32f, 0.15f), foil(0.75f, 0.75f, 0.8f);
+        Rect(0.0f, 0.15f, 0.16f, 0.3f, brown);                    // bar
+        for (int row = 0; row < 3; ++row)                         // squares
             for (int col = 0; col < 2; ++col)
-                Rect(x + (col - 0.5f) * 0.07f * s, P(0.19f + row * 0.075f), 0.055f * s, 0.06f * h, light);
-        Rect(x, P(0.05f), 0.17f * s, 0.1f * h, glm::vec3(0.75f, 0.75f, 0.8f));      // foil wrapper
-        Tri(x, P(0.115f), 0.17f * s, 0.04f * h, glm::vec3(0.75f, 0.75f, 0.8f), 3.14159f);
-        Eyes(x - 0.01f * s, P(0.26f), s);
-        Rect(x + 0.01f * s, P(0.29f), 0.07f * s, 0.012f * s, BLACK, -0.15f);      // brave eyebrows
+                Rect((col - 0.5f) * 0.07f, 0.19f + row * 0.075f, 0.055f, 0.06f, light);
+        Rect(0.0f, 0.05f, 0.17f, 0.1f, foil);                     // foil wrapper
+        Tri(0.0f, 0.115f, 0.17f, 0.04f, foil, 3.14159f);
+        Eyes(-0.01f, 0.26f);
+        Rect(0.01f, 0.29f, 0.07f, 0.012f, BLACK, -0.15f);         // brave eyebrows
     }
+    model = glm::mat4(1.0f);   // back to "no change" for whatever is drawn next
     // no lab code (the shapes of the candies)
 }
 
