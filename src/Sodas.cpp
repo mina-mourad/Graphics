@@ -158,62 +158,52 @@ void UpdateShots(float dt)
     // no lab code (hitting, dodging and removing shots are game rules)
 }
 
-static void AngryEyes(float x, float y)
+static void Eyes(float x, float y)          // two eyes looking left, at the candies
 {
     Circle(x, y, 0.014f, 0.016f, BLACK);
     Circle(x - 0.035f, y, 0.014f, 0.016f, BLACK);
-    Rect(x - 0.017f, y + 0.025f, 0.07f, 0.012f, BLACK, -0.3f);   // angry brows (facing left)
 }
 // no lab code
 
 void DrawSoda(SodaType type, float x, float footY, float s, float attack)
 {
-    float shake = 0.08f * std::sin(attack * 18.0f) * (attack > 0 ? 1.0f : 0.0f);
-    // LAB CODE (Lab 2 Template/main.cpp):
-    //   float offsetX = sin(t) * 0.5f;
-    // (the soda shakes left and right with sin while it attacks)
-
-    // Like Lab 2: one transform moves the whole soda to its place, tilts it
-    // (the shake) and scales it. The parts below are drawn around (0, 0) = its feet.
+    // Like Lab 2: one transform moves the whole soda to its place and scales it.
+    // The parts below are drawn around (0, 0) = its feet.
     model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(x, footY, 0.0f));
-    model = glm::rotate(model, shake, glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3(s, s, 1.0f));
     // LAB CODE (Lab 2 Template/main.cpp):
     //   glm::mat4 transform = glm::mat4(1.0f);
     //   //transform = glm::translate(transform, glm::vec3(offsetX, 0.0f, 0.0f));
-    //   //transform = glm::rotate(transform, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     //   //transform = glm::scale(transform, glm::vec3(pulse, pulse, 1.0f));
     // (model is used by every shape below - see Prepare() in Shapes.cpp)
 
-    glm::vec3 red(0.85f, 0.15f, 0.15f);
-    if (type == BOTTLE)        // easy: a tall green glass bottle
+    if (type == BOTTLE)        // easy: a green bottle (fizz up high)
     {
-        glm::vec3 glass(0.25f, 0.65f, 0.35f);
-        Rect(0.0f, 0.11f, 0.11f, 0.22f, glass);                   // body
-        Rect(0.0f, 0.25f, 0.045f, 0.08f, glass);                  // neck
-        Rect(0.0f, 0.295f, 0.055f, 0.025f, red);                  // cap
-        Rect(0.0f, 0.07f, 0.11f, 0.06f, WHITE);                   // label
-        AngryEyes(-0.005f, 0.15f);
+        glm::vec3 green(0.25f, 0.65f, 0.35f);
+        Rect(0.0f, 0.11f, 0.11f, 0.22f, green);                   // body
+        Rect(0.0f, 0.25f, 0.045f, 0.08f, green);                  // neck
+        Rect(0.0f, 0.295f, 0.06f, 0.025f, green);                 // cap
+        Eyes(-0.005f, 0.15f);
     }
-    else if (type == CAN)      // medium: a short red can
+    else if (type == CAN)      // medium: a red can (syrup down low)
     {
-        Rect(0.0f, 0.075f, 0.13f, 0.15f, glm::vec3(0.8f, 0.1f, 0.12f));   // can
-        Rect(0.0f, 0.155f, 0.13f, 0.015f, glm::vec3(0.8f, 0.8f, 0.85f));  // metal top
-        Rect(0.0f, 0.04f, 0.13f, 0.02f, WHITE);                   // stripe
-        AngryEyes(0.0f, 0.1f);
+        glm::vec3 red(0.8f, 0.1f, 0.12f);
+        Rect(0.0f, 0.075f, 0.13f, 0.15f, red);                    // can
+        Rect(0.0f, 0.16f, 0.1f, 0.02f, red);                      // narrower top
+        Eyes(0.0f, 0.1f);
     }
-    else                       // hard: a big cup with a lid and a straw
+    else                       // hard: a blue cup with a lid and a straw (hits up close)
     {
-        Rect(0.0f, 0.12f, 0.17f, 0.24f, glm::vec3(0.95f));        // cup
-        Rect(0.0f, 0.1f, 0.17f, 0.04f, glm::vec3(0.2f, 0.4f, 0.85f));      // blue stripe
-        Rect(0.0f, 0.25f, 0.2f, 0.03f, glm::vec3(0.85f));         // lid
+        glm::vec3 blue(0.2f, 0.4f, 0.85f);
+        Rect(0.0f, 0.12f, 0.17f, 0.24f, blue);                    // cup
+        Rect(0.0f, 0.25f, 0.2f, 0.03f, blue);                     // lid
         float straw = 0.3f + 1.2f * attack;                       // the straw whacks forward
-        Rect(-std::sin(straw) * 0.07f, 0.27f + std::cos(straw) * 0.07f, 0.022f, 0.15f, red, straw);
+        Rect(-std::sin(straw) * 0.07f, 0.27f + std::cos(straw) * 0.07f, 0.022f, 0.15f, blue, straw);
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   cosf(angle), sinf(angle), 0.0f,
         // (the straw turns around the lid: a point on a circle, the same math as the lab circle)
-        AngryEyes(0.0f, 0.2f);
+        Eyes(0.0f, 0.2f);
     }
     model = glm::mat4(1.0f);   // back to "no change" for whatever is drawn next
     // no lab code (the shapes of the sodas)
@@ -254,9 +244,8 @@ void DrawShots()
             else
                 Circle(sh.x, sh.y, 0.022f, 0.022f, glm::vec3(1.0f, 0.4f, 0.7f));
         }
-        else if (sh.high) {                       // fizz bubbles
+        else if (sh.high) {                       // a fizz bubble up high
             Circle(sh.x, sh.y, 0.025f, 0.025f, glm::vec3(0.7f, 0.9f, 1.0f));
-            Circle(sh.x + 0.03f, sh.y + 0.015f, 0.012f, 0.012f, glm::vec3(0.7f, 0.9f, 1.0f));
         }
         else {                                    // syrup blob sliding on the shelf
             Circle(sh.x, sh.y, 0.035f, 0.018f, glm::vec3(0.45f, 0.25f, 0.1f));
