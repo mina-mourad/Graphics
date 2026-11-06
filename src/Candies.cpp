@@ -254,7 +254,7 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
     if (type == Lollipop)      // melee: a pink lollipop with a candy cane
     {
         glm::vec3 pink(0.95f, 0.35f, 0.6f);
-        Rect(0.0f, 0.09f, 0.022f, 0.18f, pink);                   // stick
+        Rect(0.0f, 0.09f, 0.022f, 0.18f, glm::vec3(1.0f));        // stick (white)
         Circle(0.0f, 0.24f, 0.085f, 0.085f, pink);                // candy head
         Eyes(-0.005f, 0.25f);
         // the candy cane jabs forward and comes back when attacking
