@@ -276,10 +276,13 @@ void DrawCandy(CandyType type, float x, float footY, float s, float attack, floa
         Eyes(-0.005f, 0.24f);
         Rect(0.1f, 0.15f, 0.11f, 0.035f, glm::vec3(0.4f));        // candy launcher (gray, so it shows)
     }
-    else                       // defense: one brown rectangle
+    else                       // defense: a brown chocolate bar
     {
-        glm::vec3 brown(0.4f, 0.22f, 0.1f);
-        Rect(0.0f, 0.155f, 0.16f, 0.3f, brown);
+        glm::vec3 brown(0.4f, 0.22f, 0.1f), lightBrown(0.6f, 0.38f, 0.2f);
+        Rect(0.0f, 0.155f, 0.16f, 0.3f, brown);                   // the bar
+        Rect(0.0f, 0.155f, 0.012f, 0.3f, lightBrown);             // up-down line   } they split the bar
+        Rect(0.0f, 0.155f, 0.16f, 0.012f, lightBrown);            // left-right line } into 4 pieces
+        Eyes(-0.0175f, 0.25f);
     }
     model = glm::mat4(1.0f);   // back to "no change" for whatever is drawn next
     // no lab code (the shapes of the candies)
