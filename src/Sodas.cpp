@@ -19,7 +19,12 @@ static bool betweenWaves = false;   // the last wave is beaten, the next one has
 const float AttackTime = 0.35f;
 const glm::vec3 Black(0.1f), White(1.0f);
 
-void ResetWaves() { spawned = 0; spawnTimer = 2.0f; wave = 1; betweenWaves = false; }
+void ResetWaves() { 
+    spawned = 0; 
+    spawnTimer = 2.0f; 
+    wave = 1; 
+    betweenWaves = false; 
+}
 // no lab code
 
 bool UpdateWaves(float dt)
@@ -27,8 +32,13 @@ bool UpdateWaves(float dt)
     if (betweenWaves)                           // short break, then the next wave starts
     {                                           // together with its first soda
         spawnTimer -= dt;
-        if (spawnTimer > 0) return false;
-        betweenWaves = false; wave++; spawned = 0;   // the new wave starts now, with its first soda below
+        if (spawnTimer > 0) 
+        {
+            return false;
+        }
+        betweenWaves = false; 
+        wave++; 
+        spawned = 0;   // the new wave starts now, with its first soda below
     }
     if (spawned < WaveSize[wave - 1])
     {
@@ -45,16 +55,25 @@ bool UpdateWaves(float dt)
                     type = Can;
                 }
             }
-            if (wave == 3) type = (SodaType)(spawned % 3);
+            if (wave == 3) 
+            {
+                type = (SodaType)(spawned % 3);
+            }
             sodas.push_back({ type, rand() % Lanes, SpawnX, SodaHp[type], 0.3f, 0, 0 });
-            if (spawned == 0) PlaySound("wave");
+            if (spawned == 0) 
+            {
+                PlaySound("wave");
+            }
             spawned++;
             spawnTimer = 4.0f + rand() % 3;   // 4 to 6 seconds
         }
     }
     else if (sodas.empty())                     // the whole wave is beaten
     {
-        if (wave == 3) return true;
+        if (wave == 3) 
+        {
+            return true;
+        }
         betweenWaves = true;
         spawnTimer = 3.0f;
     }
@@ -66,17 +85,29 @@ bool UpdateWaves(float dt)
 static Candy* CandyInFront(const Soda& s, float reach)
 {
     Candy* best = nullptr;
-    for (Candy& c : candies) {
-        if (c.lane != s.lane) continue;
-        if (s.x - c.x >= -0.05f && s.x - c.x <= reach) {
-            if (!best) {
-                best = &c;
-            }
-            else if (c.x > best->x) {
-                best = &c;
+    for (int i = 0; i < candies.size(); i++)
+    {
+        Candy& c = candies[i];
+        if (c.lane == s.lane)
+        {
+            if (s.x - c.x >= -0.05f && s.x - c.x <= reach)
+            {
+                if (best == nullptr)
+                {
+                    best = &c;
+                }
+                else
+                {
+                    Candy& bestCandy = *best;
+                    if (c.x > bestCandy.x)
+                    {
+                        best = &c;
+                    }
+                }
             }
         }
     }
+
     return best;
 }
 // no lab code
@@ -84,113 +115,187 @@ static Candy* CandyInFront(const Soda& s, float reach)
 bool UpdateSodas(float dt)
 {
     bool reachedJar = false;
-    for (Soda& s : sodas)
+    for (int i = 0; i < sodas.size(); i++)
     {
-        s.hurt -= dt; s.attack -= dt; s.cooldown -= dt;
+        Soda& s = sodas[i];
+        s.hurt -= dt;
+        s.attack -= dt;
+        s.cooldown -= dt;
         Candy* blocker = CandyInFront(s, Touch);
-        if (!blocker)
-            s.x -= SodaSpeed[s.type] * dt;      // walk left unless a candy blocks the way
+        if (blocker == nullptr)
+        {
+            s.x -= SodaSpeed[s.type] * dt;
+        }
+
         // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
         //   float speed = MOVE_SPEED * deltaTime;
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   if (key == GLFW_KEY_A && action == GLFW_REPEAT) posX -= moveSpeed;
         // (moving = position - speed; times deltaTime so it is the same speed on every computer)
-        if (s.x <= BaseX) reachedJar = true;
 
-        if (s.cooldown > 0) continue;
-        if (s.type == Cup)                        // hard: swings its straw all the time, it only hurts up close
+        if (s.x <= BaseX)
         {
-            s.attack = AttackTime; s.cooldown = 1.6f;
-            if (blocker) {
-                blocker->hp -= SodaDamage[Cup]; blocker->hurt = 0.2f;
-                PlaySound("whack");
-            }
+            reachedJar = true;
         }
-        else                                      // bottle: fizz up high, can: syrup down low
+
+        if (s.cooldown <= 0)
         {
-            s.attack = AttackTime; s.cooldown = 5.0f;
-            bool high = (s.type == Bottle);
-            float shotHeight;
-            if (high) {
-                shotHeight = 0.27f;
+            if (s.type == Cup)
+            {
+                s.attack = AttackTime;
+                s.cooldown = 1.6f;
+                if (blocker != nullptr)
+                {
+                    Candy& candy = *blocker;
+                    candy.hp -= SodaDamage[Cup];
+                    candy.hurt = 0.2f;
+                    PlaySound("whack");
+                }
             }
-            else {
-                shotHeight = 0.03f;
+            else
+            {
+                s.attack = AttackTime;
+                s.cooldown = 5.0f;
+                bool high = (s.type == Bottle);
+                float shotHeight;
+                if (high)
+                {
+                    shotHeight = 0.27f;
+                }
+                else
+                {
+                    shotHeight = 0.03f;
+                }
+
+                shots.push_back({s.lane,s.x - 0.08f,FloorY(s.lane) + shotHeight,-0.6f, high, 1, 0.0f});
+                PlaySound("fizz");
             }
-            shots.push_back({ s.lane, s.x - 0.08f, FloorY(s.lane) + shotHeight, -0.6f, high, 1, 0.0f });
-            PlaySound("fizz");
         }
     }
-    // defeated sodas drop sugar cubes
-    for (size_t i = 0; i < sodas.size(); )
+
+    // Defeated sodas drop sugar cubes
+    for (int i = 0; i < sodas.size(); i++)
     {
-        if (sodas[i].hp <= 0) {
-            cubes.push_back({ sodas[i].lane, sodas[i].x, SodaSugar[sodas[i].type] });
+        if (sodas[i].hp <= 0)
+        {
+            cubes.push_back({sodas[i].lane,sodas[i].x, SodaSugar[sodas[i].type]});
             PlaySound("defeated");
             sodas.erase(sodas.begin() + i);
+            i--;
         }
-        else ++i;
     }
+
     return reachedJar;
+
     // no lab code (attacks, shots and sugar drops are game rules)
 }
 
 void UpdateShots(float dt)
 {
-    for (size_t i = 0; i < shots.size(); )
+    for (int i = 0; i < shots.size(); i++)
     {
         Shot& sh = shots[i];
         bool remove = false;
-        if (sh.pop > 0) {                         // candy pellet popping after a hit
+        if (sh.pop > 0)
+        {
             sh.pop -= dt;
-            remove = sh.pop <= 0;
+            if (sh.pop <= 0)
+            {
+                remove = true;
+            }
         }
-        else {
+        else
+        {
             sh.x += sh.speed * dt;
+
             // LAB CODE (Lab 4 Code/Lab4Camera.cpp):
             //   float speed = MOVE_SPEED * deltaTime;
             // LAB CODE (Lab 3 Notes/main.cpp):
             //   if (key == GLFW_KEY_D && action == GLFW_REPEAT) posX += moveSpeed;
-            if (sh.speed > 0) {                   // candy pellet: hits the first soda, never candies
-                for (Soda& s : sodas)
-                    if (s.lane == sh.lane && std::fabs(s.x - sh.x) < 0.06f) {
-                        s.hp -= sh.damage; s.hurt = 0.2f; sh.pop = 0.2f;
+
+            if (sh.speed > 0)
+            {
+                // Candy pellet: hits the first soda, never candies
+                for (int j = 0; j < sodas.size(); j++)
+                {
+                    Soda& s = sodas[j];
+                    if (s.lane == sh.lane && std::fabs(s.x - sh.x) < 0.06f)
+                    {
+                        s.hp -= sh.damage;
+                        s.hurt = 0.2f;
+                        sh.pop = 0.2f;
                         break;
                     }
-                remove = sh.x > LaneRight;
+                }
+
+                if (sh.x > LaneRight)
+                {
+                    remove = true;
+                }
             }
-            else {                                // soda shot: hits the first candy that does not dodge
+            else
+            {
+                // Soda shot: hits the first candy that does not dodge
                 Candy* target = nullptr;
-                for (Candy& c : candies) {
-                    if (c.lane != sh.lane || std::fabs(c.x - sh.x) > 0.06f) continue;
-                    bool dodged = false;
-                    if (c.type != Chocolate) {
-                        if (sh.high && c.duck > 0) {
-                            dodged = true;
+                for (int j = 0; j < candies.size(); j++)
+                {
+                    Candy& c = candies[j];
+                    if (c.lane == sh.lane && std::fabs(c.x - sh.x) <= 0.06f)
+                    {
+                        bool dodged = false;
+                        if (c.type != Chocolate)
+                        {
+                            if (sh.high && c.duck > 0)
+                            {
+                                dodged = true;
+                            }
+                            else if (!sh.high && c.jump > 0)
+                            {
+                                dodged = true;
+                            }
                         }
-                        else if (!sh.high && c.jump > 0) {
-                            dodged = true;
+
+                        if (dodged == false)
+                        {
+                            if (target == nullptr)
+                            {
+                                target = &c;
+                            }
+                            else
+                            {
+                                Candy& targetCandy = *target;
+                                if (c.x > targetCandy.x)
+                                {
+                                    target = &c;
+                                }
+                            }
                         }
-                    }
-                    if (dodged) continue;
-                    if (!target) {
-                        target = &c;
-                    }
-                    else if (c.x > target->x) {
-                        target = &c;
                     }
                 }
-                if (target) {
-                    target->hp -= sh.damage; target->hurt = 0.2f;
+
+                if (target != nullptr)
+                {
+                    Candy& targetCandy = *target;
+                    targetCandy.hp -= sh.damage;
+                    targetCandy.hurt = 0.2f;
                     PlaySound("hurt");
                     remove = true;
                 }
-                if (sh.x < BaseX) remove = true;
+
+                if (sh.x < BaseX)
+                {
+                    remove = true;
+                }
             }
         }
-        if (remove) shots.erase(shots.begin() + i);
-        else ++i;
+
+        if (remove)
+        {
+            shots.erase(shots.begin() + i);
+            i--;
+        }
     }
+
     // no lab code (hitting, dodging and removing shots are game rules)
 }
 
@@ -247,51 +352,82 @@ void DrawSoda(SodaType type, float x, float footY, float s, float attack)
 
 void DrawSodas()
 {
-    for (int lane = Lanes - 1; lane >= 0; --lane)
-        for (Soda& s : sodas)
+    for (int lane = Lanes - 1; lane >= 0; lane--)
+    {
+        for (int i = 0; i < sodas.size(); i++)
         {
-            if (s.lane != lane) continue;
-            float attack;
-            if (s.attack > 0) {
-                attack = 1.0f - s.attack / AttackTime;
+            Soda& s = sodas[i];
+            if (s.lane == lane)
+            {
+                float attack;
+                if (s.attack > 0)
+                {
+                    attack = 1.0f - s.attack / AttackTime;
+                }
+                else
+                {
+                    attack = 0.0f;
+                }
+
+                float health = (float)s.hp / SodaHp[s.type];
+                redness = 0.6f * (1.0f - health);
+                if (s.hurt > 0)
+                {
+                    redness += 0.3f;
+                }
+
+                // LAB CODE (Lab 3 Notes/main.cpp):
+                //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
+                // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
+
+                DrawSoda(s.type, s.x, FloorY(lane), 1.0f, attack);
+                redness = 0;
+                DrawHealth(s.x, FloorY(lane) - 0.05f, s.hp, SodaHp[s.type], false);
             }
-            else {
-                attack = 0.0f;
-            }
-            float health = (float)s.hp / SodaHp[s.type];   // 1 = full health ... 0 = no health left
-            redness = 0.6f * (1.0f - health);                 // the more hurt, the more red
-            if (s.hurt > 0) redness += 0.3f;                  // a short red flash just after a hit
-            // LAB CODE (Lab 3 Notes/main.cpp):
-            //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);
-            // (redness goes to u_Red in the shader, the same way the lab sends u_Highlight - see Shapes.cpp)
-            DrawSoda(s.type, s.x, FloorY(lane), 1.0f, attack);
-            redness = 0;
-            DrawHealth(s.x, FloorY(lane) - 0.05f, s.hp, SodaHp[s.type], false);
         }
+    }
 }
 // no lab code
 
 void DrawShots()
 {
-    for (Shot& sh : shots)
+    for (int i = 0; i < shots.size(); i++)
     {
-        if (sh.speed > 0) {
-            if (sh.pop > 0)                       // the pellet pops into pieces
-                for (int k = 0; k < 6; ++k)
-                    Circle(sh.x + std::cos(k * 1.05f) * (0.2f - sh.pop) * 0.4f,
-                           sh.y + std::sin(k * 1.05f) * (0.2f - sh.pop) * 0.4f, 0.012f, 0.012f, glm::vec3(1.0f, 0.4f, 0.7f));
+        Shot& sh = shots[i];
+        if (sh.speed > 0)
+        {
+            if (sh.pop > 0)
+            {
+                // The pellet pops into pieces
+                for (int k = 0; k < 6; k++)
+                {
+                    Circle(sh.x + std::cos(k * 1.05f) * (0.2f - sh.pop) * 0.4f, sh.y + std::sin(k * 1.05f) * (0.2f - sh.pop) * 0.4f,0.012f, 0.012f, glm::vec3(1.0f, 0.4f, 0.7f)
+                    );
+                }
+
                 // LAB CODE (Lab 3 Notes/main.cpp):
                 //   cosf(angle), sinf(angle), 0.0f,
                 // (6 pieces fly out on a growing circle, the same math as the lab circle)
+            }
             else
+            {
                 Circle(sh.x, sh.y, 0.022f, 0.022f, glm::vec3(1.0f, 0.4f, 0.7f));
+            }
         }
-        else if (sh.high) {                       // a fizz bubble up high
-            Circle(sh.x, sh.y, 0.025f, 0.025f, glm::vec3(0.7f, 0.9f, 1.0f));
-        }
-        else {                                    // syrup blob sliding on the shelf
-            Circle(sh.x, sh.y, 0.035f, 0.018f, glm::vec3(0.45f, 0.25f, 0.1f));
+        else
+        {
+            if (sh.high)
+            {
+                // A fizz bubble up high
+                Circle(sh.x, sh.y, 0.025f, 0.025f, glm::vec3(0.7f, 0.9f, 1.0f));
+            }
+            else
+            {
+                // Syrup blob sliding on the shelf
+                Circle(sh.x, sh.y, 0.035f, 0.018f, glm::vec3(0.45f, 0.25f, 0.1f));
+            }
         }
     }
+
     // no lab code (the shapes of the shots)
 }

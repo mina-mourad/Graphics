@@ -32,13 +32,21 @@ const float CardY = 0.85f, CardW = 0.25f, CardH = 0.27f;
 // they lock again whenever your sugar falls below their cost (spec 4.2).
 bool CardUnlocked(CandyType type)
 {
-    if (sugar < CandyCost[type]) return false;
-    if (type == Lollipop) return true;
+    if (sugar < CandyCost[type]) 
+    {
+        return false;
+    }
+    if (type == Lollipop) 
+    {
+        return true;
+    }
     return sugarCollected >= CandyCost[type];
 }
 // no lab code
 
-static float CardX(int i) { return -1.15f + i * 0.29f; }
+static float CardX(int i) { 
+    return -1.15f + i * 0.29f; 
+}
 // no lab code
 
 void UpdateHud()
@@ -49,8 +57,14 @@ void UpdateHud()
         bool unlocked = CardUnlocked((CandyType)i);
         bool clicked = mouseClicked && InBox(mouseX, mouseY, CardX(i), CardY, CardW, CardH);
         if (unlocked && clicked) {
-            if (i == Chocolate) placingChocolate = !placingChocolate;   // then click anywhere on a shelf (click the card again to cancel)
-            else PlaceCandies((CandyType)i);
+            if (i == Chocolate) 
+            {
+                placingChocolate = !placingChocolate;   // then click anywhere on a shelf (click the card again to cancel)
+            }
+            else 
+            {
+                PlaceCandies((CandyType)i);
+            }
         }
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   bool hovering = pointInTriangle(cursorNDC, a, b, c);
@@ -67,8 +81,12 @@ void SugarCube(float x, float y, float size)
 
 void DrawCubes()
 {
-    for (Cube& c : cubes)
-        SugarCube(c.x, FloorY(c.lane) + 0.035f + 0.01f * std::sin(gameTime * 4.0f), 0.06f);
+    for (int i = 0; i < cubes.size(); i++)
+    {
+        Cube& c = cubes[i];
+        SugarCube(c.x,FloorY(c.lane) + 0.035f + 0.01f * std::sin(gameTime * 4.0f),0.06f);
+    }
+
     // LAB CODE (Lab 2 Template/main.cpp):
     //   float offsetX = sin(t) * 0.5f;
     // (the cube bobs up and down with sin of the time)

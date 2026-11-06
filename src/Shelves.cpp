@@ -87,10 +87,13 @@ static void DrawFridge(float doorOpen)
     //   float pulse = 0.75f + 0.25f * sin(t * 2.0f);
     // (same idea: a size that changes with a sin / cos)
     Rect(1.16f + w / 2, 0.0f, w, 1.36f, glm::vec3(0.75f, 0.9f, 0.95f));
-    for (int i = 0; i < 4; ++i)                                           // bottles seen through the glass
+    for (int i = 0; i < 4; ++i){
         for (int k = 0; k < 3; ++k)
             Rect(1.19f + k * 0.06f, -0.5f + i * 0.33f, 0.03f, 0.12f, glm::vec3(0.2f + 0.2f * k, 0.6f, 0.3f));
-    Rect(1.16f + w - 0.015f, 0.0f, 0.015f, 0.25f, glm::vec3(0.4f));       // handle
+    Rect(1.16f + w - 0.015f, 0.0f, 0.015f, 0.25f, glm::vec3(0.4f));
+
+    }                                           // bottles seen through the glass
+               // handle
 }
 
 static void DrawCandyJar()
@@ -185,8 +188,14 @@ void DrawStore(float doorOpen)
     for (int lane = Lanes - 1; lane >= 0; --lane)
     {
         float highlight = 0.0f;
-        if (hoverLane == lane) highlight += 0.15f;
-        if (laneSelected[lane]) highlight += 0.25f;
+        if (hoverLane == lane) 
+        {
+            highlight += 0.15f;
+        }
+        if (laneSelected[lane]) 
+        {
+            highlight += 0.25f;
+        }
         // LAB CODE (Lab 3 Notes/main.cpp):
         //   bool triangleHighlight = hovering;      // hovering the triangle highlights the triangle
         //   glUniform1f(locHighlight, triangleHighlight ? 1.0f : 0.0f);

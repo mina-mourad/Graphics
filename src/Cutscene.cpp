@@ -17,8 +17,14 @@
 // 0 before `start`, 1 after `end`, smooth in between
 static float Progress(float t, float start, float end)
 {
-    if (t <= start) return 0.0f;
-    if (t >= end) return 1.0f;
+    if (t <= start) 
+    {
+        return 0.0f;
+    }
+    if (t >= end) 
+    {
+        return 1.0f;
+    }
     return (t - start) / (end - start);
 }
 // no lab code
@@ -83,7 +89,10 @@ void DrawCutscene(float t)
     else {
         bottleAttack = 0.0f;
     }
-    if (t > 2.8f) DrawSoda(Bottle, bottleX, FloorY(1), 1.0f, bottleAttack);
+    if (t > 2.8f) 
+    {
+        DrawSoda(Bottle, bottleX, FloorY(1), 1.0f, bottleAttack);
+    }
     if (t > 3.4f) {
         // the can gets hit
         if (t > 11.6f && t < 12.0f) {
@@ -100,17 +109,38 @@ void DrawCutscene(float t)
     }
 
     // fizz flies over the ducking lollipop, a candy pellet hits the can
-    if (t > 10.0f && t < 11.2f) Circle(bottleX - 0.1f - 0.9f * Progress(t, 10.0f, 11.2f), FloorY(1) + 0.27f, 0.025f, 0.025f, glm::vec3(0.7f, 0.9f, 1.0f));
-    if (t > 11.0f && t < 11.6f) Circle(-0.65f + (canX - 0.7f) * Progress(t, 11.0f, 11.6f), FloorY(0) + 0.08f, 0.022f, 0.022f, glm::vec3(1.0f, 0.4f, 0.7f));
+    if (t > 10.0f && t < 11.2f) 
+    {
+        Circle(bottleX - 0.1f - 0.9f * Progress(t, 10.0f, 11.2f), FloorY(1) + 0.27f, 0.025f, 0.025f, glm::vec3(0.7f, 0.9f, 1.0f));
+    }
+    if (t > 11.0f && t < 11.6f) 
+    {
+        Circle(-0.65f + (canX - 0.7f) * Progress(t, 11.0f, 11.6f), FloorY(0) + 0.08f, 0.022f, 0.022f, glm::vec3(1.0f, 0.4f, 0.7f));
+    }
 
     // dialogue
-    if (t > 6.0f && t < 8.5f) Bubble("GIVE US YOUR SUGAR!", bottleX, FloorY(1) + 0.45f);
-    if (t > 8.5f && t < 10.5f) Bubble("NEVER! THE JAR IS OURS!", -0.4f, FloorY(1) + 0.45f);
+    if (t > 6.0f && t < 8.5f)
+    {
+        Bubble("GIVE US YOUR SUGAR!", bottleX, FloorY(1) + 0.45f);
+    }
+    if (t > 8.5f && t < 10.5f)
+    {
+        Bubble("NEVER! THE JAR IS OURS!", -0.4f, FloorY(1) + 0.45f);
+    }
 
     // story text
-    if (t < 3.0f) Subtitle("THE CANDY JAR HOLDS THE SUGAR THAT KEEPS EVERY CANDY SWEET...");
-    else if (t < 6.0f) Subtitle("BUT THE SODAS IN THE FRIDGE WANT IT TO STAY SWEET!");
-    else if (t < 12.0f) Subtitle("DUCK UNDER FIZZ - JUMP OVER SYRUP");
+    if (t < 3.0f) 
+    {
+        Subtitle("THE CANDY JAR HOLDS THE SUGAR THAT KEEPS EVERY CANDY SWEET...");
+    }
+    else if (t < 6.0f) 
+    {
+        Subtitle("BUT THE SODAS IN THE FRIDGE WANT IT TO STAY SWEET!");
+    }
+    else if (t < 12.0f) 
+    {
+        Subtitle("DUCK UNDER FIZZ - JUMP OVER SYRUP");
+    }
     else {
         Rect(0.0f, 0.86f, 2 * Aspect, 0.25f, glm::vec3(0.45f, 0.25f, 0.35f));
         Text("DEFEND THE CANDY JAR!", 0.0f, 0.86f, 0.024f, glm::vec3(1.0f, 0.9f, 0.3f));

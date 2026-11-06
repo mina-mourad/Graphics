@@ -25,7 +25,10 @@ static bool muted = false;
 
 void InitSound()
 {
-    if (ma_engine_init(NULL, &engine) != MA_SUCCESS) return;   // no sound card: game stays silent
+    if (ma_engine_init(NULL, &engine) != MA_SUCCESS) 
+    {
+        return;   // no sound card: game stays silent
+    }
     ready = true;
     std::string file = std::string(SOUND_DIR) + "music.mp3";
     if (ma_sound_init_from_file(&engine, file.c_str(), 0, NULL, NULL, &music) == MA_SUCCESS) {
@@ -39,13 +42,19 @@ void InitSound()
 
 void CloseSound()
 {
-    if (ready) ma_engine_uninit(&engine);
+    if (ready) 
+    {
+        ma_engine_uninit(&engine);
+    }
 }
 // no lab code
 
 void PlaySound(const char* name)
 {
-    if (!ready) return;
+    if (!ready) 
+    {
+        return;
+    }
     std::string file = std::string(SOUND_DIR) + name + ".wav";
     ma_engine_play_sound(&engine, file.c_str(), NULL);
 }
@@ -55,8 +64,14 @@ void PlaySound(const char* name)
 void ChangeVolume(float change)
 {
     volume += change;
-    if (volume < 0.0f) volume = 0.0f;
-    if (volume > 1.0f) volume = 1.0f;
+    if (volume < 0.0f) 
+    {
+        volume = 0.0f;
+    }
+    if (volume > 1.0f) 
+    {
+        volume = 1.0f;
+    }
     if (ready) {
         if (muted) {
             ma_engine_set_volume(&engine, 0.0f);
