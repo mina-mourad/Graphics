@@ -1,10 +1,3 @@
-// Person 4 (store, game flow and intro).
-// The game states (menus, cutscene, playing...) and the order things are
-// updated and drawn in. [NOT LAB] plain C++ (enum + switch).
-// [LAB] the mouse / key variables and Esc (Lab 3).
-// Below every part that uses lab code there is a "LAB CODE" comment with the
-// lab lines exactly as they are written in the lab files.
-// Parts with no lab code say "no lab code".
 #include "Game.h"
 #include "Shapes.h"
 #include "Shelves.h"
@@ -16,7 +9,6 @@
 #include "Sound.h"
 #include <GLFW/glfw3.h>
 
-// ---- the shared lists and numbers (see Game.h) ----
 std::vector<Candy> candies;
 std::vector<Soda>  sodas;
 std::vector<Shot>  shots;
@@ -32,10 +24,6 @@ float gameTime = 0.0f;
 float mouseX = 0.0f, mouseY = 0.0f;
 bool  mouseClicked = false;
 bool  keyPressed[512] = {};
-// LAB CODE (Lab 3 Notes/Lab3ExtraNotes.cpp):
-//   float mouseX = 0;
-//   float mouseY = 0;
-//   bool clicked = false;
 
 enum State { MainMenuState, SoundMenuState, Cutscene, Playing, Paused, Won, Lost };
 static State state = MainMenuState;
@@ -54,20 +42,18 @@ void ResetGame()
     placingChocolate = false;
     ResetWaves();
 }
-// no lab code
 
 bool GameWantsExit() { return exitGame; }
-// no lab code (main.cpp stops its loop when this is true)
 
 void GameUpdate(float dt)
 {
     if (dt > 0.05f) 
     {
-        dt = 0.05f;    // a slow frame must not make things jump
+        dt = 0.05f;
     }
     if (state == Playing) 
     {
-        gameTime += dt;   // after winning / losing nothing moves any more
+        gameTime += dt;
     }
 
     if (state == Cutscene)
@@ -84,11 +70,8 @@ void GameUpdate(float dt)
             placingChocolate = false; 
             state = Paused; return; 
         }
-        // LAB CODE (Lab 3 Notes/main.cpp):
-        //   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        // (Esc pauses the game instead of closing the window)
-        UpdateHud();          // cards (clicks above the shelves)
-        UpdateShelves();      // hover and select shelves
+        UpdateHud();
+        UpdateShelves();
         UpdateCandies(dt);
         bool lost = UpdateSodas(dt);
         UpdateShots(dt);
@@ -96,7 +79,7 @@ void GameUpdate(float dt)
         if (lost) { 
             state = Lost; 
             PlaySound("lose"); 
-        }   // everything stops here
+        }
         else if (won) { 
             state = Won; 
             PlaySound("win"); 
@@ -104,7 +87,6 @@ void GameUpdate(float dt)
     }
     else if (state == Paused && keyPressed[GLFW_KEY_ESCAPE])
         state = Playing;
-    // no lab code (the game states)
 }
 
 static void DrawWorld()
@@ -116,10 +98,7 @@ static void DrawWorld()
     DrawShots();
     DrawHud();
 }
-// no lab code
 
-// The menus are drawn and clicked in the same function, so the state
-// changes for menu buttons happen here.
 void GameDraw()
 {
     int button;
@@ -174,7 +153,7 @@ void GameDraw()
         break;
     case Won:
     case Lost:
-        DrawWorld();                       // the scene stays frozen behind the menu
+        DrawWorld();
         button = EndMenu(state == Won);
         if (button == 0) { 
             ResetGame(); 
@@ -187,4 +166,3 @@ void GameDraw()
         break;
     }
 }
-// no lab code

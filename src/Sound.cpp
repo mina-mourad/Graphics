@@ -1,17 +1,9 @@
-// [NOT LAB] The labs have no sound, so this uses the miniaudio library
-// (one header file: external/miniaudio/miniaudio.h). Its "engine" can load
-// and play a sound file in one line.
-// Sound files (from the internet, free to use - see sounds/CREDITS.txt).
-// no lab code in this file
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
-#undef PlaySound   // windows.h (via miniaudio) renames it to PlaySoundA, which breaks linking
+#undef PlaySound
 #include "Sound.h"
 #include <string>
 
-// SoundDir (the sounds folder) is set by CMakeLists.txt. This fallback is only for
-// VS Code's error checker (IntelliSense), which does not read CMakeLists.txt and
-// would underline SoundDir in red.
 #ifndef SoundDir
 #define SoundDir "sounds/"
 #endif
@@ -21,13 +13,12 @@ static ma_sound music;
 static bool ready = false;
 static float volume = 0.7f;
 static bool muted = false;
-// no lab code
 
 void InitSound()
 {
     if (ma_engine_init(NULL, &engine) != MA_SUCCESS) 
     {
-        return;   // no sound card: game stays silent
+        return;
     }
     ready = true;
     std::string file = std::string(SoundDir) + "music.mp3";
@@ -38,7 +29,6 @@ void InitSound()
     }
     ma_engine_set_volume(&engine, volume);
 }
-// no lab code
 
 void CloseSound()
 {
@@ -47,7 +37,6 @@ void CloseSound()
         ma_engine_uninit(&engine);
     }
 }
-// no lab code
 
 void PlaySound(const char* name)
 {
@@ -58,9 +47,7 @@ void PlaySound(const char* name)
     std::string file = std::string(SoundDir) + name + ".wav";
     ma_engine_play_sound(&engine, file.c_str(), NULL);
 }
-// no lab code
 
-// The engine volume changes every sound, also the ones already playing.
 void ChangeVolume(float change)
 {
     volume += change;
@@ -81,7 +68,6 @@ void ChangeVolume(float change)
         }
     }
 }
-// no lab code
 
 void ToggleMute()
 {
@@ -95,9 +81,6 @@ void ToggleMute()
         }
     }
 }
-// no lab code
 
 float GetVolume() { return volume; }
-// no lab code
 bool IsMuted() { return muted; }
-// no lab code
