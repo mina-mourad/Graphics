@@ -1,8 +1,0 @@
-Music: "House In a Forest Loop" by HorrorPen (2012), CC-BY 3.0
-       https://opengameart.org/content/loop-house-in-a-forest
-       (copy taken from github.com/godotengine/godot-demo-projects, 2d/dodge_the_creeps)
-Sound effects: Kenney (www.kenney.nl), CC0 / public domain
-       Interface Sounds, UI Audio, Digital Audio, RPG Audio, Music Jingles
-       (copies from github.com/Calinou/kenney-interface-sounds, github.com/Calinou/kenney-ui-audio
-        and github.com/ismetcabbar9-oss/kenney-audio-assets)
-Converted to WAV / MP3 with ffmpeg.

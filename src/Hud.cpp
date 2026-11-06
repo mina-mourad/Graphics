@@ -159,9 +159,5 @@ void DrawHud()
 
     if (placingChocolate)
         Text("CLICK A SHELF TO PUT THE CHOCOLATE - CARD AGAIN: CANCEL", 0.0f, 0.66f, 0.0075f, glm::vec3(0.5f, 0.2f, 0.1f));
-
-    // how to play
-    Text("SELECT SHELVES - CLICK CARD: PLACE - W JUMP - S DUCK - ESC PAUSE",
-         0.0f, -0.96f, 0.0055f, glm::vec3(0.2f));
     // no lab code (Text)
 }
