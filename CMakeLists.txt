@@ -24,7 +24,7 @@ add_executable(OpenGLStarter
     src/Sound.cpp
 )
 
-target_include_directories(OpenGLStarter PRIVATE external/glad/include external/miniaudio)
+target_include_directories(OpenGLStarter PRIVATE external/glad/include external/miniaudio external/stb)
 target_compile_definitions(OpenGLStarter PRIVATE GLFW_INCLUDE_NONE SOUND_DIR="${CMAKE_SOURCE_DIR}/sounds/")
 target_link_libraries(OpenGLStarter PRIVATE glfw OpenGL::GL glm::glm Threads::Threads ${CMAKE_DL_LIBS})
 

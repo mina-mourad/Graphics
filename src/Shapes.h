@@ -12,9 +12,9 @@ void InitShapes();
 void Rect(float x, float y, float w, float h, glm::vec3 color, float angle = 0.0f, float highlight = 0.0f);
 void Tri(float x, float y, float w, float h, glm::vec3 color, float angle = 0.0f);
 void Circle(float x, float y, float rx, float ry, glm::vec3 color);
-// Lines (GL_LINES) stored in the VBO from `start`, placed at (x, y) and scaled by size.
+// Triangles (GL_TRIANGLES) stored in the VBO from `start`, placed at (x, y) and scaled by size.
 // Used for the letters (see Text.cpp).
-void Lines(int start, int count, float x, float y, float size, glm::vec3 color);
+void Triangles(int start, int count, float x, float y, float size, glm::vec3 color);
 
 // Effects for everything drawn after them (0 = off, 1 = full).
 extern float redness;   // hurt characters turn red (sent to u_Red in the shader)
