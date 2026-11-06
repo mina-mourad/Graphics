@@ -184,7 +184,7 @@ void DrawStore(float doorOpen)
 
     // the three shelves: back panel (lights up when hovered / selected),
     // the wooden board, price tags on its edge and two SALE signs (same places on every shelf)
-    const float saleX[2] = { -0.75f, 0.85f };
+    const float SaleX[2] = { -0.75f, 0.85f };
     for (int lane = Lanes - 1; lane >= 0; --lane)
     {
         float highlight = 0.0f;
@@ -212,7 +212,7 @@ void DrawStore(float doorOpen)
             Rect(x + 0.16f, board, 0.02f, 0.02f, glm::vec3(0.9f, 0.2f, 0.2f));
         }
         for (int i = 0; i < 2; ++i)
-            DrawSaleSign(saleX[i], LaneY[lane] + 0.19f);   // its top touches the shelf above
+            DrawSaleSign(SaleX[i], LaneY[lane] + 0.19f);   // its top touches the shelf above
     }
 
     DrawFridge(doorOpen);
