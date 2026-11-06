@@ -9,11 +9,11 @@
 #include "Sound.h"
 #include <string>
 
-// SOUND_DIR (the sounds folder) is set by CMakeLists.txt. This fallback is only for
+// SoundDir (the sounds folder) is set by CMakeLists.txt. This fallback is only for
 // VS Code's error checker (IntelliSense), which does not read CMakeLists.txt and
-// would underline SOUND_DIR in red.
-#ifndef SOUND_DIR
-#define SOUND_DIR "sounds/"
+// would underline SoundDir in red.
+#ifndef SoundDir
+#define SoundDir "sounds/"
 #endif
 
 static ma_engine engine;
@@ -30,7 +30,7 @@ void InitSound()
         return;   // no sound card: game stays silent
     }
     ready = true;
-    std::string file = std::string(SOUND_DIR) + "music.mp3";
+    std::string file = std::string(SoundDir) + "music.mp3";
     if (ma_sound_init_from_file(&engine, file.c_str(), 0, NULL, NULL, &music) == MA_SUCCESS) {
         ma_sound_set_looping(&music, MA_TRUE);
         ma_sound_set_volume(&music, 0.5f);
@@ -55,7 +55,7 @@ void PlaySound(const char* name)
     {
         return;
     }
-    std::string file = std::string(SOUND_DIR) + name + ".wav";
+    std::string file = std::string(SoundDir) + name + ".wav";
     ma_engine_play_sound(&engine, file.c_str(), NULL);
 }
 // no lab code

@@ -102,4 +102,4 @@ Files are in `sounds/` (credits in `sounds/CREDITS.txt`):
 
 ## Build
 Same as the template: open the folder in VS Code, CMake, build and run `OpenGLStarter`.
-The game finds the sound files through the `SOUND_DIR` path set in `CMakeLists.txt`.
+The game finds the sound files through the `SoundDir` path set in `CMakeLists.txt`.
